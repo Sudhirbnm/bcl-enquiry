@@ -274,8 +274,8 @@
           <input type="number" id="quantity" placeholder="e.g. 500" min="1">
         </div>
         <div class="field">
-          <label>Budget range / MRP<span class="opt">(optional)</span></label>
-          <input type="text" id="budget" placeholder="e.g. ₹1,500–₹2,000 per piece">
+          <label>Budget (WSV)<span class="req">*</span> <span style="font-size:11px;color:var(--text3);font-weight:400">Tax extra</span></label>
+          <input type="text" id="budget" placeholder="e.g. ₹1,500–₹2,000 per piece (excl. tax)">
         </div>
       </div>
     </div>
@@ -553,7 +553,7 @@ function showToast(msg, isError){
 
 // ── SUBMIT ──
 async function submitForm(){
-  const req = ['salesName','channel','deliveryDate','quantity','category'];
+  const req = ['salesName','channel','deliveryDate','quantity','category','budget'];
   const clientReq = enquiryType === 'direct'
     ? ['companyName','contactPerson','phone','email','city']
     : ['distName','contactPerson','phone','email','city'];
@@ -686,7 +686,7 @@ function renderList(){
 // ── EXPORT CSV ──
 function exportCSV(){
   if(!enquiries.length){ alert('No enquiries to export yet.'); return; }
-  const headers = ['Enquiry ID','Date','Source','Company / Person Name','3rd Party / Agency','Contact Person','Phone','Email','City','Brand(s)','Category','Product Name','Size / Sizes','Quantity','Budget / MRP','Gifting Occasion','Delivery Date','No. of Locations','Delivery Location(s)','Special Requirements','Enquiry Owner','Channel','Reference','Submitted On'];
+  const headers = ['Enquiry ID','Date','Source','Company / Person Name','3rd Party / Agency','Contact Person','Phone','Email','City','Brand(s)','Category','Product Name','Size / Sizes','Quantity','Budget (WSV) Tax Extra','Gifting Occasion','Delivery Date','No. of Locations','Delivery Location(s)','Special Requirements','Enquiry Owner','Channel','Reference','Submitted On'];
   const rows = enquiries.map(e => [
     e.id, e.submittedAt, e.type, e.company, e.thirdParty, e.contact, e.phone, e.email, e.city,
     e.brands, e.category, e.productName, e.productSize, e.quantity, e.budget, e.occasion, e.deliveryDate,
