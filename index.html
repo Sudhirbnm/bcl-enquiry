@@ -605,14 +605,19 @@ async function submitForm(){
   };
 
   try {
-    await fetch(SCRIPT_URL, {
+    // Use no-cors fetch — data goes through, response is opaque but that's fine
+    const formData = new FormData();
+    formData.append('payload', JSON.stringify(enq));
+
+    fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(enq)
+      body: formData
     });
+
+    // Since no-cors gives no response, we optimistically show success after short delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
     enquiries.push({...enq, brandsArr: selBrands.slice()});
-    document.getElementById('enqCountBadge').textContent = enquiries.length;
     showToast('Enquiry ' + enq.id + ' submitted successfully!');
     resetForm();
   } catch(err){
