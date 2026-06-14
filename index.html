@@ -197,15 +197,7 @@
 
 <div class="container">
 
-  <div class="tab-row">
-    <button class="tab active" id="tab-form" onclick="switchTab('form')">
-      <i class="ti ti-file-plus"></i> New Enquiry
-    </button>
-    <button class="tab" id="tab-list" onclick="switchTab('list')">
-      <i class="ti ti-list"></i> All Enquiries
-      <span class="badge" id="enqCountBadge">0</span>
-    </button>
-  </div>
+
 
   <!-- FORM PANE -->
   <div id="formPane">
@@ -252,14 +244,30 @@
       <div class="field-grid">
         <div class="field">
           <label>Category<span class="req">*</span></label>
-          <select id="category">
+          <select id="category" onchange="handleCategoryChange()">
             <option value="">Select category</option>
-            <option>Luggage</option><option>Backpack</option><option>Belt</option><option>Wallet</option><option>Handbag</option>
+            <option>Luggage</option>
+            <option>Backpack</option>
+            <option>Belt</option>
+            <option>Wallet</option>
+            <option>Handbag</option>
+            <option>Business Case</option>
+            <option>Cross Body</option>
+            <option>Gym Bag</option>
+            <option>Other</option>
           </select>
+        </div>
+        <div class="field" id="otherCategoryWrap" style="display:none">
+          <label>Specify category<span class="req">*</span></label>
+          <input type="text" id="otherCategory" placeholder="e.g. Duffel bag, Tote bag…">
         </div>
         <div class="field">
           <label>Product name<span class="opt">(optional)</span></label>
           <input type="text" id="productName" placeholder="e.g. TH Spinner 24">
+        </div>
+        <div class="field">
+          <label>Size / Sizes<span class="opt">(optional)</span></label>
+          <input type="text" id="productSize" placeholder="e.g. 20&quot;, 24&quot;, 28&quot; or S/M/L">
         </div>
         <div class="field">
           <label>Quantity required<span class="req">*</span></label>
@@ -326,12 +334,12 @@
     <div class="card">
       <div class="sec-head">
         <div class="sec-icon"><i class="ti ti-user-circle"></i></div>
-        <span>Salesperson Details</span>
+        <span>Enquiry Owner Details</span>
         <div class="sec-divider"></div>
       </div>
       <div class="field-grid">
         <div class="field">
-          <label>Salesperson name<span class="req">*</span></label>
+          <label>Enquiry owner name<span class="req">*</span></label>
           <input type="text" id="salesName" placeholder="Full name">
         </div>
         <div class="field">
@@ -357,16 +365,7 @@
 
   </div>
 
-  <!-- LIST PANE -->
-  <div id="listPane" style="display:none">
-    <div class="list-toolbar">
-      <span class="list-count" id="listCountLabel">0 enquiries</span>
-      <button class="export-btn" onclick="exportCSV()">
-        <i class="ti ti-download"></i> Export to Excel / CSV
-      </button>
-    </div>
-    <div id="enqList"></div>
-  </div>
+
 
 </div>
 
@@ -470,6 +469,20 @@ document.addEventListener('click', () => {
     document.getElementById('msArrow').classList.remove('open');
   }
 });
+
+// ── CATEGORY ──
+function handleCategoryChange(){
+  const sel = document.getElementById('category').value;
+  const wrap = document.getElementById('otherCategoryWrap');
+  wrap.style.display = sel === 'Other' ? 'flex' : 'none';
+  if(sel !== 'Other') { const el = document.getElementById('otherCategory'); if(el) el.value=''; }
+}
+
+function getCategory(){
+  const sel = document.getElementById('category').value;
+  if(sel === 'Other') return document.getElementById('otherCategory').value.trim() || 'Other';
+  return sel;
+}
 
 // ── OCCASIONS ──
 function handleOccasionChange(){
@@ -576,8 +589,9 @@ async function submitForm(){
     email: val('email'),
     city: val('city'),
     brands: selBrands.join(' | '),
-    category: val('category'),
+    category: getCategory(),
     productName: val('productName'),
+    productSize: val('productSize'),
     quantity: val('quantity'),
     budget: val('budget'),
     occasion: getOccasion(),
@@ -621,7 +635,9 @@ function resetForm(){
   if(oWrap) oWrap.style.display = 'none';
   const oOther = document.getElementById('otherOccasion');
   if(oOther) oOther.value = '';
-  ['category','productName','quantity','budget','deliveryDate','deliveryLoc','deliveryLocCount','specialReq','salesName','channel','reference','otherOccasion']
+  const cWrap = document.getElementById('otherCategoryWrap');
+  if(cWrap) cWrap.style.display = 'none';
+  ['category','productName','productSize','otherCategory','quantity','budget','deliveryDate','deliveryLoc','deliveryLocCount','specialReq','salesName','channel','reference','otherOccasion']
     .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
 }
 
@@ -670,10 +686,10 @@ function renderList(){
 // ── EXPORT CSV ──
 function exportCSV(){
   if(!enquiries.length){ alert('No enquiries to export yet.'); return; }
-  const headers = ['Enquiry ID','Date','Source','Company / Person Name','3rd Party / Agency','Contact Person','Phone','Email','City','Brand(s)','Category','Product Name','Quantity','Budget / MRP','Gifting Occasion','Delivery Date','No. of Locations','Delivery Location(s)','Special Requirements','Salesperson','Channel','Reference','Submitted On'];
+  const headers = ['Enquiry ID','Date','Source','Company / Person Name','3rd Party / Agency','Contact Person','Phone','Email','City','Brand(s)','Category','Product Name','Size / Sizes','Quantity','Budget / MRP','Gifting Occasion','Delivery Date','No. of Locations','Delivery Location(s)','Special Requirements','Enquiry Owner','Channel','Reference','Submitted On'];
   const rows = enquiries.map(e => [
     e.id, e.submittedAt, e.type, e.company, e.thirdParty, e.contact, e.phone, e.email, e.city,
-    e.brands, e.category, e.productName, e.quantity, e.budget, e.occasion, e.deliveryDate,
+    e.brands, e.category, e.productName, e.productSize, e.quantity, e.budget, e.occasion, e.deliveryDate,
     e.deliveryLocCount, e.deliveryLoc, e.specialReq, e.salesName, e.channel, e.reference, e.submittedAt
   ].map(v => '"' + String(v||'').replace(/"/g,'""') + '"'));
   const csv = [headers.map(h=>'"'+h+'"').join(','), ...rows.map(r=>r.join(','))].join('\n');
