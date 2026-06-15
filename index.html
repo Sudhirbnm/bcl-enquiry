@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCL — Brand Concepts Portal</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;--blue-mid:#378ADD;
+  --green-bg:#EAF3DE;--green-text:#3B6D11;--orange-bg:#FAEEDA;--orange-text:#633806;
+  --red:#E24B4A;--red-bg:#FEF0F0;
+  --bg:#F7F8FA;--card:#FFFFFF;--border:#E2E6EA;--border-light:#EEF0F3;
+  --text:#1A1D23;--text2:#52596B;--text3:#9AA0AD;
+  --radius:10px;--radius-sm:7px;--shadow:0 2px 12px rgba(0,0,0,.07);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+.app-header{background:var(--blue-dark);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.logo{background:#fff;border-radius:6px;padding:4px 10px;font-size:13px;font-weight:700;color:var(--blue-dark);letter-spacing:.5px}
+.app-header h1{color:#fff;font-size:16px;font-weight:500;flex:1}
+.header-badge{background:rgba(255,255,255,.15);color:#fff;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.25)}
+.user-info{background:rgba(255,255,255,.15);color:#fff;font-size:12px;padding:6px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.25);display:none;align-items:center;gap:6px}
+.logout-btn{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;margin-left:6px;display:none}
+.logout-btn:hover{background:rgba(255,255,255,.2)}
+
+/* MAIN TABS */
+.main-tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:49px;z-index:99}
+.main-tab{flex:1;padding:13px;border:none;background:transparent;cursor:pointer;font-size:14px;font-weight:500;color:var(--text3);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px;border-bottom:2px solid transparent}
+.main-tab.active{color:var(--blue);border-bottom-color:var(--blue);background:var(--blue-light)}
+.main-tab i{font-size:17px}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* CONTAINER */
+.container{max-width:780px;margin:0 auto;padding:24px 16px 60px}
+.container-wide{max-width:1000px;margin:0 auto;padding:24px 16px 60px}
+
+/* ENQUIRY FORM STYLES */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px;border:0.5px solid var(--border)}
+.source-label{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.toggle-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.toggle-btn{padding:14px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:14px;font-weight:500;color:var(--text2);transition:all .15s;text-align:center}
+.toggle-btn i{font-size:22px;display:block;margin-bottom:6px;color:var(--text3)}
+.toggle-btn.active{border-color:var(--blue);background:var(--blue-light);color:var(--blue-dark)}
+.toggle-btn.active i{color:var(--blue)}
+.sec-head{display:flex;align-items:center;gap:8px;margin:20px 0 14px}
+.sec-head .sec-icon{width:28px;height:28px;background:var(--blue-light);border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--blue);font-size:15px;flex-shrink:0}
+.sec-head span{font-size:13px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.05em}
+.sec-divider{flex:1;height:1px;background:var(--border-light)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.span2{grid-column:1/-1}
+.field label{font-size:13px;color:var(--text2);font-weight:500}
+.field label .opt{font-size:11px;color:var(--text3);font-weight:400;margin-left:4px}
+.req{color:var(--red);margin-left:2px}
+.field input,.field select,.field textarea{border-radius:var(--radius-sm);border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;padding:9px 12px;width:100%;transition:border .15s,box-shadow .15s;font-family:inherit}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3)}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue-mid);box-shadow:0 0 0 3px var(--blue-light)}
+.field textarea{resize:vertical;min-height:76px}
+.field input.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(226,75,74,.1)}
+.ms-wrap{position:relative}
+.ms-trigger{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:#fff;cursor:pointer;min-height:40px;gap:8px;user-select:none;transition:border .15s,box-shadow .15s}
+.ms-trigger:hover{border-color:var(--blue-mid)}
+.ms-trigger.open{border-color:var(--blue-mid);box-shadow:0 0 0 3px var(--blue-light);border-radius:var(--radius-sm) var(--radius-sm) 0 0}
+.ms-tags{display:flex;flex-wrap:wrap;gap:4px;flex:1}
+.ms-placeholder{font-size:14px;color:var(--text3)}
+.ms-tag{background:var(--blue-light);color:var(--blue-dark);border-radius:5px;padding:2px 8px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:4px}
+.ms-tag-x{cursor:pointer;font-size:15px;line-height:1;color:var(--blue-mid)}
+.ms-arrow{font-size:16px;color:var(--text3);transition:transform .15s;flex-shrink:0}
+.ms-arrow.open{transform:rotate(180deg)}
+.ms-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--blue-mid);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);z-index:200;box-shadow:0 6px 16px rgba(0,0,0,.1);max-height:230px;overflow-y:auto;display:none}
+.ms-dropdown.open{display:block}
+.ms-option{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;font-size:14px;color:var(--text);transition:background .1s;border-bottom:0.5px solid var(--border-light)}
+.ms-option:last-child{border-bottom:none}
+.ms-option:hover{background:var(--bg)}
+.ms-option.sel{background:var(--blue-light)}
+.ms-option.special{color:var(--text2);font-style:italic}
+.ms-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;background:#fff}
+.ms-option.sel .ms-check{background:var(--blue);border-color:var(--blue)}
+.ms-check i{color:#fff;font-size:12px;display:none}
+.ms-option.sel .ms-check i{display:block}
+.ms-short{font-size:11px;color:var(--text3);margin-left:auto;flex-shrink:0}
+.ms-divider-line{height:1px;background:var(--border);margin:2px 0}
+.submit-btn{width:100%;margin-top:20px;padding:14px;border-radius:var(--radius);border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(24,95,165,.3)}
+.submit-btn:hover{background:var(--blue-dark);transform:translateY(-1px)}
+.submit-btn:active{transform:translateY(0)}
+.submit-btn:disabled{background:var(--text3);box-shadow:none;cursor:not-allowed;transform:none}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1C2B1A;color:#fff;padding:12px 20px;border-radius:var(--radius);font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.25);z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error-toast{background:#3B0F0F}
+.toast i{font-size:18px;color:#7FD67A}
+.toast.error-toast i{color:#FF8A8A}
+
+/* LOGIN */
+.login-wrap{padding:40px 16px}
+.login-card{background:#fff;border-radius:var(--radius);padding:32px;width:100%;max-width:400px;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,.1);border:0.5px solid var(--border)}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo .bcl-big{display:inline-block;background:var(--blue-dark);color:#fff;font-size:24px;font-weight:700;padding:10px 22px;border-radius:8px;letter-spacing:1px;margin-bottom:10px}
+.login-logo h2{font-size:17px;color:var(--text);font-weight:600}
+.login-logo p{font-size:13px;color:var(--text3);margin-top:4px}
+.login-field{margin-bottom:14px}
+.login-field label{font-size:13px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px}
+.login-field input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);transition:all .15s}
+.login-field input:focus{outline:none;border-color:var(--blue-mid);box-shadow:0 0 0 3px var(--blue-light)}
+.login-btn{width:100%;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;margin-top:6px;transition:all .15s}
+.login-btn:hover{background:var(--blue-dark)}
+.login-error{background:var(--red-bg);border:1px solid #FFCDD2;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;display:none;align-items:center;gap:8px}
+.login-error.show{display:flex}
+
+/* PORTAL */
+.welcome-banner{background:linear-gradient(135deg,var(--blue-dark),var(--blue));border-radius:var(--radius);padding:22px 24px;margin-bottom:20px;color:#fff}
+.welcome-banner h2{font-size:19px;font-weight:600;margin-bottom:3px}
+.welcome-banner p{font-size:13px;opacity:.8}
+.dept-badge{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 12px;font-size:12px;margin-top:8px;border:1px solid rgba(255,255,255,.25)}
+.section-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 10px}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.tool-card{background:#fff;border:0.5px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all .2s;text-decoration:none;display:block;box-shadow:var(--shadow)}
+.tool-card:hover{border-color:var(--blue-mid);box-shadow:0 4px 20px rgba(24,95,165,.12);transform:translateY(-2px)}
+.tool-icon{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.ti-blue{background:var(--blue-light);color:var(--blue)}
+.ti-green{background:#EAF3DE;color:#3B6D11}
+.ti-orange{background:#FAEEDA;color:#633806}
+.ti-purple{background:#F3EFFE;color:#6B21A8}
+.ti-teal{background:#E0F7F6;color:#0E7490}
+.tool-card h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.tool-card p{font-size:12px;color:var(--text3);line-height:1.5}
+.tool-tag{display:inline-block;background:var(--bg);border:0.5px solid var(--border);border-radius:5px;padding:2px 7px;font-size:11px;color:var(--text3);margin-top:8px}
+
+/* ADMIN */
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.admin-header h3{font-size:16px;font-weight:600}
+.add-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer}
+.add-btn:hover{background:var(--blue-dark)}
+.portal-tabs{display:flex;gap:6px;margin-bottom:20px;background:#fff;border-radius:var(--radius-sm);padding:5px;box-shadow:var(--shadow);width:fit-content}
+.portal-tab{padding:7px 16px;border-radius:6px;border:none;background:transparent;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all .15s}
+.portal-tab.active{background:var(--blue);color:#fff}
+.user-table{background:#fff;border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.user-table table{width:100%;border-collapse:collapse}
+.user-table th{background:var(--bg);padding:10px 14px;font-size:11px;font-weight:600;color:var(--text3);text-align:left;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+.user-table td{padding:11px 14px;font-size:13px;color:var(--text);border-bottom:0.5px solid var(--border-light);vertical-align:middle}
+.user-table tr:last-child td{border-bottom:none}
+.user-table tr:hover td{background:var(--bg)}
+.lvl{display:inline-block;padding:2px 9px;border-radius:9px;font-size:11px;font-weight:600}
+.lvl-l1{background:#FEF3C7;color:#92400E}
+.lvl-l2{background:#DBEAFE;color:#1E40AF}
+.lvl-l3{background:#D1FAE5;color:#065F46}
+.lvl-l4{background:#F3F4F6;color:#374151}
+.act-btn{padding:4px 9px;border-radius:5px;border:0.5px solid var(--border);background:#fff;cursor:pointer;font-size:12px;color:var(--text2);margin-right:4px}
+.act-btn:hover{background:var(--bg)}
+.act-btn.del{color:var(--red);border-color:#FFCDD2}
+.act-btn.del:hover{background:var(--red-bg)}
+.empty-table{text-align:center;padding:36px;color:var(--text3);font-size:13px}
+.empty-table i{font-size:32px;display:block;margin-bottom:8px;color:var(--border)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:var(--radius);padding:24px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:18px}
+.mf{margin-bottom:12px}
+.mf label{font-size:13px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px}
+.mf input,.mf select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text)}
+.mf input:focus,.mf select:focus{outline:none;border-color:var(--blue-mid);box-shadow:0 0 0 3px var(--blue-light)}
+.modal-actions{display:flex;gap:8px;margin-top:18px;justify-content:flex-end}
+.m-cancel{padding:8px 16px;border:1px solid var(--border);background:#fff;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2)}
+.m-save{padding:8px 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500}
+.m-save:hover{background:var(--blue-dark)}
+
+@media(max-width:540px){
+  .field-grid{grid-template-columns:1fr}
+  .field.span2{grid-column:1}
+  .toggle-row{grid-template-columns:1fr}
+  .tools-grid{grid-template-columns:1fr}
+  .container,.container-wide{padding:16px 12px 60px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="logo">BCL</div>
+  <h1 id="headerTitle">Institutional &amp; Gifting Enquiry</h1>
+  <div class="user-info" id="userInfo"><i class="ti ti-user-circle"></i><span id="userInfoName"></span></div>
+  <button class="logout-btn" id="logoutBtn" onclick="doLogout()"><i class="ti ti-logout" style="vertical-align:-2px;margin-right:3px"></i>Logout</button>
+  <div class="header-badge" id="headerBadge"><i class="ti ti-shield-check" style="vertical-align:-2px;margin-right:4px"></i>Brand Concepts Ltd</div>
+</div>
+
+<!-- MAIN TABS -->
+<div class="main-tabs">
+  <button class="main-tab active" id="mainTab-enquiry" onclick="switchMainTab('enquiry')">
+    <i class="ti ti-file-plus"></i> New Enquiry
+  </button>
+  <button class="main-tab" id="mainTab-portal" onclick="switchMainTab('portal')">
+    <i class="ti ti-layout-grid"></i> Staff Portal
+  </button>
+</div>
+
+<!-- ══ TAB 1: ENQUIRY FORM ══ -->
+<div class="page active" id="page-enquiry">
+<div class="container">
+
+  <div class="card">
+    <div class="source-label">Enquiry source</div>
+    <div class="toggle-row">
+      <button class="toggle-btn active" id="btn-direct" onclick="setType('direct')">
+        <i class="ti ti-user-check"></i>Direct Enquiry
+      </button>
+      <button class="toggle-btn" id="btn-dist" onclick="setType('dist')">
+        <i class="ti ti-users"></i>Via 3rd Party
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><div class="sec-icon"><i class="ti ti-building"></i></div><span>Client Details</span><div class="sec-divider"></div></div>
+    <div id="clientFields"></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><div class="sec-icon"><i class="ti ti-tag"></i></div><span>Brand &amp; Product Details</span><div class="sec-divider"></div></div>
+    <div class="field" style="margin-bottom:12px">
+      <label>Brand(s)<span class="req">*</span></label>
+      <div class="ms-wrap" id="brandWrap">
+        <div class="ms-trigger" id="msTrigger" onclick="toggleDropdown(event)">
+          <div class="ms-tags" id="msTagsArea"><span class="ms-placeholder">Select one or more brands</span></div>
+          <i class="ti ti-chevron-down ms-arrow" id="msArrow"></i>
+        </div>
+        <div class="ms-dropdown" id="msDropdown"></div>
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Category<span class="req">*</span></label>
+        <select id="category" onchange="handleCategoryChange()">
+          <option value="">Select category</option>
+          <option>Luggage</option><option>Backpack</option><option>Belt</option><option>Wallet</option>
+          <option>Handbag</option><option>Business Case</option><option>Cross Body</option>
+          <option>Gym Bag</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field" id="otherCategoryWrap" style="display:none">
+        <label>Specify category<span class="req">*</span></label>
+        <input type="text" id="otherCategory" placeholder="e.g. Duffel bag, Tote bag…">
+      </div>
+      <div class="field">
+        <label>Product name<span class="opt">(optional)</span></label>
+        <input type="text" id="productName" placeholder="e.g. TH Spinner 24">
+      </div>
+      <div class="field">
+        <label>Size / Sizes<span class="opt">(optional)</span></label>
+        <input type="text" id="productSize" placeholder='e.g. 20", 24", 28" or S/M/L'>
+      </div>
+      <div class="field">
+        <label>Quantity required<span class="req">*</span></label>
+        <input type="number" id="quantity" placeholder="e.g. 500" min="1">
+      </div>
+      <div class="field">
+        <label>Budget (WSV)<span class="req">*</span> <span style="font-size:11px;color:var(--text3);font-weight:400">Tax extra</span></label>
+        <input type="text" id="budget" placeholder="e.g. ₹1,500–₹2,000 per piece (excl. tax)">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><div class="sec-icon"><i class="ti ti-gift"></i></div><span>Requirement Details</span><div class="sec-divider"></div></div>
+    <div class="field-grid" style="margin-bottom:14px">
+      <div class="field">
+        <label>Gifting occasion</label>
+        <select id="occasionSelect" onchange="handleOccasionChange()">
+          <option value="">Select occasion</option>
+          <option>Diwali</option><option>New Year</option><option>Corporate milestone</option>
+          <option>Employee welcome kit</option><option>Customer appreciation</option>
+          <option>Farewell</option><option>Wedding</option><option>Conference / event</option>
+          <option>Birthday</option><option>Anniversary</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field" id="otherOccasionWrap" style="display:none">
+        <label>Specify occasion<span class="req">*</span></label>
+        <input type="text" id="otherOccasion" placeholder="e.g. Product launch, Sports day…">
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Required delivery date<span class="req">*</span></label>
+        <input type="date" id="deliveryDate">
+      </div>
+      <div class="field">
+        <label>No. of delivery locations</label>
+        <input type="number" id="deliveryLocCount" placeholder="e.g. 3" min="1">
+      </div>
+      <div class="field span2">
+        <label>Delivery location(s)</label>
+        <textarea id="deliveryLoc" placeholder="City / address / PIN code — add multiple if needed"></textarea>
+      </div>
+      <div class="field span2">
+        <label>Special requirements<span class="opt">(if any)</span></label>
+        <textarea id="specialReq" placeholder="Any special requirements…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-head"><div class="sec-icon"><i class="ti ti-user-circle"></i></div><span>Enquiry Owner Details</span><div class="sec-divider"></div></div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Enquiry owner name<span class="req">*</span></label>
+        <input type="text" id="salesName" placeholder="Full name">
+      </div>
+      <div class="field">
+        <label>Region / channel<span class="req">*</span></label>
+        <select id="channel">
+          <option value="">Select channel</option>
+          <option>E-Com B2B</option><option>E-Com B2C</option><option>LFRS</option>
+          <option>Brand EBO</option><option>Govt/CSD</option><option>DND</option><option>Insti</option>
+        </select>
+      </div>
+      <div class="field span2">
+        <label>Reference<span class="opt">(how did this lead come in?)</span></label>
+        <input type="text" id="reference" placeholder="e.g. Cold call, LinkedIn, Trade fair, Referral by Amit Sharma…">
+      </div>
+    </div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="submitForm()">
+    <div class="spinner" id="submitSpinner"></div>
+    <i class="ti ti-send" id="submitIcon"></i>
+    <span id="submitText">Submit Enquiry</span>
+  </button>
+
+</div>
+</div>
+
+<!-- ══ TAB 2: STAFF PORTAL ══ -->
+<div class="page" id="page-portal">
+
+  <!-- LOGIN STATE -->
+  <div id="loginState">
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-logo">
+          <div class="bcl-big">BCL</div>
+          <h2>Staff Portal</h2>
+          <p>Authorised access only — Brand Concepts Ltd</p>
+        </div>
+        <div class="login-error" id="loginError"><i class="ti ti-alert-circle"></i><span>Invalid username or password</span></div>
+        <div class="login-field">
+          <label>Username</label>
+          <input type="text" id="loginUser" placeholder="Enter your username" autocomplete="username">
+        </div>
+        <div class="login-field">
+          <label>Password</label>
+          <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="login-btn" id="loginBtnEl" onclick="doLogin()"><i class="ti ti-login" style="margin-right:6px;vertical-align:-2px"></i>Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PORTAL STATE -->
+  <div id="portalState" style="display:none">
+  <div class="container-wide">
+
+    <div class="welcome-banner">
+      <h2>Welcome, <span id="welcomeName"></span>!</h2>
+      <p>Access your authorised tools and reports below</p>
+      <div class="dept-badge" id="deptBadge"></div>
+    </div>
+
+    <div id="adminTabsWrap" style="display:none">
+      <div class="portal-tabs">
+        <button class="portal-tab active" onclick="switchPortalTab('tools')"><i class="ti ti-layout-grid" style="margin-right:5px;vertical-align:-2px"></i>My Tools</button>
+        <button class="portal-tab" onclick="switchPortalTab('admin')"><i class="ti ti-settings" style="margin-right:5px;vertical-align:-2px"></i>Admin Panel</button>
+      </div>
+    </div>
+
+    <!-- TOOLS -->
+    <div id="toolsView">
+      <div class="section-title"><i class="ti ti-chart-bar" style="vertical-align:-2px;margin-right:5px"></i>Reports &amp; Tools</div>
+      <div class="tools-grid" id="reportsGrid"></div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="adminView" style="display:none">
+      <div class="admin-header">
+        <h3><i class="ti ti-users" style="vertical-align:-2px;margin-right:7px;color:var(--blue)"></i>User Management</h3>
+        <button class="add-btn" onclick="openAddUser()"><i class="ti ti-plus"></i> Add User</button>
+      </div>
+      <div class="user-table">
+        <table>
+          <thead><tr><th>Name</th><th>Username</th><th>Department</th><th>Level</th><th>Actions</th></tr></thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <h3 id="modalTitle">Add New User</h3>
+    <div class="mf"><label>Full Name <span class="req">*</span></label><input type="text" id="mName" placeholder="e.g. Roshan Mishra"></div>
+    <div class="mf"><label>Username <span class="req">*</span></label><input type="text" id="mUsername" placeholder="e.g. roshan.mishra"></div>
+    <div class="mf"><label>Password <span class="req">*</span></label><input type="password" id="mPassword" placeholder="Set a password"></div>
+    <div class="mf">
+      <label>Department <span class="req">*</span></label>
+      <select id="mDept">
+        <option value="">Select department</option>
+        <option value="Sales-LFS">Sales — LFS</option>
+        <option value="Sales-DND">Sales — DND</option>
+        <option value="Sales-EBO">Sales — EBO</option>
+        <option value="Sales-Govt">Sales — Govt/CSD</option>
+        <option value="Sales-Insti">Sales — Insti</option>
+        <option value="Sales-Ecom">Sales — Ecom</option>
+        <option value="Buying">Merchandising / Buying</option>
+        <option value="Finance">Finance</option>
+        <option value="Management">Management / Leadership</option>
+      </select>
+    </div>
+    <div class="mf">
+      <label>Access Level <span class="req">*</span></label>
+      <select id="mLevel">
+        <option value="">Select level</option>
+        <option value="L1">L1 — Leadership (All access)</option>
+        <option value="L2">L2 — VP / HOD (Dept + cross reports)</option>
+        <option value="L3">L3 — Manager (Own dept reports)</option>
+        <option value="L4">L4 — Executive (No reports)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="m-cancel" onclick="closeModal()">Cancel</button>
+      <button class="m-save" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="ti ti-circle-check" id="toastIcon"></i><span id="toastMsg"></span></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/a/macros/brandconcepts.in/s/AKfycbyIF9TclW0iExJdHr4Yx34RXz28obhte8DusZ_nyULrL0YURDq_x4ROb0Y5WTwsoPje/exec';
+const ADMIN = {name:'Sumit Jain',username:'Sumit.jain',password:'Sumi@2211',dept:'Management',level:'L1',isAdmin:true};
+const ALL_REPORTS = [
+  {id:'enquiry-data',title:'Enquiry Data Sheet',desc:'All institutional & gifting enquiries submitted by the team',icon:'ti-table',color:'ti-teal',dept:['Management','Sales-LFS','Sales-DND','Sales-EBO','Sales-Govt','Sales-Insti','Sales-Ecom'],level:['L1','L2'],url:'https://docs.google.com/spreadsheets/d/1gOTr8sAGYpbLbI-U5J4iBBmwafaf1RGKdUbl3wrgFrQ/edit',tag:'Sales · Management',external:true},
+  {id:'otb',title:'OTB Planning Report',desc:'Open-to-Buy planning with scenario modelling and live data',icon:'ti-calculator',color:'ti-orange',dept:['Buying','Management'],level:['L1','L2','L3'],url:'otb.html',tag:'Buying · Planning',external:false},
+  {id:'lfs',title:'LFS Sales Analytics',desc:'Year-on-year LFS channel performance across FY22–FY26',icon:'ti-chart-line',color:'ti-green',dept:['Sales-LFS','Management','Buying'],level:['L1','L2','L3'],url:'lfs.html',tag:'Sales · LFS',external:false},
+  {id:'myntra',title:'Myntra Population Plan',desc:'TH Backpack catalog, PDP copy, competitor benchmarking & launch plan',icon:'ti-shopping-cart',color:'ti-purple',dept:['Sales-Ecom','Buying','Management'],level:['L1','L2','L3'],url:'myntra.html',tag:'Ecom · Merchandising',external:false},
+];
+
+const BRANDS=[
+  {label:'Tommy Hilfiger',short:'TH',special:false},
+  {label:'United Colors of Benetton',short:'UCB',special:false},
+  {label:'Superdry',short:'SD',special:false},
+  {label:'Juicy Couture',short:'JC',special:false},
+  {label:'Aeropostale',short:'AP',special:false},
+  {label:'Unbranded',short:'',special:true},
+  {label:'Any Brand',short:'',special:true}
+];
+
+let enquiryType='direct', selBrands=[], enquiries=[], ddOpen=false;
+let currentUser=null, editingIdx=null;
+let users=[];
+
+// ── MAIN TABS ──
+function switchMainTab(tab){
+  ['enquiry','portal'].forEach(t=>{
+    document.getElementById('mainTab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('page-'+t).classList.toggle('active',t===tab);
+  });
+  document.getElementById('headerTitle').textContent = tab==='enquiry'?'Institutional & Gifting Enquiry':'Staff Portal';
+}
+
+// ── LOGIN ──
+async function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  const errEl=document.getElementById('loginError');
+  const btn=document.getElementById('loginBtnEl');
+  errEl.classList.remove('show');
+  if(!u||!p){errEl.querySelector('span').textContent='Please enter username and password.';errEl.classList.add('show');return;}
+
+  // Check hardcoded admin first (works offline too)
+  if(u===ADMIN.username&&p===ADMIN.password){
+    showPortal({...ADMIN});return;
+  }
+
+  // Check Google Sheet
+  btn.textContent='Signing in…';btn.disabled=true;
+  try{
+    const fd=new FormData();
+    fd.append('payload',JSON.stringify({action:'login',username:u,password:p}));
+    const res=await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:fd});
+    // no-cors = opaque response, so we use GET for login verification
+    const r=await fetch(SCRIPT_URL+'?action=login&username='+encodeURIComponent(u)+'&password='+encodeURIComponent(p));
+    const data=await r.json();
+    if(data.status==='success'){
+      showPortal({name:data.name,username:data.username,dept:data.dept,level:data.level,isAdmin:data.level==='L1'});
+    } else {
+      errEl.querySelector('span').textContent='Invalid username or password.';
+      errEl.classList.add('show');
+      document.getElementById('loginPass').value='';
+    }
+  }catch(err){
+    errEl.querySelector('span').textContent='Connection error. Please try again.';
+    errEl.classList.add('show');
+  }finally{
+    btn.textContent='Sign In';btn.disabled=false;
+  }
+}
+
+function showPortal(user){
+  currentUser=user;
+  document.getElementById('loginState').style.display='none';
+  document.getElementById('portalState').style.display='block';
+  document.getElementById('welcomeName').textContent=currentUser.name.split(' ')[0];
+  document.getElementById('deptBadge').textContent=currentUser.dept+' · '+currentUser.level;
+  document.getElementById('userInfo').style.display='flex';
+  document.getElementById('userInfoName').textContent=currentUser.name;
+  document.getElementById('logoutBtn').style.display='block';
+  document.getElementById('headerBadge').style.display='none';
+  document.getElementById('adminTabsWrap').style.display=currentUser.isAdmin?'block':'none';
+  buildReports();
+}
+
+function doLogout(){
+  currentUser=null;users=[];
+  document.getElementById('loginState').style.display='block';
+  document.getElementById('portalState').style.display='none';
+  document.getElementById('userInfo').style.display='none';
+  document.getElementById('logoutBtn').style.display='none';
+  document.getElementById('headerBadge').style.display='block';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginError').classList.remove('show');
+  switchPortalTab('tools');
+}
+
+// ── PORTAL ──
+function buildReports(){
+  const grid=document.getElementById('reportsGrid');
+  grid.innerHTML='';
+  const toShow=currentUser.level==='L1'?ALL_REPORTS:ALL_REPORTS.filter(r=>r.dept.includes(currentUser.dept)&&r.level.includes(currentUser.level));
+  if(!toShow.length){grid.innerHTML='<p style="color:var(--text3);font-size:14px">No reports available for your access level.</p>';return;}
+  toShow.forEach(r=>{
+    const a=document.createElement('a');
+    a.href=r.url;a.target=r.external?'_blank':'_self';a.className='tool-card';
+    a.innerHTML=`<div class="tool-icon ${r.color}"><i class="ti ${r.icon}"></i></div><h3>${r.title}</h3><p>${r.desc}</p><span class="tool-tag">${r.tag}</span>`;
+    grid.appendChild(a);
+  });
+}
+
+function switchPortalTab(tab){
+  document.querySelectorAll('.portal-tab').forEach((b,i)=>b.classList.toggle('active',(tab==='tools'&&i===0)||(tab==='admin'&&i===1)));
+  document.getElementById('toolsView').style.display=tab==='tools'?'block':'none';
+  document.getElementById('adminView').style.display=tab==='admin'?'block':'none';
+  if(tab==='admin')loadAndRenderUsers();
+}
+
+// ── USER MANAGEMENT (Google Sheets) ──
+async function loadAndRenderUsers(){
+  const tb=document.getElementById('userTableBody');
+  tb.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)"><i class="ti ti-loader" style="animation:spin .8s linear infinite;display:inline-block;margin-right:6px"></i>Loading users…</td></tr>`;
+  try{
+    const r=await fetch(SCRIPT_URL+'?action=getUsers');
+    const data=await r.json();
+    if(data.status==='success'){users=data.users;renderUserTable();}
+  }catch(e){tb.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--red)">Failed to load users. Check connection.</td></tr>`;}
+}
+
+function renderUserTable(){
+  const tb=document.getElementById('userTableBody');
+  if(!users.length){tb.innerHTML=`<tr><td colspan="5"><div class="empty-table"><i class="ti ti-users"></i>No users yet. Click "Add User" to add team members.</div></td></tr>`;return;}
+  tb.innerHTML=users.map((u,i)=>`<tr><td><strong>${u.name}</strong></td><td style="color:var(--text3);font-family:monospace;font-size:12px">${u.username}</td><td>${u.dept}</td><td><span class="lvl lvl-${u.level.toLowerCase()}">${u.level}</span></td><td><button class="act-btn" onclick="editUser(${i})"><i class="ti ti-edit" style="vertical-align:-2px"></i> Edit</button><button class="act-btn del" onclick="deleteUser(${i})"><i class="ti ti-trash" style="vertical-align:-2px"></i> Remove</button></td></tr>`).join('');
+}
+
+function openAddUser(){editingIdx=null;document.getElementById('modalTitle').textContent='Add New User';['mName','mUsername','mPassword'].forEach(id=>document.getElementById(id).value='');document.getElementById('mDept').value='';document.getElementById('mLevel').value='';document.getElementById('userModal').classList.add('show');}
+
+function editUser(i){
+  editingIdx=i;const u=users[i];
+  document.getElementById('modalTitle').textContent='Edit User';
+  document.getElementById('mName').value=u.name;document.getElementById('mUsername').value=u.username;
+  document.getElementById('mPassword').value=u.password;document.getElementById('mDept').value=u.dept;
+  document.getElementById('mLevel').value=u.level;document.getElementById('userModal').classList.add('show');
+}
+
+async function deleteUser(i){
+  if(!confirm('Remove this user? They will no longer be able to log in.'))return;
+  const u=users[i];
+  try{
+    const fd=new FormData();fd.append('payload',JSON.stringify({action:'deleteUser',username:u.username}));
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:fd});
+    await new Promise(r=>setTimeout(r,1000));
+    showToast('User removed');loadAndRenderUsers();
+  }catch(e){showToast('Failed to remove user',true);}
+}
+
+async function saveUser(){
+  const name=document.getElementById('mName').value.trim();
+  const username=document.getElementById('mUsername').value.trim();
+  const password=document.getElementById('mPassword').value.trim();
+  const dept=document.getElementById('mDept').value;
+  const level=document.getElementById('mLevel').value;
+  if(!name||!username||!password||!dept||!level){alert('Please fill all fields');return;}
+  const saveBtn=document.querySelector('.m-save');
+  saveBtn.textContent='Saving…';saveBtn.disabled=true;
+  try{
+    const fd=new FormData();
+    const payload=editingIdx!==null
+      ?{action:'updateUser',oldUsername:users[editingIdx].username,name,username,password,dept,level}
+      :{action:'addUser',name,username,password,dept,level};
+    fd.append('payload',JSON.stringify(payload));
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:fd});
+    await new Promise(r=>setTimeout(r,1200));
+    closeModal();showToast(editingIdx!==null?'User updated':'User added successfully');
+    loadAndRenderUsers();
+  }catch(e){showToast('Failed to save user',true);}
+  finally{saveBtn.textContent='Save User';saveBtn.disabled=false;}
+}
+
+function closeModal(){document.getElementById('userModal').classList.remove('show');}
+document.getElementById('userModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// ── ENQUIRY FORM ──
+function buildDropdown(){
+  const dd=document.getElementById('msDropdown');dd.innerHTML='';selBrands=[];
+  BRANDS.forEach((b,i)=>{
+    if(b.special&&i>0&&!BRANDS[i-1].special){const d=document.createElement('div');d.className='ms-divider-line';dd.appendChild(d);}
+    const opt=document.createElement('div');opt.className='ms-option'+(b.special?' special':'');opt.id='opt-'+i;
+    opt.innerHTML=`<div class="ms-check"><i class="ti ti-check"></i></div><span style="flex:1">${b.label}</span>${b.short?`<span class="ms-short">${b.short}</span>`:''}`;
+    opt.onclick=e=>{e.stopPropagation();toggleBrand(b.label,i);};dd.appendChild(opt);
+  });
+}
+function toggleBrand(label,idx){const opt=document.getElementById('opt-'+idx);if(selBrands.includes(label)){selBrands=selBrands.filter(x=>x!==label);opt.classList.remove('sel');}else{selBrands.push(label);opt.classList.add('sel');}renderTags();}
+function renderTags(){const a=document.getElementById('msTagsArea');a.innerHTML=!selBrands.length?'<span class="ms-placeholder">Select one or more brands</span>':selBrands.map(b=>`<span class="ms-tag">${b}<span class="ms-tag-x" onclick="removeBrand(event,'${b}')">×</span></span>`).join('');}
+function removeBrand(e,label){e.stopPropagation();const i=BRANDS.findIndex(b=>b.label===label);selBrands=selBrands.filter(x=>x!==label);if(i>=0){const o=document.getElementById('opt-'+i);if(o)o.classList.remove('sel');}renderTags();}
+function toggleDropdown(e){e.stopPropagation();ddOpen=!ddOpen;document.getElementById('msDropdown').classList.toggle('open',ddOpen);document.getElementById('msTrigger').classList.toggle('open',ddOpen);document.getElementById('msArrow').classList.toggle('open',ddOpen);}
+document.addEventListener('click',()=>{if(ddOpen){ddOpen=false;document.getElementById('msDropdown').classList.remove('open');document.getElementById('msTrigger').classList.remove('open');document.getElementById('msArrow').classList.remove('open');}});
+
+function handleCategoryChange(){const s=document.getElementById('category').value,w=document.getElementById('otherCategoryWrap');w.style.display=s==='Other'?'flex':'none';if(s!=='Other'){const e=document.getElementById('otherCategory');if(e)e.value='';}}
+function getCategory(){const s=document.getElementById('category').value;if(s==='Other')return document.getElementById('otherCategory').value.trim()||'Other';return s;}
+function handleOccasionChange(){const s=document.getElementById('occasionSelect').value,w=document.getElementById('otherOccasionWrap');w.style.display=s==='Other'?'flex':'none';if(s!=='Other')document.getElementById('otherOccasion').value='';}
+function getOccasion(){const s=document.getElementById('occasionSelect').value;if(s==='Other')return document.getElementById('otherOccasion').value.trim()||'Other';return s;}
+
+function buildClientFields(){
+  const c=document.getElementById('clientFields');
+  if(enquiryType==='direct'){c.innerHTML=`<div class="field-grid"><div class="field"><label>Company name / Person name<span class="req">*</span></label><input type="text" id="companyName" placeholder="e.g. Infosys Ltd or Rahul Sharma"></div><div class="field"><label>Contact person<span class="req">*</span></label><input type="text" id="contactPerson" placeholder="Full name"></div><div class="field"><label>Phone<span class="req">*</span></label><input type="tel" id="phone" placeholder="+91 XXXXX XXXXX"></div><div class="field"><label>Email<span class="req">*</span></label><input type="email" id="email" placeholder="contact@company.com"></div><div class="field"><label>City<span class="req">*</span></label><input type="text" id="city" placeholder="e.g. Mumbai"></div></div>`;}
+  else{c.innerHTML=`<div class="field-grid"><div class="field"><label>Company name<span class="opt">(if available)</span></label><input type="text" id="companyName" placeholder="End client company name"></div><div class="field"><label>3rd party / agency name<span class="req">*</span></label><input type="text" id="distName" placeholder="Name of 3rd party or agency"></div><div class="field"><label>Contact person<span class="req">*</span></label><input type="text" id="contactPerson" placeholder="Full name"></div><div class="field"><label>Phone<span class="req">*</span></label><input type="tel" id="phone" placeholder="+91 XXXXX XXXXX"></div><div class="field"><label>Email<span class="req">*</span></label><input type="email" id="email" placeholder="contact@agency.com"></div><div class="field"><label>City<span class="req">*</span></label><input type="text" id="city" placeholder="e.g. Mumbai"></div></div>`;}
+}
+function setType(t){enquiryType=t;document.getElementById('btn-direct').classList.toggle('active',t==='direct');document.getElementById('btn-dist').classList.toggle('active',t==='dist');buildClientFields();}
+function val(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+
+function showToast(msg,isError){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.toggle('error-toast',!!isError);
+  document.getElementById('toastIcon').className=isError?'ti ti-alert-circle':'ti ti-circle-check';
+  document.getElementById('toastIcon').style.color=isError?'#FF8A8A':'#7FD67A';
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+async function submitForm(){
+  const req=['salesName','channel','deliveryDate','quantity','category','budget'];
+  const clientReq=enquiryType==='direct'?['companyName','contactPerson','phone','email','city']:['distName','contactPerson','phone','email','city'];
+  let valid=true;
+  for(const id of [...req,...clientReq]){if(!val(id)){const e=document.getElementById(id);if(e){e.classList.add('error');e.focus();setTimeout(()=>e.classList.remove('error'),2000);}valid=false;break;}}
+  if(!valid)return;
+  const btn=document.getElementById('submitBtn'),spinner=document.getElementById('submitSpinner'),icon=document.getElementById('submitIcon'),text=document.getElementById('submitText');
+  btn.disabled=true;spinner.style.display='block';icon.style.display='none';text.textContent='Submitting…';
+  const enq={id:'ENQ-'+String(enquiries.length+1).padStart(3,'0'),submittedAt:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}),type:enquiryType==='direct'?'Direct':'Via 3rd Party',company:val('companyName')||'—',thirdParty:val('distName')||'',contact:val('contactPerson'),phone:val('phone'),email:val('email'),city:val('city'),brands:selBrands.join(' | '),category:getCategory(),productName:val('productName'),productSize:val('productSize'),quantity:val('quantity'),budget:val('budget'),occasion:getOccasion(),deliveryDate:val('deliveryDate'),deliveryLocCount:val('deliveryLocCount'),deliveryLoc:val('deliveryLoc'),specialReq:val('specialReq'),salesName:val('salesName'),channel:val('channel'),reference:val('reference')};
+  try{
+    const fd=new FormData();fd.append('payload',JSON.stringify(enq));
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:fd});
+    await new Promise(r=>setTimeout(r,1500));
+    enquiries.push(enq);showToast('Enquiry '+enq.id+' submitted successfully!');resetForm();
+  }catch(err){showToast('Submission failed. Please check your connection.',true);}
+  finally{btn.disabled=false;spinner.style.display='none';icon.style.display='';text.textContent='Submit Enquiry';}
+}
+
+function resetForm(){
+  selBrands=[];buildClientFields();buildDropdown();renderTags();
+  const oSel=document.getElementById('occasionSelect');if(oSel)oSel.value='';
+  const oWrap=document.getElementById('otherOccasionWrap');if(oWrap)oWrap.style.display='none';
+  const oOther=document.getElementById('otherOccasion');if(oOther)oOther.value='';
+  const cWrap=document.getElementById('otherCategoryWrap');if(cWrap)cWrap.style.display='none';
+  ['category','productName','productSize','otherCategory','quantity','budget','deliveryDate','deliveryLoc','deliveryLocCount','specialReq','salesName','channel','reference'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+}
+
+buildDropdown();buildClientFields();
+</script>
+</body>
+</html>
