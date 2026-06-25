@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCL — Product Catalogue</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#222638;--border:#2e3248;
+  --accent:#4f8ef7;--accent2:#7c3aed;--text:#e8eaf0;--text2:#8b90a8;--text3:#5a5f7a;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;
+  --r:10px;--panel:360px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;display:flex;flex-direction:column}
+
+/* TOPBAR */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.logo{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;padding:4px 10px;font-size:12px;font-weight:800;color:#fff;letter-spacing:.5px}
+.topbar h1{font-size:14px;font-weight:600;flex:1}
+.topbar h1 span{color:var(--text2);font-weight:400}
+.top-btns{display:flex;align-items:center;gap:8px}
+.top-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s}
+.top-btn:hover{color:var(--text);border-color:var(--accent)}
+.top-btn.active{background:rgba(79,142,247,.12);border-color:var(--accent);color:var(--accent)}
+.pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.pill-green{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+.pill-amber{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.25)}
+.pill-blue{background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.25)}
+
+/* LAYOUT */
+.layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 52px)}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:14px 0}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.detail-panel{width:var(--panel);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+
+/* SIDEBAR */
+.sb-section{padding:0 10px 10px}
+.sb-label{font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:6px 8px 4px}
+.brand-btn{width:100%;text-align:left;background:none;border:none;color:var(--text2);font-size:13px;padding:7px 10px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;font-family:var(--font)}
+.brand-btn:hover{background:var(--surface2);color:var(--text)}
+.brand-btn.active{background:rgba(79,142,247,.12);color:var(--accent)}
+.brand-btn .bcount{margin-left:auto;font-size:10px;color:var(--text3);background:var(--surface2);border-radius:10px;padding:1px 7px}
+.brand-btn.active .bcount{background:rgba(79,142,247,.2);color:var(--accent)}
+.brand-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sb-divider{height:1px;background:var(--border);margin:6px 10px 10px}
+
+/* FILTER SECTION */
+.filter-wrap{padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:7px;align-items:center;flex-shrink:0}
+.f-select{background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:5px 9px;outline:none;cursor:pointer;font-family:var(--font);max-width:150px}
+.f-select:focus{border-color:var(--accent)}
+.f-search{background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:5px 10px 5px 30px;outline:none;font-family:var(--font);width:200px;flex-shrink:0}
+.f-search:focus{border-color:var(--accent)}
+.f-search-wrap{position:relative}
+.f-search-wrap i{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none}
+.f-range{background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:5px 9px;outline:none;font-family:var(--font);width:100px}
+.f-range:focus{border-color:var(--accent)}
+.f-label{font-size:10px;color:var(--text3);font-weight:600;white-space:nowrap}
+.clear-btn{background:none;border:1px solid var(--border);border-radius:7px;color:var(--text3);font-size:11px;padding:5px 10px;cursor:pointer;font-family:var(--font);transition:all .15s;margin-left:auto}
+.clear-btn:hover{color:var(--red);border-color:var(--red)}
+
+/* RESULTS BAR */
+.results-bar{padding:6px 14px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.results-bar strong{color:var(--text2)}
+.view-btns{display:flex;gap:4px}
+.view-btn{background:none;border:1px solid var(--border);border-radius:5px;color:var(--text3);padding:3px 7px;cursor:pointer;font-size:12px;transition:all .15s}
+.view-btn.active{background:rgba(79,142,247,.12);border-color:var(--accent);color:var(--accent)}
+
+/* GRID VIEW */
+.grid-wrap{flex:1;overflow-y:auto;padding:14px}
+.grid-wrap::-webkit-scrollbar{width:4px}
+.grid-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .2s}
+.product-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.product-card.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,142,247,.25)}
+.card-img{background:#fff;aspect-ratio:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.card-img img{width:100%;height:100%;object-fit:contain;transition:opacity .25s}
+.card-img .img-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#ccc;font-size:11px;width:100%;height:100%;background:#f5f5f5}
+.card-img .img-placeholder i{font-size:28px;opacity:.3}
+.card-body{padding:10px}
+.card-brand{font-size:9.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.card-name{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-style{font-size:10px;color:var(--text3);margin-bottom:6px}
+.card-footer{display:flex;align-items:center;justify-content:space-between}
+.card-mrp{font-size:13px;font-weight:700;color:var(--text)}
+.card-cat{font-size:10px;color:var(--text2);background:var(--surface2);border-radius:4px;padding:2px 6px}
+
+/* LIST VIEW */
+.list-wrap{flex:1;overflow-y:auto}
+.list-wrap::-webkit-scrollbar{width:4px}
+.list-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
+thead th{background:var(--surface);color:var(--text3);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:9px 12px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;position:sticky;top:0;z-index:5;cursor:pointer}
+thead th:hover{color:var(--text)}
+thead th.sorted{color:var(--accent)}
+tbody tr{border-bottom:1px solid rgba(46,50,72,.4);cursor:pointer;transition:background .1s}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+tbody tr.active{background:rgba(79,142,247,.07);box-shadow:inset 3px 0 0 var(--accent)}
+td{padding:8px 12px;vertical-align:middle;white-space:nowrap}
+.td-img{width:36px;height:36px;background:#fff;border-radius:5px;overflow:hidden;flex-shrink:0}
+.td-img img{width:100%;height:100%;object-fit:contain}
+
+/* PAGINATION */
+.pagination{padding:10px 14px;display:flex;align-items:center;justify-content:center;gap:6px;border-top:1px solid var(--border);flex-shrink:0}
+.page-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 10px;font-size:12px;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.page-btn:hover{color:var(--text);border-color:var(--accent)}
+.page-btn.active{background:rgba(79,142,247,.15);border-color:var(--accent);color:var(--accent);font-weight:600}
+.page-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* DETAIL PANEL */
+.dp-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dp-header h3{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.dp-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3);padding:20px;text-align:center}
+.dp-empty i{font-size:36px;opacity:.2}
+.dp-empty p{font-size:12px;line-height:1.6}
+.dp-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.dp-body::-webkit-scrollbar{width:3px}
+.dp-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Image stage */
+.img-stage{background:#fff;border-radius:var(--r);overflow:hidden;aspect-ratio:1;position:relative;display:flex;align-items:center;justify-content:center}
+.img-spinner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f8f8f8;z-index:2}
+.spinner-ring{width:28px;height:28px;border:3px solid #e0e0e0;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#detailImg{width:100%;height:100%;object-fit:contain;display:block;opacity:0;transition:opacity .25s;position:relative;z-index:1}
+#detailImg.loaded{opacity:1}
+.img-thumbs{display:flex;gap:5px;flex-wrap:wrap}
+.img-thumb{width:42px;height:42px;background:#fff;border-radius:6px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.img-thumb img{width:100%;height:100%;object-fit:contain}
+.img-thumb.active{border-color:var(--accent)}
+
+/* Detail info */
+.dp-name{font-size:15px;font-weight:700;color:var(--text);line-height:1.4}
+.dp-sub{font-size:11.5px;color:var(--text2);margin-top:3px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.detail-cell{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 10px}
+.detail-cell.full{grid-column:1/-1}
+.dc-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:2px}
+.dc-value{font-size:12px;font-weight:500;color:var(--text)}
+.dc-value.big{font-size:18px;font-weight:700}
+.dc-value.mono{font-family:monospace;font-size:10.5px}
+
+/* LOADING STATE */
+.loading-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--text3)}
+.loading-bar{width:280px;height:4px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.loading-progress{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width .3s;animation:loadpulse 1.5s ease-in-out infinite}
+@keyframes loadpulse{0%,100%{opacity:1}50%{opacity:.5}}
+.loading-text{font-size:13px}
+
+/* SETTINGS PAGE */
+.settings-page{display:none;flex:1;flex-direction:column;overflow:hidden}
+.settings-page.active{display:flex}
+.settings-wrap{flex:1;overflow-y:auto;padding:20px;max-width:900px;margin:0 auto;width:100%}
+.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.settings-card h3{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.settings-card h3 i{color:var(--accent)}
+.field-table{width:100%;border-collapse:collapse}
+.field-table th{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;border-bottom:1px solid var(--border);text-align:left}
+.field-table th:not(:first-child){text-align:center}
+.field-table td{padding:7px 10px;border-bottom:1px solid rgba(46,50,72,.3);font-size:12.5px;color:var(--text2);vertical-align:middle}
+.field-table td:not(:first-child){text-align:center}
+.field-table tr:hover td{background:rgba(255,255,255,.02)}
+.field-table input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--accent)}
+.save-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:opacity .15s}
+.save-btn:hover{opacity:.87}
+.cancel-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:10px 18px;font-size:13px;cursor:pointer;font-family:var(--font)}
+.cancel-btn:hover{color:var(--text)}
+
+/* PASSWORD MODAL */
+.pw-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center}
+.pw-modal.show{display:flex}
+.pw-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.pw-card h3{font-size:16px;font-weight:600;margin-bottom:6px}
+.pw-card p{font-size:12.5px;color:var(--text2);margin-bottom:20px}
+.pw-field{margin-bottom:14px}
+.pw-field label{font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px}
+.pw-field input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:9px 12px;outline:none;font-family:var(--font)}
+.pw-field input:focus{border-color:var(--accent)}
+.pw-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:12px;display:none}
+.pw-error.show{display:block}
+.pw-actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:#1a2a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast i{color:var(--green);font-size:16px}
+
+/* EMPTY */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text3)}
+.empty-state i{font-size:42px;opacity:.2}
+.empty-state p{font-size:13px}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.product-card{animation:fadeIn .2s ease forwards}
+
+@media(max-width:900px){.sidebar{display:none}.detail-panel{display:none}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">BCL</div>
+  <h1>Product Catalogue <span id="topBrandName">/ Select Brand</span></h1>
+  <div class="top-btns">
+    <span class="pill pill-green" id="totalPill" style="display:none">0 SKUs</span>
+    <span class="pill pill-amber" id="loadingPill" style="display:none"><i class="ti ti-loader" style="animation:spin .8s linear infinite;display:inline-block;vertical-align:-2px;margin-right:3px"></i>Loading…</span>
+    <button class="top-btn" id="settingsBtn" onclick="openSettings()"><i class="ti ti-settings"></i> Settings</button>
+  </div>
+</div>
+
+<div class="layout" id="mainLayout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Select Brand</div>
+      <button class="brand-btn active" id="brand-ALL" onclick="selectBrand('ALL')">
+        <span class="brand-dot" style="background:var(--accent)"></span>
+        All Brands
+        <span class="bcount" id="count-ALL">-</span>
+      </button>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section" id="brandList"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- FILTERS -->
+    <div class="filter-wrap" id="filterWrap">
+      <div class="f-search-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" class="f-search" id="searchInput" placeholder="Search style, code, color…" oninput="applyFilters()">
+      </div>
+      <div id="dynamicFilters"></div>
+      <span class="f-label">MRP</span>
+      <input type="number" class="f-range" id="mrpMin" placeholder="Min" oninput="applyFilters()">
+      <span class="f-label">–</span>
+      <input type="number" class="f-range" id="mrpMax" placeholder="Max" oninput="applyFilters()">
+      <button class="clear-btn" onclick="clearFilters()"><i class="ti ti-x" style="vertical-align:-2px;margin-right:3px"></i>Clear</button>
+    </div>
+
+    <!-- RESULTS BAR -->
+    <div class="results-bar">
+      <span><strong id="resultCount">0</strong> products found</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--text3)">Page <strong id="pageInfo" style="color:var(--text2)">1</strong></span>
+        <div class="view-btns">
+          <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid view"><i class="ti ti-layout-grid"></i></button>
+          <button class="view-btn" id="listViewBtn" onclick="setView('list')" title="List view"><i class="ti ti-list"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div id="contentArea" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <!-- LANDING -->
+      <div class="empty-state" id="landingState">
+        <i class="ti ti-package"></i>
+        <p>Select a brand from the left to browse products</p>
+      </div>
+      <!-- LOADING -->
+      <div class="loading-wrap" id="loadingState" style="display:none">
+        <i class="ti ti-loader" style="font-size:32px;animation:spin .8s linear infinite"></i>
+        <div class="loading-text" id="loadingText">Loading products…</div>
+        <div class="loading-bar"><div class="loading-progress" id="loadingProgress" style="width:30%"></div></div>
+      </div>
+      <!-- GRID -->
+      <div class="grid-wrap" id="gridWrap" style="display:none">
+        <div class="product-grid" id="productGrid"></div>
+        <div class="pagination" id="gridPagination"></div>
+      </div>
+      <!-- LIST -->
+      <div class="list-wrap" id="listWrap" style="display:none">
+        <table id="productTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="pagination" id="listPagination"></div>
+      </div>
+      <!-- EMPTY -->
+      <div class="empty-state" id="emptyState" style="display:none">
+        <i class="ti ti-search-off"></i>
+        <p>No products match your filters</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div class="detail-panel">
+    <div class="dp-header">
+      <h3><i class="ti ti-info-circle" style="color:var(--accent);margin-right:5px;vertical-align:-2px"></i>Product Detail</h3>
+    </div>
+    <div class="dp-empty" id="dpEmpty">
+      <i class="ti ti-cursor-text"></i>
+      <p>Click any product to view details and image</p>
+    </div>
+    <div class="dp-body" id="dpBody" style="display:none"></div>
+  </div>
+
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="settings-page" id="settingsPage">
+  <div class="topbar" style="position:relative;top:auto">
+    <div class="logo">BCL</div>
+    <h1>Settings <span>/ Field Configuration</span></h1>
+    <div class="top-btns">
+      <button class="top-btn" onclick="closeSettings()"><i class="ti ti-arrow-left"></i> Back to Catalogue</button>
+    </div>
+  </div>
+  <div class="settings-wrap">
+    <div class="settings-card">
+      <h3><i class="ti ti-columns"></i> Field Visibility</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:14px">Control which fields appear in the product detail, which are available as filters, and which are shown as active filters on the report.</p>
+      <table class="field-table">
+        <thead>
+          <tr>
+            <th>Field Name</th>
+            <th>Show in Detail</th>
+            <th>Filter Available</th>
+            <th>Filter on Report</th>
+          </tr>
+        </thead>
+        <tbody id="settingsTableBody"></tbody>
+      </table>
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="save-btn" onclick="saveSettings()"><i class="ti ti-device-floppy" style="margin-right:6px;vertical-align:-2px"></i>Save Settings</button>
+        <button class="cancel-btn" onclick="closeSettings()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3><i class="ti ti-lock"></i> Change Password</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:600px">
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:5px">Current Password</div>
+          <input type="password" id="pwCurrent" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;font-family:var(--font)" placeholder="Current password">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:5px">New Password</div>
+          <input type="password" id="pwNew" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;font-family:var(--font)" placeholder="New password">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:5px">Confirm New</div>
+          <input type="password" id="pwConfirm" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;font-family:var(--font)" placeholder="Confirm password">
+        </div>
+      </div>
+      <div id="pwMsg" style="font-size:12px;margin-top:10px;display:none"></div>
+      <button class="save-btn" style="margin-top:14px" onclick="changePassword()"><i class="ti ti-key" style="margin-right:6px;vertical-align:-2px"></i>Change Password</button>
+    </div>
+
+    <div class="settings-card">
+      <h3><i class="ti ti-database"></i> Data Source</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Update the Google Sheet published CSV URL for product data.</p>
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:5px">Published CSV URL</div>
+        <input type="text" id="csvUrlInput" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:8px 10px;outline:none;font-family:monospace" placeholder="https://docs.google.com/spreadsheets/d/e/...">
+      </div>
+      <button class="save-btn" onclick="saveCsvUrl()"><i class="ti ti-link" style="margin-right:6px;vertical-align:-2px"></i>Save URL</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="pw-modal" id="pwModal">
+  <div class="pw-card">
+    <h3><i class="ti ti-lock" style="color:var(--accent);margin-right:8px;vertical-align:-2px"></i>Settings Access</h3>
+    <p>Enter the settings password to continue</p>
+    <div class="pw-error" id="pwModalError">Incorrect password. Please try again.</div>
+    <div class="pw-field">
+      <label>Password</label>
+      <input type="password" id="pwModalInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')verifyPassword()">
+    </div>
+    <div class="pw-actions">
+      <button class="cancel-btn" onclick="closePwModal()">Cancel</button>
+      <button class="save-btn" onclick="verifyPassword()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toastMsg"></span></div>
+
+<script>
+const CSV_URL_KEY = 'bcl_csv_url';
+const SETTINGS_KEY = 'bcl_field_settings';
+const PW_KEY = 'bcl_settings_pw';
+const DEFAULT_PW = 'Sudhir@123';
+const DEFAULT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRLiU87oDRjaduw9esqOPO274qJdMGjrhahcTGClmxfEowUQWNjic6Ea9yc4CWZlmZ_L26yefMbwSiL/pub?gid=99111561&single=true&output=csv';
+
+// All fields with default settings
+const ALL_FIELDS = [
+  {col:'Eancode',label:'Eancode',detail:true,filter:false,report:false},
+  {col:'Gender',label:'Gender',detail:true,filter:true,report:true},
+  {col:'Brand N.',label:'Brand N.',detail:true,filter:true,report:true},
+  {col:'Brand',label:'Brand',detail:true,filter:true,report:true},
+  {col:'Category-2',label:'Category-2',detail:true,filter:true,report:true},
+  {col:'Category',label:'Category',detail:true,filter:true,report:true},
+  {col:'Sub Category',label:'Sub Category',detail:true,filter:true,report:true},
+  {col:'S.Brand',label:'S.Brand',detail:true,filter:true,report:true},
+  {col:'S.Category',label:'S.Category',detail:true,filter:true,report:true},
+  {col:'S.Sub Category',label:'S.Sub Category',detail:true,filter:true,report:true},
+  {col:'Style Name',label:'Style Name',detail:true,filter:false,report:false},
+  {col:'Color',label:'Color',detail:true,filter:true,report:true},
+  {col:'S.SIZE',label:'S.SIZE',detail:true,filter:true,report:true},
+  {col:'SIZE',label:'SIZE',detail:true,filter:true,report:true},
+  {col:'SIZE DESC.',label:'SIZE DESC.',detail:true,filter:false,report:false},
+  {col:'Channel',label:'Channel',detail:true,filter:true,report:true},
+  {col:'Collection Name',label:'Collection Name',detail:true,filter:true,report:true},
+  {col:'S.Season',label:'S.Season',detail:true,filter:true,report:true},
+  {col:'Season',label:'Season',detail:true,filter:true,report:true},
+  {col:'S.Wearbility Master',label:'S.Wearbility Master',detail:true,filter:true,report:true},
+  {col:'SUB Brand',label:'SUB Brand',detail:true,filter:false,report:false},
+  {col:'Brand Short Name',label:'Brand Short Name',detail:true,filter:false,report:false},
+  {col:'Style Code',label:'Style Code',detail:true,filter:false,report:false},
+  {col:'MRP',label:'MRP',detail:true,filter:true,report:true},
+  {col:'Cost INR',label:'Cost INR',detail:true,filter:true,report:true},
+  {col:'Cost $',label:'Cost $',detail:true,filter:true,report:true},
+  {col:'Sub Category Type',label:'Sub Category Type',detail:true,filter:true,report:true},
+  {col:'S.Buckle Detail',label:'S.Buckle Detail',detail:true,filter:true,report:true},
+  {col:'Buckle Detail',label:'Buckle Detail',detail:true,filter:true,report:true},
+  {col:'Channel for OTB',label:'Channel for OTB',detail:true,filter:true,report:true},
+  {col:'LINK',label:'LINK',detail:true,filter:false,report:false},
+  {col:'remarks',label:'Remarks',detail:true,filter:false,report:false},
+];
+
+const BRAND_COLORS = {
+  'TOMMY HILFIGER':'#cc0001','UCB':'#00843d','SUPERDRY':'#f7a600',
+  'JUICY COUTURE':'#e91e8c','AEROPOSTALE':'#003087','ALL':'#4f8ef7'
+};
+
+let allData = [];
+let filteredData = [];
+let currentBrand = null;
+let currentView = 'grid';
+let currentPage = 1;
+const PAGE_SIZE = 40;
+let fieldSettings = [];
+let settingsUnlocked = false;
+let sortCol = null, sortDir = 1;
+
+// ── INIT ──
+function init(){
+  fieldSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null') || ALL_FIELDS.map(f=>({...f}));
+  buildBrandList();
+  buildSettingsTable();
+  const savedUrl = localStorage.getItem(CSV_URL_KEY) || DEFAULT_CSV;
+  document.getElementById('csvUrlInput').value = savedUrl;
+}
+
+// ── BRAND LIST ──
+function buildBrandList(){
+  const brands = ['TOMMY HILFIGER','UCB','SUPERDRY','JUICY COUTURE','AEROPOSTALE'];
+  const bl = document.getElementById('brandList');
+  bl.innerHTML = '';
+  brands.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'brand-btn';
+    btn.id = 'brand-' + b.replace(/\s/g,'_');
+    btn.innerHTML = `<span class="brand-dot" style="background:${BRAND_COLORS[b]||'#888'}"></span>${b}<span class="bcount" id="count-${b.replace(/\s/g,'_')}">-</span>`;
+    btn.onclick = () => selectBrand(b);
+    bl.appendChild(btn);
+  });
+}
+
+// ── SELECT BRAND ──
+async function selectBrand(brand){
+  currentBrand = brand;
+  currentPage = 1;
+
+  // Update sidebar active state
+  document.querySelectorAll('.brand-btn').forEach(b => b.classList.remove('active'));
+  const btnId = brand === 'ALL' ? 'brand-ALL' : 'brand-' + brand.replace(/\s/g,'_');
+  const activeBtn = document.getElementById(btnId);
+  if(activeBtn) activeBtn.classList.add('active');
+
+  document.getElementById('topBrandName').textContent = '/ ' + (brand === 'ALL' ? 'All Brands' : brand);
+  showLoading('Fetching ' + (brand === 'ALL' ? 'all products' : brand) + '…');
+
+  try {
+    const url = localStorage.getItem(CSV_URL_KEY) || DEFAULT_CSV;
+    const resp = await fetch(url + '&t=' + Date.now());
+    const text = await resp.text();
+    const rows = parseCSV(text);
+
+    updateLoadingText('Processing data…');
+
+    if(brand === 'ALL'){
+      allData = rows;
+    } else {
+      allData = rows.filter(r => (r['Brand N.']||'').trim().toUpperCase() === brand.toUpperCase());
+    }
+
+    // Update counts
+    const brands = ['TOMMY HILFIGER','UCB','SUPERDRY','JUICY COUTURE','AEROPOSTALE'];
+    brands.forEach(b => {
+      const count = rows.filter(r => (r['Brand N.']||'').trim().toUpperCase() === b.toUpperCase()).length;
+      const el = document.getElementById('count-' + b.replace(/\s/g,'_'));
+      if(el) el.textContent = count.toLocaleString();
+    });
+    document.getElementById('count-ALL').textContent = rows.length.toLocaleString();
+
+    document.getElementById('totalPill').textContent = allData.length.toLocaleString() + ' SKUs';
+    document.getElementById('totalPill').style.display = 'inline-flex';
+
+    buildDynamicFilters();
+    applyFilters();
+    hideLoading();
+
+  } catch(err){
+    hideLoading();
+    showEmptyState('Failed to load data. Check your connection or CSV URL in Settings.');
+  }
+}
+
+// ── CSV PARSER ──
+function parseCSV(text){
+  const lines = text.split('\n');
+  if(!lines.length) return [];
+  const headers = parseCSVLine(lines[0]);
+  const rows = [];
+  for(let i = 1; i < lines.length; i++){
+    if(!lines[i].trim()) continue;
+    const vals = parseCSVLine(lines[i]);
+    const obj = {};
+    headers.forEach((h,idx) => { obj[h.trim()] = (vals[idx]||'').trim(); });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function parseCSVLine(line){
+  const result = [];
+  let current = '', inQuotes = false;
+  for(let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if(ch === '"'){
+      if(inQuotes && line[i+1] === '"'){ current += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if(ch === ',' && !inQuotes){
+      result.push(current); current = '';
+    } else { current += ch; }
+  }
+  result.push(current);
+  return result;
+}
+
+// ── DYNAMIC FILTERS ──
+function buildDynamicFilters(){
+  const filterFields = fieldSettings.filter(f => f.filter);
+  const skipInFilter = ['MRP','Cost INR','Cost $','LINK','Remarks','Style Name','Style Code','SIZE DESC.','Eancode'];
+  const df = document.getElementById('dynamicFilters');
+  df.innerHTML = '';
+
+  filterFields.filter(f => !skipInFilter.includes(f.col)).forEach(f => {
+    const vals = [...new Set(allData.map(r => r[f.col]||'').filter(v => v && v !== 'Not Required' && v !== 'NOT REQUIRED' && v !== 'NA' && v !== '-'))].sort();
+    if(!vals.length) return;
+    const sel = document.createElement('select');
+    sel.className = 'f-select';
+    sel.id = 'filter_' + f.col.replace(/[^a-zA-Z0-9]/g,'_');
+    sel.innerHTML = `<option value="">All ${f.label}</option>` + vals.map(v => `<option value="${v}">${v}</option>`).join('');
+    sel.onchange = applyFilters;
+    df.appendChild(sel);
+  });
+}
+
+// ── APPLY FILTERS ──
+function applyFilters(){
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const mrpMin = parseFloat(document.getElementById('mrpMin').value) || 0;
+  const mrpMax = parseFloat(document.getElementById('mrpMax').value) || Infinity;
+
+  const activeFilters = {};
+  document.querySelectorAll('#dynamicFilters select').forEach(sel => {
+    if(sel.value) activeFilters[sel.id.replace('filter_','')] = sel.value;
+  });
+
+  filteredData = allData.filter(r => {
+    // Search
+    if(search){
+      const haystack = [(r['Style Name']||''),(r['Style Code']||''),(r['Color']||''),(r['Eancode']||''),(r['Brand N.']||'')].join(' ').toLowerCase();
+      if(!haystack.includes(search)) return false;
+    }
+    // MRP range
+    const mrp = parseFloat(r['MRP']) || 0;
+    if(mrp < mrpMin || mrp > mrpMax) return false;
+    // Dynamic filters
+    for(const [key, val] of Object.entries(activeFilters)){
+      const col = key.replace(/_/g, match => {
+        // Try to match column name
+        return ' ';
+      });
+      // Find matching field
+      const field = fieldSettings.find(f => f.col.replace(/[^a-zA-Z0-9]/g,'_') === key);
+      if(field && r[field.col] !== val) return false;
+    }
+    return true;
+  });
+
+  currentPage = 1;
+  document.getElementById('resultCount').textContent = filteredData.length.toLocaleString();
+  renderProducts();
+}
+
+// ── RENDER ──
+function renderProducts(){
+  if(!filteredData.length){
+    showEmptyState();
+    return;
+  }
+  document.getElementById('gridWrap').style.display = currentView === 'grid' ? 'flex' : 'none';
+  document.getElementById('listWrap').style.display = currentView === 'list' ? 'block' : 'none';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('landingState').style.display = 'none';
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageData = filteredData.slice(start, start + PAGE_SIZE);
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+  document.getElementById('pageInfo').textContent = currentPage + ' / ' + totalPages;
+
+  if(currentView === 'grid') renderGrid(pageData, totalPages);
+  else renderList(pageData, totalPages);
+}
+
+function renderGrid(pageData, totalPages){
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = '';
+  pageData.forEach((row, idx) => {
+    const ean = row['Eancode']||'';
+    const imgUrl = ean ? `https://www.bagline.com/cdn/shop/products/${ean}_1.jpg` : '';
+    const brand = row['Brand N.'] || row['Brand'] || '';
+    const color = BRAND_COLORS[brand.toUpperCase()] || '#888';
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.style.animationDelay = (idx * 0.02) + 's';
+    card.innerHTML = `
+      <div class="card-img">
+        ${imgUrl ? `<img src="${imgUrl}" alt="${row['Style Name']||''}" onerror="this.parentNode.innerHTML='<div class=\\'img-placeholder\\'><i class=\\'ti ti-photo-off\\'></i><span>No image</span></div>'" loading="lazy">` : '<div class="img-placeholder"><i class="ti ti-photo-off"></i><span>No image</span></div>'}
+      </div>
+      <div class="card-body">
+        <div class="card-brand" style="color:${color}">${brand}</div>
+        <div class="card-name">${row['Style Name']||'—'}</div>
+        <div class="card-style">${row['Style Code']||''} ${row['Color']?'· '+row['Color']:''}</div>
+        <div class="card-footer">
+          <div class="card-mrp">₹${parseFloat(row['MRP']||0).toLocaleString('en-IN')}</div>
+          <div class="card-cat">${row['Category']||''}</div>
+        </div>
+      </div>`;
+    card.onclick = () => showDetail(row, card);
+    grid.appendChild(card);
+  });
+  renderPagination('gridPagination', totalPages);
+}
+
+function renderList(pageData, totalPages){
+  const detailFields = fieldSettings.filter(f => f.detail);
+  const thead = document.getElementById('tableHead');
+  const tbody = document.getElementById('tableBody');
+
+  thead.innerHTML = '<tr><th style="width:50px">IMG</th>' +
+    detailFields.slice(0,8).map(f => `<th onclick="sortBy('${f.col}')" class="${sortCol===f.col?'sorted':''}">${f.label} ${sortCol===f.col?(sortDir>0?'↑':'↓'):''}</th>`).join('') + '</tr>';
+
+  tbody.innerHTML = pageData.map(row => {
+    const ean = row['Eancode']||'';
+    const imgUrl = ean ? `https://www.bagline.com/cdn/shop/products/${ean}_1.jpg` : '';
+    return `<tr onclick="showDetail(row_${allData.indexOf(row)})">
+      <td><div class="td-img">${imgUrl?`<img src="${imgUrl}" loading="lazy" onerror="this.style.display='none'">`:''}</div></td>
+      ${detailFields.slice(0,8).map(f=>`<td>${row[f.col]||'—'}</td>`).join('')}
+    </tr>`;
+  }).join('');
+
+  // Fix onclick for list rows
+  tbody.querySelectorAll('tr').forEach((tr, idx) => {
+    const row = pageData[idx];
+    tr.onclick = () => showDetail(row, tr);
+  });
+
+  renderPagination('listPagination', totalPages);
+}
+
+function sortBy(col){
+  if(sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = 1; }
+  filteredData.sort((a,b) => {
+    const av = a[col]||'', bv = b[col]||'';
+    const an = parseFloat(av), bn = parseFloat(bv);
+    if(!isNaN(an) && !isNaN(bn)) return (an - bn) * sortDir;
+    return av.localeCompare(bv) * sortDir;
+  });
+  renderProducts();
+}
+
+function renderPagination(containerId, totalPages){
+  const container = document.getElementById(containerId);
+  if(totalPages <= 1){ container.innerHTML = ''; return; }
+  let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹ Prev</button>`;
+  const start = Math.max(1, currentPage - 2);
+  const end = Math.min(totalPages, currentPage + 2);
+  if(start > 1) html += `<button class="page-btn" onclick="goPage(1)">1</button>${start > 2 ? '<span style="color:var(--text3);padding:0 4px">…</span>' : ''}`;
+  for(let i = start; i <= end; i++) html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  if(end < totalPages) html += `${end < totalPages-1 ? '<span style="color:var(--text3);padding:0 4px">…</span>' : ''}<button class="page-btn" onclick="goPage(${totalPages})">${totalPages}</button>`;
+  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next ›</button>`;
+  container.innerHTML = html;
+}
+
+function goPage(p){
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+  if(p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderProducts();
+  document.getElementById('gridWrap').scrollTop = 0;
+  document.getElementById('listWrap').scrollTop = 0;
+}
+
+// ── DETAIL PANEL ──
+function showDetail(row, el){
+  document.querySelectorAll('.product-card.active, tbody tr.active').forEach(e => e.classList.remove('active'));
+  if(el) el.classList.add('active');
+
+  document.getElementById('dpEmpty').style.display = 'none';
+  document.getElementById('dpBody').style.display = 'flex';
+
+  const ean = row['Eancode']||'';
+  const imgUrl = ean ? `https://www.bagline.com/cdn/shop/products/${ean}_1.jpg` : '';
+  const brand = row['Brand N.'] || row['Brand'] || '';
+  const brandColor = BRAND_COLORS[brand.toUpperCase()] || '#888';
+
+  const detailFields = fieldSettings.filter(f => f.detail && f.col !== 'LINK' && f.col !== 'remarks');
+
+  const body = document.getElementById('dpBody');
+  body.innerHTML = `
+    <div class="img-stage">
+      <div class="img-spinner" id="imgSpinner"><div class="spinner-ring"></div></div>
+      <img id="detailImg" src="${imgUrl}" alt="${row['Style Name']||''}"
+        onload="this.classList.add('loaded');document.getElementById('imgSpinner').style.display='none'"
+        onerror="document.getElementById('imgSpinner').innerHTML='<div style=\\'color:#aaa;font-size:12px;text-align:center\\'><i class=\\'ti ti-photo-off\\'style=\\'font-size:28px;display:block;margin-bottom:6px\\'></i>No image available</div>'">
+    </div>
+    <div>
+      <div class="dp-name" style="color:${brandColor}">${row['Style Name']||'—'}</div>
+      <div class="dp-sub">${brand} · ${row['Style Code']||''} · ${row['Color']||''}</div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-cell"><div class="dc-label">MRP</div><div class="dc-value big">₹${parseFloat(row['MRP']||0).toLocaleString('en-IN')}</div></div>
+      <div class="detail-cell"><div class="dc-label">Cost INR</div><div class="dc-value big" style="color:var(--amber)">₹${parseFloat(row['Cost INR']||0).toLocaleString('en-IN')}</div></div>
+      ${detailFields.filter(f=>!['MRP','Cost INR','Style Name','Style Code','Color','Brand N.','Brand'].includes(f.col)).map(f =>
+        `<div class="detail-cell${['SIZE DESC.','S.Wearbility Master','Collection Name'].includes(f.col)?' full':''}">
+          <div class="dc-label">${f.label}</div>
+          <div class="dc-value ${f.col==='Eancode'?'mono':''}">${row[f.col]||'—'}</div>
+        </div>`
+      ).join('')}
+    </div>
+    ${row['remarks'] ? `<div class="detail-cell full"><div class="dc-label">Remarks</div><div class="dc-value" style="white-space:normal">${row['remarks']}</div></div>` : ''}
+  `;
+}
+
+// ── VIEW TOGGLE ──
+function setView(v){
+  currentView = v;
+  document.getElementById('gridViewBtn').classList.toggle('active', v==='grid');
+  document.getElementById('listViewBtn').classList.toggle('active', v==='list');
+  renderProducts();
+}
+
+// ── CLEAR FILTERS ──
+function clearFilters(){
+  document.getElementById('searchInput').value = '';
+  document.getElementById('mrpMin').value = '';
+  document.getElementById('mrpMax').value = '';
+  document.querySelectorAll('#dynamicFilters select').forEach(s => s.value = '');
+  applyFilters();
+}
+
+// ── LOADING STATES ──
+function showLoading(msg){
+  document.getElementById('loadingPill').style.display = 'inline-flex';
+  document.getElementById('landingState').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'flex';
+  document.getElementById('gridWrap').style.display = 'none';
+  document.getElementById('listWrap').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('loadingText').textContent = msg || 'Loading…';
+}
+function updateLoadingText(msg){ document.getElementById('loadingText').textContent = msg; }
+function hideLoading(){
+  document.getElementById('loadingPill').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'none';
+}
+function showEmptyState(msg){
+  hideLoading();
+  document.getElementById('gridWrap').style.display = 'none';
+  document.getElementById('listWrap').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'flex';
+  document.getElementById('landingState').style.display = 'none';
+  if(msg) document.getElementById('emptyState').querySelector('p').textContent = msg;
+}
+
+// ── SETTINGS ──
+function openSettings(){
+  document.getElementById('pwModal').classList.add('show');
+  document.getElementById('pwModalInput').value = '';
+  document.getElementById('pwModalError').classList.remove('show');
+  setTimeout(() => document.getElementById('pwModalInput').focus(), 100);
+}
+
+function verifyPassword(){
+  const pw = document.getElementById('pwModalInput').value;
+  const stored = localStorage.getItem(PW_KEY) || DEFAULT_PW;
+  if(pw === stored){
+    document.getElementById('pwModal').classList.remove('show');
+    document.getElementById('mainLayout').style.display = 'none';
+    document.getElementById('settingsPage').classList.add('active');
+    buildSettingsTable();
+  } else {
+    document.getElementById('pwModalError').classList.add('show');
+    document.getElementById('pwModalInput').value = '';
+    document.getElementById('pwModalInput').focus();
+  }
+}
+
+function closePwModal(){
+  document.getElementById('pwModal').classList.remove('show');
+}
+
+function closeSettings(){
+  document.getElementById('settingsPage').classList.remove('active');
+  document.getElementById('mainLayout').style.display = 'flex';
+}
+
+function buildSettingsTable(){
+  const tbody = document.getElementById('settingsTableBody');
+  tbody.innerHTML = fieldSettings.map((f, i) => `
+    <tr>
+      <td>${f.label}</td>
+      <td><input type="checkbox" ${f.detail?'checked':''} onchange="fieldSettings[${i}].detail=this.checked"></td>
+      <td><input type="checkbox" ${f.filter?'checked':''} onchange="fieldSettings[${i}].filter=this.checked"></td>
+      <td><input type="checkbox" ${f.report?'checked':''} onchange="fieldSettings[${i}].report=this.checked"></td>
+    </tr>`).join('');
+}
+
+function saveSettings(){
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(fieldSettings));
+  showToast('Settings saved!');
+  if(allData.length) buildDynamicFilters();
+}
+
+function changePassword(){
+  const cur = document.getElementById('pwCurrent').value;
+  const nw = document.getElementById('pwNew').value;
+  const cf = document.getElementById('pwConfirm').value;
+  const stored = localStorage.getItem(PW_KEY) || DEFAULT_PW;
+  const msg = document.getElementById('pwMsg');
+  msg.style.display = 'block';
+  if(cur !== stored){ msg.style.color='var(--red)'; msg.textContent='Current password is incorrect.'; return; }
+  if(nw.length < 6){ msg.style.color='var(--red)'; msg.textContent='New password must be at least 6 characters.'; return; }
+  if(nw !== cf){ msg.style.color='var(--red)'; msg.textContent='New passwords do not match.'; return; }
+  localStorage.setItem(PW_KEY, nw);
+  ['pwCurrent','pwNew','pwConfirm'].forEach(id => document.getElementById(id).value = '');
+  msg.style.color = 'var(--green)'; msg.textContent = '✓ Password changed successfully!';
+  showToast('Password updated!');
+}
+
+function saveCsvUrl(){
+  const url = document.getElementById('csvUrlInput').value.trim();
+  if(!url){ showToast('Please enter a valid URL'); return; }
+  localStorage.setItem(CSV_URL_KEY, url);
+  showToast('CSV URL saved!');
+}
+
+// ── TOAST ──
+function showToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
