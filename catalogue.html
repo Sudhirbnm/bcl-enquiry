@@ -1,0 +1,764 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCL Product Catalogue</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#222638;--border:#2e3248;
+  --accent:#4f8ef7;--accent2:#7c3aed;--text:#e8eaf0;--text2:#8b90a8;--text3:#5a5f7a;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;
+  --panel:380px;--r:8px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono','Fira Code',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* TOPBAR */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18px;height:50px;display:flex;align-items:center;gap:12px;flex-shrink:0;z-index:100}
+.logo{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;padding:4px 10px;font-size:12px;font-weight:800;color:#fff}
+.topbar h1{font-size:14px;font-weight:600;flex:1}
+.topbar h1 span{color:var(--text2);font-weight:400}
+.pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;border:1px solid}
+.pill-blue{background:rgba(79,142,247,.12);color:var(--accent);border-color:rgba(79,142,247,.3)}
+.pill-amber{background:rgba(245,158,11,.12);color:var(--amber);border-color:rgba(245,158,11,.3)}
+.pill-green{background:rgba(34,197,94,.12);color:var(--green);border-color:rgba(34,197,94,.3)}
+.pill-grey{background:var(--surface2);color:var(--text2);border-color:var(--border)}
+.top-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;font-family:var(--font)}
+.top-btn:hover{color:var(--text);border-color:var(--accent)}
+
+/* BANNER */
+.banner{background:rgba(245,158,11,.07);border-bottom:1px solid rgba(245,158,11,.2);padding:8px 18px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--amber);flex-shrink:0}
+.banner.hidden{display:none}
+.banner strong{font-weight:600}
+.banner-btn{margin-left:auto;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--amber);border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:var(--font)}
+
+/* SEARCH */
+.search-wrap{padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.search-inner{position:relative}
+.search-inner i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:16px;pointer-events:none}
+#searchInput{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;font-family:var(--font);padding:10px 14px 10px 38px;outline:none;transition:border-color .2s}
+#searchInput:focus{border-color:var(--accent)}
+#searchInput::placeholder{color:var(--text3)}
+
+/* FILTER ROW */
+.filter-row{padding:8px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0}
+.filter-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.f-sel{background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:var(--font);padding:5px 9px;outline:none;cursor:pointer;transition:border-color .15s;max-width:160px}
+.f-sel:focus{border-color:var(--accent)}
+.f-sep{width:1px;height:20px;background:var(--border)}
+.clear-btn{background:none;border:1px solid var(--border);border-radius:7px;color:var(--text3);font-size:11px;padding:5px 10px;cursor:pointer;font-family:var(--font);margin-left:auto;white-space:nowrap}
+.clear-btn:hover{color:var(--red);border-color:var(--red)}
+
+/* RESULTS BAR */
+.results-bar{padding:6px 18px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.results-bar strong{color:var(--text2)}
+
+/* LAYOUT */
+.layout{display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* TABLE SIDE */
+.table-side{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.table-wrap{flex:1;overflow-y:auto;overflow-x:auto}
+.table-wrap::-webkit-scrollbar{width:4px;height:4px}
+.table-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:700px}
+thead th{background:var(--surface);color:var(--text3);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:9px 12px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;position:sticky;top:0;z-index:5;cursor:pointer;user-select:none;transition:color .15s}
+thead th:hover{color:var(--text)}
+thead th.sorted{color:var(--accent)}
+thead th .sort-arrow{font-size:10px;margin-left:3px;opacity:.6}
+tbody tr{border-bottom:1px solid rgba(46,50,72,.4);cursor:pointer;transition:background .1s}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+tbody tr.active{background:rgba(79,142,247,.08);box-shadow:inset 3px 0 0 var(--accent)}
+td{padding:8px 12px;vertical-align:middle;white-space:nowrap;overflow:hidden;max-width:200px;text-overflow:ellipsis}
+.td-ean{font-family:var(--mono);font-size:10.5px;color:var(--text2)}
+.td-name{font-weight:700;font-size:13px;color:var(--text)}
+.td-sub{font-size:10px;color:var(--text3);margin-top:1px}
+.td-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2);font-weight:500}
+.td-ch{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700}
+.ch-ONLINE{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.ch-RETAIL{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
+.ch-OFFLINE{background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.2)}
+.ch-OTHER{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.td-mrp{font-weight:700;font-size:13px;color:var(--text)}
+.color-dot{display:inline-block;width:9px;height:9px;border-radius:50%;border:1px solid rgba(255,255,255,.2);margin-right:5px;vertical-align:middle}
+.er-row td{text-align:center;padding:60px;color:var(--text3);font-size:13px}
+
+/* PAGINATION */
+.pagination{padding:8px 14px;display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid var(--border);flex-shrink:0}
+.pg-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:4px 10px;font-size:12px;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.pg-btn:hover{color:var(--text);border-color:var(--accent)}
+.pg-btn.active{background:rgba(79,142,247,.15);border-color:var(--accent);color:var(--accent);font-weight:600}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* DETAIL PANEL */
+.detail-panel{width:var(--panel);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.dp-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dp-head h3{font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.api-status{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3)}
+.status-dot{width:6px;height:6px;border-radius:50%}
+.status-dot.ok{background:var(--green)}
+.status-dot.err{background:var(--red)}
+.status-dot.loading{background:var(--amber);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.dp-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3);padding:20px;text-align:center}
+.dp-empty .ico{font-size:38px;opacity:.15}
+.dp-empty p{font-size:12px;line-height:1.65}
+
+.dp-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.dp-body::-webkit-scrollbar{width:3px}
+.dp-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Image stage */
+.img-stage{background:#fff;border-radius:var(--r);overflow:hidden;aspect-ratio:1;position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.img-spinner-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f8f8f8;z-index:2}
+.img-spinner{width:28px;height:28px;border:3px solid #e0e0e0;border-top-color:#4f8ef7;border-radius:50%;animation:spin .7s linear infinite}
+.img-no{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#aaa;font-size:11px;width:100%;height:100%;background:#f5f5f5}
+.img-no span:first-child{font-size:28px;opacity:.3}
+#pImg{width:100%;height:100%;object-fit:contain;display:block;opacity:0;transition:opacity .25s;position:relative;z-index:1}
+#pImg.loaded{opacity:1}
+
+/* Thumbnail row */
+.thumb-row{display:flex;gap:5px;flex-wrap:wrap}
+.thumb{width:44px;height:44px;background:#fff;border-radius:6px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s;flex-shrink:0}
+.thumb img{width:100%;height:100%;object-fit:contain}
+.thumb.active{border-color:var(--accent)}
+
+/* Detail info */
+.dp-name{font-size:16px;font-weight:700;color:var(--text);line-height:1.3}
+.dp-meta{font-size:11.5px;color:var(--text2);margin-top:3px;line-height:1.5}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.dc{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 10px}
+.dc.full{grid-column:1/-1}
+.dc-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:2px}
+.dc-v{font-size:12.5px;font-weight:500;color:var(--text)}
+.dc-v.big{font-size:19px;font-weight:700}
+.dc-v.mono{font-family:var(--mono);font-size:10.5px}
+.dc-v.green{color:var(--green)}
+.dc-v.amber{color:var(--amber)}
+
+/* SETTINGS PAGE */
+.settings-page{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column;overflow:hidden}
+.settings-page.show{display:flex}
+.settings-scroll{flex:1;overflow-y:auto;padding:20px;max-width:960px;margin:0 auto;width:100%}
+.s-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.s-card h3{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--text)}
+.field-tbl{width:100%;border-collapse:collapse}
+.field-tbl th{font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left}
+.field-tbl th:not(:first-child){text-align:center}
+.field-tbl td{padding:6px 10px;border-bottom:1px solid rgba(46,50,72,.3);font-size:12.5px;color:var(--text2);vertical-align:middle}
+.field-tbl tr:hover td{background:rgba(255,255,255,.02)}
+.field-tbl input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--accent)}
+.field-tbl td:not(:first-child){text-align:center}
+.sbtn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:7px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.sbtn:hover{opacity:.88}
+.cbtn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:7px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:var(--font)}
+
+/* PW MODAL */
+.pw-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center}
+.pw-ov.show{display:flex}
+.pw-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:26px;width:100%;max-width:360px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.pw-box h3{font-size:16px;font-weight:600;margin-bottom:4px}
+.pw-box p{font-size:12px;color:var(--text2);margin-bottom:18px}
+.pw-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:12px;display:none}
+.pw-err.show{display:block}
+.pw-f{margin-bottom:12px}
+.pw-f label{font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px}
+.pw-f input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;font-family:var(--font)}
+.pw-f input:focus{border-color:var(--accent)}
+.pw-acts{display:flex;gap:8px;justify-content:flex-end}
+
+/* LOADING */
+.load-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text3)}
+.load-ring{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.load-bar{width:260px;height:3px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.load-prog{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;width:0;transition:width .4s}
+
+/* TOAST */
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(60px);background:#1a2a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast i{font-size:16px;color:var(--green)}
+
+@media(max-width:800px){.detail-panel{display:none}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">BCL</div>
+  <h1>Product Search <span>/ Image Viewer</span></h1>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="pill pill-amber" id="imgPill">
+      <span id="imgStatusDot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--amber);margin-right:4px;vertical-align:middle;animation:pulse 1s infinite"></span>
+      <span id="imgStatusTxt">Image: Checking…</span>
+    </span>
+    <span class="pill pill-grey" id="cntPill">0 SKUs</span>
+    <button class="top-btn" onclick="openSettings()">⚙ Settings</button>
+  </div>
+</div>
+
+<!-- BANNER -->
+<div class="banner hidden" id="banner">
+  <span>⚙</span>
+  <strong>No data loaded.</strong> <span>Select a brand from Settings or configure your CSV URL.</span>
+  <button class="banner-btn" onclick="openSettings()">Configure →</button>
+</div>
+
+<!-- SEARCH -->
+<div class="search-wrap">
+  <div class="search-inner">
+    <i>🔍</i>
+    <input type="text" id="searchInput" placeholder="Search style name, EAN, category, sub-category, channel, color…" oninput="applyFilters()">
+  </div>
+</div>
+
+<!-- FILTER ROW -->
+<div class="filter-row">
+  <span class="filter-label">Brand</span>
+  <select class="f-sel" id="f-brand" onchange="applyFilters()"><option value="">All Brands</option></select>
+  <div class="f-sep"></div>
+  <select class="f-sel" id="f-category" onchange="applyFilters()"><option value="">All Categories</option></select>
+  <select class="f-sel" id="f-subcategory" onchange="applyFilters()"><option value="">All Sub-Categories</option></select>
+  <select class="f-sel" id="f-channel" onchange="applyFilters()"><option value="">All Channels</option></select>
+  <select class="f-sel" id="f-color" onchange="applyFilters()"><option value="">All Colors</option></select>
+  <select class="f-sel" id="f-season" onchange="applyFilters()"><option value="">All Seasons</option></select>
+  <select class="f-sel" id="f-gender" onchange="applyFilters()"><option value="">All Genders</option></select>
+  <button class="clear-btn" onclick="clearFilters()">✕ Clear</button>
+</div>
+
+<!-- RESULTS BAR -->
+<div class="results-bar">
+  <span>Showing <strong id="showCount">0</strong> of <strong id="totalCount">0</strong> products</span>
+  <span id="pageInfo" style="font-size:11px;color:var(--text3)">Page 1</span>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- TABLE SIDE -->
+  <div class="table-side">
+    <div class="table-wrap" id="tableWrap">
+      <!-- LOADING -->
+      <div class="load-state" id="loadState">
+        <div class="load-ring"></div>
+        <div id="loadTxt" style="font-size:13px">Select a brand to start…</div>
+        <div class="load-bar"><div class="load-prog" id="loadProg"></div></div>
+      </div>
+      <!-- TABLE -->
+      <table id="mainTable" style="display:none">
+        <thead id="tHead"></thead>
+        <tbody id="tBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div class="detail-panel">
+    <div class="dp-head">
+      <h3>PRODUCT VIEWER</h3>
+      <div class="api-status">
+        <div class="status-dot" id="sdot" style="background:var(--text3)"></div>
+        <span id="sstat">Loading…</span>
+      </div>
+    </div>
+    <div class="dp-empty" id="dpEmpty">
+      <div class="ico">📦</div>
+      <p>Click on any product<br>to view image and details</p>
+    </div>
+    <div class="dp-body" id="dpBody" style="display:none">
+      <div class="img-stage">
+        <div class="img-spinner-wrap" id="imgSpinner"><div class="img-spinner"></div></div>
+        <img id="pImg" alt="Product" onload="imgLoaded()" onerror="imgError()">
+      </div>
+      <div class="thumb-row" id="thumbRow"></div>
+      <div>
+        <div class="dp-name" id="dpName">—</div>
+        <div class="dp-meta" id="dpMeta">—</div>
+      </div>
+      <div class="detail-grid" id="dpGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="settings-page" id="settingsPage">
+  <div class="topbar" style="position:static">
+    <div class="logo">BCL</div>
+    <h1>Settings <span>/ Configuration</span></h1>
+    <button class="top-btn" onclick="closeSettings()">← Back to Catalogue</button>
+  </div>
+  <div class="settings-scroll">
+    <div class="s-card">
+      <h3>📡 Data Source</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Google Sheet published CSV URL. Update this whenever your data source changes.</p>
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:5px">Published CSV URL</div>
+        <input type="text" id="csvUrlInput" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:8px 10px;outline:none;font-family:monospace" placeholder="https://docs.google.com/spreadsheets/d/e/...">
+      </div>
+      <button class="sbtn" onclick="saveCsvUrl()" style="margin-right:8px">💾 Save & Reload</button>
+    </div>
+
+    <div class="s-card">
+      <h3>👁 Field Visibility</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Control which fields show in the detail panel, which are filters, and which appear as table columns.</p>
+      <table class="field-tbl">
+        <thead><tr><th>Field</th><th>Table Column</th><th>Detail Panel</th><th>Filter</th></tr></thead>
+        <tbody id="fieldTblBody"></tbody>
+      </table>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="sbtn" onclick="saveFieldSettings()">💾 Save Settings</button>
+        <button class="cbtn" onclick="closeSettings()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="s-card">
+      <h3>🔒 Change Password</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:560px">
+        <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px">Current Password</div><input type="password" id="pwCur" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:8px;outline:none;font-family:var(--font)" placeholder="Current"></div>
+        <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px">New Password</div><input type="password" id="pwNew" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:8px;outline:none;font-family:var(--font)" placeholder="New"></div>
+        <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px">Confirm</div><input type="password" id="pwCfm" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:8px;outline:none;font-family:var(--font)" placeholder="Confirm"></div>
+      </div>
+      <div id="pwMsg" style="font-size:12px;margin-top:8px;display:none"></div>
+      <button class="sbtn" style="margin-top:12px" onclick="changePw()">🔑 Change Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- PW MODAL -->
+<div class="pw-ov" id="pwOv">
+  <div class="pw-box">
+    <h3>🔒 Settings Access</h3>
+    <p>Enter the settings password to continue</p>
+    <div class="pw-err" id="pwErr">Incorrect password. Please try again.</div>
+    <div class="pw-f"><label>Password</label><input type="password" id="pwIn" onkeydown="if(event.key==='Enter')verifyPw()"></div>
+    <div class="pw-acts">
+      <button class="cbtn" onclick="closePwOv()">Cancel</button>
+      <button class="sbtn" onclick="verifyPw()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i>✓</i><span id="toastMsg"></span></div>
+
+<script>
+const DEFAULT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRLiU87oDRjaduw9esqOPO274qJdMGjrhahcTGClmxfEowUQWNjic6Ea9yc4CWZlmZ_L26yefMbwSiL/pub?gid=99111561&single=true&output=csv';
+const DEFAULT_PW = 'Sudhir@123';
+const PW_KEY = 'bcl_cat_pw';
+const CSV_KEY = 'bcl_cat_csv';
+const FIELD_KEY = 'bcl_cat_fields';
+
+const ALL_FIELDS = [
+  {col:'Eancode',label:'EAN',table:true,detail:true,filter:false},
+  {col:'Gender',label:'Gender',table:false,detail:true,filter:true},
+  {col:'Brand N.',label:'Brand',table:true,detail:true,filter:true},
+  {col:'Brand',label:'Brand (Full)',table:false,detail:true,filter:false},
+  {col:'Category-2',label:'Category-2',table:false,detail:true,filter:false},
+  {col:'Category',label:'Category',table:true,detail:true,filter:true},
+  {col:'Sub Category',label:'Sub Category',table:true,detail:true,filter:true},
+  {col:'S.Brand',label:'S.Brand',table:false,detail:true,filter:false},
+  {col:'S.Category',label:'S.Category',table:false,detail:true,filter:false},
+  {col:'S.Sub Category',label:'S.Sub Category',table:false,detail:true,filter:false},
+  {col:'Style Name',label:'Style Name',table:true,detail:true,filter:false},
+  {col:'Color',label:'Color',table:true,detail:true,filter:true},
+  {col:'S.SIZE',label:'S.SIZE',table:false,detail:true,filter:true},
+  {col:'SIZE',label:'SIZE',table:true,detail:true,filter:true},
+  {col:'SIZE DESC.',label:'Size Desc.',table:false,detail:true,filter:false},
+  {col:'Channel',label:'Channel',table:true,detail:true,filter:true},
+  {col:'Collection Name',label:'Collection',table:false,detail:true,filter:false},
+  {col:'S.Season',label:'S.Season',table:false,detail:true,filter:false},
+  {col:'Season',label:'Season',table:true,detail:true,filter:true},
+  {col:'S.Wearbility Master',label:'Wearbility',table:false,detail:true,filter:false},
+  {col:'Style Code',label:'Style Code',table:true,detail:true,filter:false},
+  {col:'MRP',label:'MRP',table:true,detail:true,filter:false},
+  {col:'Cost INR',label:'Cost INR',table:true,detail:true,filter:false},
+  {col:'Cost $',label:'Cost $',table:false,detail:true,filter:false},
+  {col:'Sub Category Type',label:'Sub Cat Type',table:false,detail:true,filter:true},
+  {col:'S.Buckle Detail',label:'S.Buckle',table:false,detail:true,filter:false},
+  {col:'Buckle Detail',label:'Buckle Detail',table:false,detail:true,filter:false},
+  {col:'Channel for OTB',label:'OTB Channel',table:false,detail:true,filter:true},
+  {col:'remarks',label:'Remarks',table:false,detail:true,filter:false},
+];
+
+const BRAND_COLORS={'TOMMY HILFIGER':'#cc0001','UCB':'#00843d','SUPERDRY':'#f7a600','JUICY COUTURE':'#e91e8c','AEROPOSTALE':'#003087'};
+const COLOR_DOTS={'Black':'#222','Navy':'#1a3a6b','Blue':'#2563eb','Red':'#dc2626','Green':'#16a34a','Yellow':'#eab308','White':'#e5e5e5','Grey':'#6b7280','Gray':'#6b7280','Brown':'#78350f','Pink':'#ec4899','Purple':'#7c3aed','Orange':'#ea580c','Olive':'#65a30d'};
+
+let allData=[], filteredData=[], fields=[], currentRow=null, sortCol=null, sortDir=1, currentPage=1;
+const PAGE_SIZE=50;
+let imgWorking=null;
+
+function init(){
+  fields=JSON.parse(localStorage.getItem(FIELD_KEY)||'null')||ALL_FIELDS.map(f=>({...f}));
+  const savedUrl=localStorage.getItem(CSV_KEY)||DEFAULT_CSV;
+  document.getElementById('csvUrlInput').value=savedUrl;
+  buildFieldTable();
+  loadData();
+}
+
+// ── LOAD DATA ──
+async function loadData(){
+  setLoadState('Loading product data…',10);
+  const url=localStorage.getItem(CSV_KEY)||DEFAULT_CSV;
+  try{
+    setLoadState('Fetching from Google Sheets…',30);
+    const resp=await fetch(url+'&t='+Date.now());
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const text=await resp.text();
+    setLoadState('Parsing data…',70);
+    allData=parseCSV(text);
+    setLoadState('Building filters…',90);
+    buildFilterOptions();
+    checkImageAvailability();
+    applyFilters();
+    document.getElementById('cntPill').textContent=allData.length.toLocaleString()+' SKUs';
+    document.getElementById('banner').classList.add('hidden');
+  }catch(err){
+    setLoadState('Failed to load. Check CSV URL in Settings.',100,true);
+    document.getElementById('banner').classList.remove('hidden');
+  }
+}
+
+function setLoadState(msg,pct,isErr){
+  document.getElementById('loadTxt').textContent=msg;
+  document.getElementById('loadTxt').style.color=isErr?'var(--red)':'var(--text3)';
+  document.getElementById('loadProg').style.width=pct+'%';
+}
+
+// ── CSV PARSER ──
+function parseCSV(text){
+  const lines=text.split('\n');
+  if(!lines.length)return[];
+  const headers=parseLine(lines[0]);
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    const vals=parseLine(lines[i]);
+    const obj={};
+    headers.forEach((h,idx)=>{obj[h.trim()]=(vals[idx]||'').trim();});
+    rows.push(obj);
+  }
+  return rows;
+}
+function parseLine(line){
+  const r=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){r.push(cur);cur='';}
+    else cur+=c;
+  }
+  r.push(cur);return r;
+}
+
+// ── IMAGE CHECK ──
+async function checkImageAvailability(){
+  if(imgWorking!==null)return;
+  const testEan=allData.find(r=>r['Eancode'])?.['Eancode'];
+  if(!testEan){setImgStatus(false,'No EAN found');return;}
+  const img=new Image();
+  img.onload=()=>{imgWorking=true;setImgStatus(true,'Images: Available');};
+  img.onerror=()=>{imgWorking=false;setImgStatus(false,'Images: CDN Blocked');};
+  img.src=`https://www.bagline.com/cdn/shop/products/${testEan}_1.jpg?t=${Date.now()}`;
+}
+
+function setImgStatus(ok,msg){
+  const pill=document.getElementById('imgPill');
+  const dot=document.getElementById('imgStatusDot');
+  const txt=document.getElementById('imgStatusTxt');
+  const sdot=document.getElementById('sdot');
+  const sstat=document.getElementById('sstat');
+  txt.textContent=msg;
+  dot.style.animation='none';
+  if(ok){
+    pill.className='pill pill-green';
+    dot.style.background='var(--green)';
+    sdot.className='status-dot ok';
+    sstat.textContent='Images live';
+  }else{
+    pill.className='pill pill-amber';
+    dot.style.background='var(--red)';
+    sdot.className='status-dot err';
+    sstat.textContent='CDN blocked';
+  }
+}
+
+// ── FILTERS ──
+function buildFilterOptions(){
+  const filterCols=['Brand N.','Category','Sub Category','Channel','Color','Season','Gender'];
+  filterCols.forEach(col=>{
+    const id='f-'+col.replace(/[^a-zA-Z0-9]/g,'').toLowerCase().replace('brand n','brand').replace('subcategory','subcategory').replace('channel','channel').replace('color','color').replace('season','season').replace('gender','gender');
+    const sel=document.getElementById(id)||(()=>{
+      const s=document.createElement('select');s.className='f-sel';s.id=id;s.onchange=applyFilters;return s;
+    })();
+    const vals=[...new Set(allData.map(r=>(r[col]||'').trim()).filter(v=>v&&!['Not Required','NOT REQUIRED','NA','-',''].includes(v)))].sort();
+    const label={'Brand N.':'All Brands','Category':'All Categories','Sub Category':'All Sub-Categories','Channel':'All Channels','Color':'All Colors','Season':'All Seasons','Gender':'All Genders'}[col]||'All';
+    sel.innerHTML=`<option value="">${label}</option>`+vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+  });
+  // Fix filter IDs
+  document.getElementById('f-brand').innerHTML=`<option value="">All Brands</option>`+[...new Set(allData.map(r=>(r['Brand N.']||'').trim()).filter(Boolean))].sort().map(v=>`<option value="${v}">${v}</option>`).join('');
+  document.getElementById('f-category').innerHTML=`<option value="">All Categories</option>`+[...new Set(allData.map(r=>(r['Category']||'').trim()).filter(Boolean))].sort().map(v=>`<option value="${v}">${v}</option>`).join('');
+  document.getElementById('f-subcategory').innerHTML=`<option value="">All Sub-Categories</option>`+[...new Set(allData.map(r=>(r['Sub Category']||'').trim()).filter(Boolean))].sort().map(v=>`<option value="${v}">${v}</option>`).join('');
+  document.getElementById('f-channel').innerHTML=`<option value="">All Channels</option>`+[...new Set(allData.map(r=>(r['Channel']||'').trim()).filter(Boolean))].sort().map(v=>`<option value="${v}">${v}</option>`).join('');
+  document.getElementById('f-color').innerHTML=`<option value="">All Colors</option>`+[...new Set(allData.map(r=>(r['Color']||'').trim()).filter(Boolean))].sort().map(v=>`<option value="${v}">${v}</option>`).join('');
+  document.getElementById('f-season').innerHTML=`<option value="">All Seasons</option>`+[...new Set(allData.map(r=>(r['Season']||'').trim()).filter(Boolean))].sort().map(v=>`<option value="${v}">${v}</option>`).join('');
+  document.getElementById('f-gender').innerHTML=`<option value="">All Genders</option>`+[...new Set(allData.map(r=>(r['Gender']||'').trim()).filter(Boolean))].sort().map(v=>`<option value="${v}">${v}</option>`).join('');
+}
+
+function applyFilters(){
+  if(!allData.length)return;
+  const s=document.getElementById('searchInput').value.toLowerCase();
+  const fb=document.getElementById('f-brand').value;
+  const fc=document.getElementById('f-category').value;
+  const fsc=document.getElementById('f-subcategory').value;
+  const fch=document.getElementById('f-channel').value;
+  const fcl=document.getElementById('f-color').value;
+  const fse=document.getElementById('f-season').value;
+  const fg=document.getElementById('f-gender').value;
+
+  filteredData=allData.filter(r=>{
+    if(s){const hay=[(r['Style Name']||''),(r['Style Code']||''),(r['Eancode']||''),(r['Color']||''),(r['Category']||''),(r['Sub Category']||''),(r['Channel']||'')].join(' ').toLowerCase();if(!hay.includes(s))return false;}
+    if(fb&&(r['Brand N.']||'').trim()!==fb)return false;
+    if(fc&&(r['Category']||'').trim()!==fc)return false;
+    if(fsc&&(r['Sub Category']||'').trim()!==fsc)return false;
+    if(fch&&(r['Channel']||'').trim()!==fch)return false;
+    if(fcl&&(r['Color']||'').trim()!==fcl)return false;
+    if(fse&&(r['Season']||'').trim()!==fse)return false;
+    if(fg&&(r['Gender']||'').trim()!==fg)return false;
+    return true;
+  });
+  currentPage=1;
+  document.getElementById('totalCount').textContent=filteredData.length.toLocaleString();
+  renderTable();
+}
+
+function clearFilters(){
+  document.getElementById('searchInput').value='';
+  ['f-brand','f-category','f-subcategory','f-channel','f-color','f-season','f-gender'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  applyFilters();
+}
+
+// ── TABLE ──
+function renderTable(){
+  const tableCols=fields.filter(f=>f.table);
+  const start=(currentPage-1)*PAGE_SIZE;
+  const pageData=filteredData.slice(start,start+PAGE_SIZE);
+  const total=filteredData.length;
+  const totalPages=Math.ceil(total/PAGE_SIZE);
+
+  document.getElementById('showCount').textContent=Math.min(start+PAGE_SIZE,total).toLocaleString()+' of '+total.toLocaleString();
+  document.getElementById('pageInfo').textContent='Page '+currentPage+' / '+totalPages;
+
+  // Build header
+  const thead=document.getElementById('tHead');
+  thead.innerHTML='<tr>'+tableCols.map(f=>`<th onclick="sortBy('${f.col}')" class="${sortCol===f.col?'sorted':''}">${f.label}${sortCol===f.col?`<span class="sort-arrow">${sortDir>0?'↑':'↓'}</span>`:''}</th>`).join('')+'</tr>';
+
+  // Build body
+  const tbody=document.getElementById('tBody');
+  if(!pageData.length){tbody.innerHTML='<tr class="er-row"><td colspan="'+tableCols.length+'">No products match your filters</td></tr>';return;}
+  tbody.innerHTML=pageData.map((row,idx)=>{
+    const brand=(row['Brand N.']||'').trim();
+    const bColor=BRAND_COLORS[brand.toUpperCase()]||'#888';
+    return '<tr onclick="selectRow('+( start+idx)+')" class="'+(currentRow&&allData[start+idx]===currentRow?'active':'')+'">'+
+      tableCols.map(f=>{
+        const v=(row[f.col]||'').trim();
+        if(f.col==='Eancode')return`<td><span class="td-ean">${v}</span></td>`;
+        if(f.col==='Style Name')return`<td><div class="td-name">${v||'—'}</div><div class="td-sub">${(row['Sub Category']||'').trim()}</div></td>`;
+        if(f.col==='Brand N.')return`<td><span style="color:${bColor};font-weight:700;font-size:12px">${v}</span></td>`;
+        if(f.col==='Color'){const dotColor=Object.entries(COLOR_DOTS).find(([k])=>v.toLowerCase().includes(k.toLowerCase()))?.[1]||'#888';return`<td><span class="color-dot" style="background:${dotColor}"></span>${v}</td>`;}
+        if(f.col==='Channel'){const cls=v.includes('ONLINE')||v.includes('Ecom')?'ch-ONLINE':v.includes('RETAIL')||v.includes('EBO')?'ch-RETAIL':v.includes('OFFLINE')||v.includes('DND')?'ch-OFFLINE':'ch-OTHER';return`<td><span class="td-ch ${cls}">${v}</span></td>`;}
+        if(f.col==='MRP')return`<td><span class="td-mrp">₹${parseFloat(v||0).toLocaleString('en-IN')}</span></td>`;
+        if(f.col==='Cost INR')return`<td style="color:var(--amber);font-weight:600">₹${parseFloat(v||0).toLocaleString('en-IN')}</td>`;
+        if(f.col==='Category')return`<td><span class="td-badge">${v}</span></td>`;
+        return`<td>${v||'—'}</td>`;
+      }).join('')+'</tr>';
+  }).join('');
+
+  document.getElementById('loadState').style.display='none';
+  document.getElementById('mainTable').style.display='table';
+  renderPagination(totalPages);
+}
+
+function sortBy(col){
+  if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}
+  filteredData.sort((a,b)=>{
+    const av=a[col]||'',bv=b[col]||'';
+    const an=parseFloat(av),bn=parseFloat(bv);
+    if(!isNaN(an)&&!isNaN(bn))return(an-bn)*sortDir;
+    return av.localeCompare(bv)*sortDir;
+  });
+  renderTable();
+}
+
+function renderPagination(totalPages){
+  const c=document.getElementById('pagination');
+  if(totalPages<=1){c.innerHTML='';return;}
+  let h=`<button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹ Prev</button>`;
+  const s=Math.max(1,currentPage-2),e=Math.min(totalPages,currentPage+2);
+  if(s>1)h+=`<button class="pg-btn" onclick="goPage(1)">1</button>${s>2?'<span style="color:var(--text3);padding:0 4px">…</span>':''}`;
+  for(let i=s;i<=e;i++)h+=`<button class="pg-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  if(e<totalPages)h+=`${e<totalPages-1?'<span style="color:var(--text3);padding:0 4px">…</span>':''}<button class="pg-btn" onclick="goPage(${totalPages})">${totalPages}</button>`;
+  h+=`<button class="pg-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next ›</button>`;
+  c.innerHTML=h;
+}
+
+function goPage(p){
+  const t=Math.ceil(filteredData.length/PAGE_SIZE);
+  if(p<1||p>t)return;
+  currentPage=p;renderTable();
+  document.getElementById('tableWrap').scrollTop=0;
+}
+
+// ── SELECT ROW / DETAIL ──
+function selectRow(absIdx){
+  const row=filteredData[absIdx]||allData[absIdx];
+  if(!row)return;
+  currentRow=row;
+  // Highlight row
+  document.querySelectorAll('#tBody tr').forEach(tr=>tr.classList.remove('active'));
+  const start=(currentPage-1)*PAGE_SIZE;
+  const relIdx=absIdx-start;
+  const rows=document.querySelectorAll('#tBody tr');
+  if(rows[relIdx])rows[relIdx].classList.add('active');
+  showDetail(row);
+}
+
+function showDetail(row){
+  document.getElementById('dpEmpty').style.display='none';
+  document.getElementById('dpBody').style.display='flex';
+  const ean=(row['Eancode']||'').trim();
+  const brand=(row['Brand N.']||row['Brand']||'').trim();
+  const bColor=BRAND_COLORS[brand.toUpperCase()]||'#888';
+
+  // Name & meta
+  document.getElementById('dpName').textContent=row['Style Name']||'—';
+  document.getElementById('dpName').style.color=bColor;
+  document.getElementById('dpMeta').textContent=[brand,row['Category'],row['Sub Category']].filter(Boolean).join(' · ');
+
+  // Image
+  const img=document.getElementById('pImg');
+  const spinner=document.getElementById('imgSpinner');
+  img.classList.remove('loaded');
+  spinner.style.display='flex';
+  spinner.innerHTML='<div class="img-spinner"></div>';
+
+  if(ean){
+    img.src=`https://www.bagline.com/cdn/shop/products/${ean}_1.jpg?t=${Date.now()}`;
+  } else {
+    imgError();
+  }
+
+  // Thumbnails — try _1 through _4
+  const thumbRow=document.getElementById('thumbRow');
+  thumbRow.innerHTML='';
+  if(ean){
+    [1,2,3,4].forEach(n=>{
+      const div=document.createElement('div');div.className='thumb'+(n===1?' active':'');
+      const timg=document.createElement('img');
+      timg.src=`https://www.bagline.com/cdn/shop/products/${ean}_${n}.jpg`;
+      timg.onerror=()=>div.style.display='none';
+      timg.onclick=()=>{
+        document.getElementById('pImg').src=timg.src;
+        document.getElementById('pImg').classList.remove('loaded');
+        document.getElementById('imgSpinner').style.display='flex';
+        document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));
+        div.classList.add('active');
+      };
+      div.appendChild(timg);thumbRow.appendChild(div);
+    });
+  }
+
+  // Detail grid
+  const detailFields=fields.filter(f=>f.detail);
+  const skip=['Style Name','Brand N.','Brand','Category','Sub Category'];
+  const grid=document.getElementById('dpGrid');
+  grid.innerHTML=`
+    <div class="dc"><div class="dc-l">EAN / Barcode</div><div class="dc-v mono">${ean||'—'}</div></div>
+    <div class="dc"><div class="dc-l">Style Code</div><div class="dc-v mono">${row['Style Code']||'—'}</div></div>
+    <div class="dc"><div class="dc-l">MRP</div><div class="dc-v big green">₹${parseFloat(row['MRP']||0).toLocaleString('en-IN')}</div></div>
+    <div class="dc"><div class="dc-l">Cost INR</div><div class="dc-v big amber">₹${parseFloat(row['Cost INR']||0).toLocaleString('en-IN')}</div></div>
+    ${detailFields.filter(f=>!skip.includes(f.col)&&!['Eancode','Style Code','MRP','Cost INR'].includes(f.col)).map(f=>`
+      <div class="dc ${['SIZE DESC.','S.Wearbility Master','Collection Name','remarks'].includes(f.col)?'full':''}">
+        <div class="dc-l">${f.label}</div>
+        <div class="dc-v">${row[f.col]||'—'}</div>
+      </div>`).join('')}
+  `;
+}
+
+function imgLoaded(){
+  document.getElementById('pImg').classList.add('loaded');
+  document.getElementById('imgSpinner').style.display='none';
+  if(imgWorking===null||imgWorking===false){imgWorking=true;setImgStatus(true,'Images: Available');}
+}
+
+function imgError(){
+  const spinner=document.getElementById('imgSpinner');
+  spinner.style.display='flex';
+  spinner.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:6px;color:#aaa;font-size:11px"><span style="font-size:28px;opacity:.3">📷</span><span>No image</span></div>';
+  document.getElementById('pImg').classList.remove('loaded');
+  if(imgWorking===null){imgWorking=false;setImgStatus(false,'Images: Not available');}
+}
+
+// ── SETTINGS ──
+function openSettings(){
+  document.getElementById('pwOv').classList.add('show');
+  document.getElementById('pwIn').value='';
+  document.getElementById('pwErr').classList.remove('show');
+  setTimeout(()=>document.getElementById('pwIn').focus(),100);
+}
+function verifyPw(){
+  const pw=document.getElementById('pwIn').value;
+  const stored=localStorage.getItem(PW_KEY)||DEFAULT_PW;
+  if(pw===stored){document.getElementById('pwOv').classList.remove('show');document.getElementById('settingsPage').classList.add('show');buildFieldTable();}
+  else{document.getElementById('pwErr').classList.add('show');document.getElementById('pwIn').value='';}
+}
+function closePwOv(){document.getElementById('pwOv').classList.remove('show');}
+function closeSettings(){document.getElementById('settingsPage').classList.remove('show');}
+function buildFieldTable(){
+  document.getElementById('fieldTblBody').innerHTML=fields.map((f,i)=>`
+    <tr>
+      <td>${f.label}</td>
+      <td><input type="checkbox" ${f.table?'checked':''} onchange="fields[${i}].table=this.checked"></td>
+      <td><input type="checkbox" ${f.detail?'checked':''} onchange="fields[${i}].detail=this.checked"></td>
+      <td><input type="checkbox" ${f.filter?'checked':''} onchange="fields[${i}].filter=this.checked"></td>
+    </tr>`).join('');
+}
+function saveFieldSettings(){localStorage.setItem(FIELD_KEY,JSON.stringify(fields));showToast('Settings saved!');if(filteredData.length)renderTable();}
+function saveCsvUrl(){
+  const url=document.getElementById('csvUrlInput').value.trim();
+  if(!url)return;
+  localStorage.setItem(CSV_KEY,url);
+  showToast('URL saved — reloading data…');
+  setTimeout(loadData,500);
+  closeSettings();
+}
+function changePw(){
+  const cur=document.getElementById('pwCur').value,nw=document.getElementById('pwNew').value,cf=document.getElementById('pwCfm').value;
+  const stored=localStorage.getItem(PW_KEY)||DEFAULT_PW;
+  const msg=document.getElementById('pwMsg');msg.style.display='block';
+  if(cur!==stored){msg.style.color='var(--red)';msg.textContent='Current password incorrect.';return;}
+  if(nw.length<6){msg.style.color='var(--red)';msg.textContent='Min 6 characters required.';return;}
+  if(nw!==cf){msg.style.color='var(--red)';msg.textContent='Passwords do not match.';return;}
+  localStorage.setItem(PW_KEY,nw);
+  ['pwCur','pwNew','pwCfm'].forEach(id=>document.getElementById(id).value='');
+  msg.style.color='var(--green)';msg.textContent='✓ Password changed!';
+  showToast('Password updated!');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+init();
+</script>
+</body>
+</html>
