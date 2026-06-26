@@ -444,7 +444,7 @@ async function checkPageImages(pageData){
       img.referrerPolicy='no-referrer';
       img.onload=()=>{imgStatus[ean]='ok';updateEanCell(ean,'ok');resolve();};
       img.onerror=()=>{imgStatus[ean]='fail';updateEanCell(ean,'fail');resolve();};
-      img.src=`https://www.bagline.com/cdn/shop/products/${ean}_1.jpg`;
+      img.src=`https://www.bagline.com/cdn/shop/files/${ean}_1.jpg`;
     });
   });
   await Promise.all(checks);
