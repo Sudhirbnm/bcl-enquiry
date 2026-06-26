@@ -488,93 +488,74 @@ function updateImageStats(){
 }
 
 // ── SHOPIFY API — search by SKU (same as EAN in Bagline) ──
+// ── IMAGE FETCH — Bagline product JSON + Shopify API fallback ──
 async function fetchShopifyImage(ean, link){
-  if(!shopDomain||!shopToken)return null;
 
-  // Strategy 1: Try productByHandle from LINK column (fastest, most accurate)
+  // Strategy 1: Bagline product JSON (no token needed, uses LINK handle)
   if(link){
     const match=link.match(/\/products\/([^?#\/]+)/);
     if(match){
       const handle=match[1];
-      const imgs=await fetchByHandle(handle,ean);
-      if(imgs&&imgs.length)return imgs;
+      try{
+        const res=await fetch(`https://www.bagline.com/products/${handle}.js`,{referrerPolicy:'no-referrer'});
+        if(res.ok){
+          const prod=await res.json();
+          let variantImg=null;
+          if(prod.variants){
+            for(const v of prod.variants){
+              const bc=(v.barcode||'').toString().trim();
+              const sk=(v.sku||'').toString().trim();
+              if(bc===ean||sk===ean){
+                if(v.featured_image&&v.featured_image.src)variantImg=v.featured_image.src.split('?')[0];
+                break;
+              }
+            }
+          }
+          const imgs=[];
+          if(variantImg)imgs.push(variantImg);
+          if(prod.images){
+            for(const url of prod.images){
+              const clean=url.toString().split('?')[0];
+              if(!imgs.includes(clean))imgs.push(clean);
+            }
+          }
+          if(imgs.length)return imgs;
+        }
+      }catch(e){}
     }
   }
 
-  // Strategy 2: Search by SKU
-  const imgs=await fetchBySku(ean);
-  if(imgs&&imgs.length)return imgs;
+  // Strategy 2: Shopify Storefront API with handle
+  if(shopDomain&&shopToken&&link){
+    const match=link.match(/\/products\/([^?#\/]+)/);
+    if(match){
+      const handle=match[1];
+      const query=`{productByHandle(handle:"${handle}"){images(first:10){edges{node{url}}}variants(first:50){edges{node{sku barcode image{url}}}}}}`;
+      try{
+        const res=await fetch(`https://${shopDomain}/api/2024-01/graphql.json`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json','X-Shopify-Storefront-Access-Token':shopToken},
+          body:JSON.stringify({query})
+        });
+        if(res.ok){
+          const data=await res.json();
+          const prod=data?.data?.productByHandle;
+          if(prod){
+            let variantImg=null;
+            for(const{node:v}of(prod.variants?.edges||[])){
+              if((v.sku||'').trim()===ean||(v.barcode||'').trim()===ean){variantImg=v.image?.url||null;break;}
+            }
+            const imgs=[];
+            if(variantImg)imgs.push(variantImg);
+            for(const{node:img}of(prod.images?.edges||[])){if(!imgs.includes(img.url))imgs.push(img.url);}
+            if(imgs.length)return imgs;
+          }
+        }
+      }catch(e){}
+    }
+  }
 
   return null;
-}
-
-async function fetchByHandle(handle,ean){
-  const query=`{
-    productByHandle(handle:"${handle}"){
-      images(first:10){edges{node{url}}}
-      variants(first:50){edges{node{sku barcode image{url}}}}
-    }
-  }`;
-  try{
-    const res=await fetch(`https://${shopDomain}/api/2024-01/graphql.json`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Shopify-Storefront-Access-Token':shopToken},
-      body:JSON.stringify({query})
-    });
-    if(!res.ok)return null;
-    const data=await res.json();
-    if(data.errors)return null;
-    const prod=data?.data?.productByHandle;
-    if(!prod)return null;
-    let variantImg=null;
-    for(const{node:v}of(prod.variants?.edges||[])){
-      const sk=(v.sku||'').toString().trim();
-      const bc=(v.barcode||'').toString().trim();
-      if(sk===ean||bc===ean){variantImg=v.image?.url||null;break;}
-    }
-    const imgs=[];
-    if(variantImg)imgs.push(variantImg);
-    for(const{node:img}of(prod.images?.edges||[])){if(!imgs.includes(img.url))imgs.push(img.url);}
-    return imgs.length?imgs:null;
-  }catch(e){return null;}
-}
-
-async function fetchBySku(ean){
-  const query=`{
-    products(first:3,query:"sku:${ean}"){
-      edges{node{
-        images(first:10){edges{node{url}}}
-        variants(first:50){edges{node{sku barcode image{url}}}}
-      }}
-    }
-  }`;
-  try{
-    const res=await fetch(`https://${shopDomain}/api/2024-01/graphql.json`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Shopify-Storefront-Access-Token':shopToken},
-      body:JSON.stringify({query})
-    });
-    if(!res.ok)return null;
-    const data=await res.json();
-    if(data.errors)return null;
-    const products=data?.data?.products?.edges||[];
-    for(const{node:prod}of products){
-      let variantImg=null;
-      let found=false;
-      for(const{node:v}of(prod.variants?.edges||[])){
-        const sk=(v.sku||'').toString().trim();
-        const bc=(v.barcode||'').toString().trim();
-        if(sk===ean||bc===ean){found=true;variantImg=v.image?.url||null;break;}
-      }
-      if(found){
-        const imgs=[];
-        if(variantImg)imgs.push(variantImg);
-        for(const{node:img}of(prod.images?.edges||[])){if(!imgs.includes(img.url))imgs.push(img.url);}
-        if(imgs.length)return imgs;
-      }
-    }
-    return null;
-  }catch(e){return null;}
 }
 
 // ── FILTERS ──
