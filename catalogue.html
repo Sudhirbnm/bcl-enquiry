@@ -1,0 +1,913 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCL Product Catalogue</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#222638;--border:#2e3248;
+  --accent:#4f8ef7;--text:#e8eaf0;--text2:#8b90a8;--text3:#5a5f7a;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;
+  --panel:380px;--r:8px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'Courier New',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;height:48px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo{background:linear-gradient(135deg,#4f8ef7,#7c3aed);border-radius:6px;padding:3px 9px;font-size:12px;font-weight:800;color:#fff}
+.topbar h1{font-size:14px;font-weight:600;flex:1}
+.topbar h1 span{color:var(--text2);font-weight:400}
+.pill{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;border:1px solid;white-space:nowrap}
+.pill-green{background:rgba(34,197,94,.1);color:var(--green);border-color:rgba(34,197,94,.25)}
+.pill-red{background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.25)}
+.pill-grey{background:var(--surface2);color:var(--text2);border-color:var(--border)}
+.pill-amber{background:rgba(245,158,11,.1);color:var(--amber);border-color:rgba(245,158,11,.25)}
+.top-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:var(--font);transition:all .15s}
+.top-btn:hover{color:var(--text);border-color:var(--accent)}
+
+.search-bar{padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.s-inner{position:relative}
+.s-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none}
+#sInput{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;font-family:var(--font);padding:9px 12px 9px 34px;outline:none}
+#sInput:focus{border-color:var(--accent)}
+#sInput::placeholder{color:var(--text3)}
+
+.filters{padding:7px 16px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex-shrink:0}
+.fl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.fsel{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:var(--font);padding:5px 8px;outline:none;cursor:pointer;max-width:150px}
+.fsel:focus{border-color:var(--accent)}
+.fsel.img-filter{border-color:var(--accent);color:var(--accent)}
+.fsep{width:1px;height:18px;background:var(--border);flex-shrink:0}
+.clr-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:11px;padding:5px 9px;cursor:pointer;font-family:var(--font);margin-left:auto;white-space:nowrap}
+.clr-btn:hover{color:var(--red);border-color:var(--red)}
+
+.rbar{padding:5px 16px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.rbar strong{color:var(--text2)}
+.img-stats{display:flex;gap:10px;align-items:center}
+.ist{font-size:10px;display:flex;align-items:center;gap:4px}
+.ist-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+.layout{display:flex;flex:1;overflow:hidden;min-height:0}
+.tside{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.twrap{flex:1;overflow:auto}
+.twrap::-webkit-scrollbar{width:4px;height:4px}
+.twrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
+thead th{background:var(--surface);color:var(--text3);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;position:sticky;top:0;z-index:5;cursor:pointer}
+thead th:hover{color:var(--text)}
+thead th.srt{color:var(--accent)}
+tbody tr{border-bottom:1px solid rgba(46,50,72,.35);cursor:pointer;transition:background .08s}
+tbody tr:hover{background:rgba(255,255,255,.022)}
+tbody tr.act{background:rgba(79,142,247,.08);box-shadow:inset 3px 0 0 var(--accent)}
+td{padding:7px 10px;vertical-align:middle;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.td-ean{font-family:var(--mono);font-size:10px;font-weight:700;transition:color .3s}
+.td-ean.img-ok{color:var(--green)}
+.td-ean.img-fail{color:var(--red)}
+.td-ean.img-check{color:var(--amber);animation:pulse .8s infinite}
+.td-ean.img-unknown{color:var(--text2)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.td-name{font-weight:700;font-size:12px}
+.td-sub{font-size:9.5px;color:var(--text3);margin-top:1px}
+.td-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2)}
+.td-ch{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700}
+.ch-R{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
+.ch-O{background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.2)}
+.ch-E{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.td-mrp{font-weight:700;font-size:12px}
+.cdot{display:inline-block;width:8px;height:8px;border-radius:50%;border:1px solid rgba(255,255,255,.15);margin-right:4px;vertical-align:middle}
+.er td{text-align:center;padding:50px;color:var(--text3)}
+
+.pgn{padding:7px 12px;display:flex;align-items:center;justify-content:center;gap:4px;border-top:1px solid var(--border);flex-shrink:0}
+.pb{background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text2);padding:3px 9px;font-size:11px;cursor:pointer;font-family:var(--font)}
+.pb:hover{color:var(--text);border-color:var(--accent)}
+.pb.act{background:rgba(79,142,247,.15);border-color:var(--accent);color:var(--accent);font-weight:600}
+.pb:disabled{opacity:.3;cursor:not-allowed}
+
+.dpanel{width:var(--panel);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.dph{padding:9px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dph h3{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.api-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.api-dot.ok{background:var(--green)}
+.api-dot.err{background:var(--red)}
+.api-dot.none{background:var(--text3)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dpe{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3);padding:20px;text-align:center}
+.dpb{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:10px}
+.dpb::-webkit-scrollbar{width:3px}
+.dpb::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.imgbox{background:#fff;border-radius:var(--r);overflow:hidden;aspect-ratio:1;position:relative;flex-shrink:0}
+.isp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f8f8f8;z-index:2}
+.isp-ring{width:26px;height:26px;border:3px solid #e0e0e0;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+.ino{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:#aaa;font-size:11px;width:100%;height:100%;background:#f5f5f5}
+.ino span:first-child{font-size:26px;opacity:.25}
+#pImg{width:100%;height:100%;object-fit:contain;display:block;opacity:0;transition:opacity .2s;position:relative;z-index:1}
+#pImg.ld{opacity:1}
+.thumbs{display:flex;gap:4px;flex-wrap:wrap}
+.thumb{width:40px;height:40px;background:#fff;border-radius:5px;overflow:hidden;cursor:pointer;border:2px solid transparent;flex-shrink:0}
+.thumb img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.thumb.act{border-color:var(--accent)}
+.dpname{font-size:15px;font-weight:700;line-height:1.3}
+.dpmeta{font-size:11px;color:var(--text2);margin-top:2px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.dc{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 9px}
+.dc.full{grid-column:1/-1}
+.dcl{font-size:8.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:1px}
+.dcv{font-size:12px;font-weight:500;color:var(--text)}
+.dcv.big{font-size:18px;font-weight:700}
+.dcv.g{color:var(--green)}
+.dcv.a{color:var(--amber)}
+.dcv.m{font-family:var(--mono);font-size:10px}
+
+.lstate{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3)}
+.lring{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+
+/* SETTINGS */
+.spg{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column}
+.spg.show{display:flex}
+.swrap{flex:1;overflow-y:auto;padding:18px;max-width:900px;margin:0 auto;width:100%}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:12px}
+.sc h3{font-size:13px;font-weight:600;margin-bottom:12px}
+.sinput{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:7px 9px;outline:none;font-family:var(--font)}
+.sinput:focus{border-color:var(--accent)}
+.ftbl{width:100%;border-collapse:collapse}
+.ftbl th{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:5px 9px;border-bottom:1px solid var(--border);text-align:left}
+.ftbl th:not(:first-child){text-align:center}
+.ftbl td{padding:5px 9px;border-bottom:1px solid rgba(46,50,72,.25);font-size:12px;color:var(--text2)}
+.ftbl tr:hover td{background:rgba(255,255,255,.02)}
+.ftbl input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer}
+.ftbl td:not(:first-child){text-align:center}
+.sbtn{background:linear-gradient(135deg,var(--accent),#7c3aed);border:none;color:#fff;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.cbtn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:var(--font)}
+.pwov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center}
+.pwov.show{display:flex}
+.pwbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;width:100%;max-width:340px}
+.pwbox h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.pwbox p{font-size:12px;color:var(--text2);margin-bottom:16px}
+.pwerr{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:5px;padding:7px 11px;font-size:12px;color:var(--red);margin-bottom:10px;display:none}
+.pwerr.show{display:block}
+.pwf{margin-bottom:10px}
+.pwf label{font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px}
+.pwf input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;font-family:var(--font)}
+.pwf input:focus{border-color:var(--accent)}
+.pwacts{display:flex;gap:7px;justify-content:flex-end;margin-top:14px}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(50px);background:#1a2a1a;color:#fff;padding:9px 16px;border-radius:7px;font-size:12px;display:flex;align-items:center;gap:7px;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media(max-width:800px){.dpanel{display:none}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">BCL</div>
+  <h1>Product Search <span>/ Image Viewer</span></h1>
+  <span class="pill pill-grey" id="cntPill">Loading…</span>
+  <span class="pill pill-grey" id="apiPill">⚡ API: Not configured</span>
+  <button class="top-btn" onclick="openSettings()">⚙ Settings</button>
+</div>
+
+<div class="search-bar">
+  <div class="s-inner">
+    <span class="s-icon">🔍</span>
+    <input type="text" id="sInput" placeholder="Search style name, EAN, style code, color, category…" oninput="applyFilters()">
+  </div>
+</div>
+
+<div class="filters">
+  <span class="fl">Brand</span>
+  <select class="fsel" id="f-brand" onchange="applyFilters()"><option value="">All Brands</option></select>
+  <div class="fsep"></div>
+  <select class="fsel" id="f-cat" onchange="applyFilters()"><option value="">All Categories</option></select>
+  <select class="fsel" id="f-subcat" onchange="applyFilters()"><option value="">All Sub-Categories</option></select>
+  <select class="fsel" id="f-ch" onchange="applyFilters()"><option value="">All Channels</option></select>
+  <select class="fsel" id="f-color" onchange="applyFilters()"><option value="">All Colors</option></select>
+  <select class="fsel" id="f-season" onchange="applyFilters()"><option value="">All Seasons</option></select>
+  <select class="fsel" id="f-gender" onchange="applyFilters()"><option value="">All Genders</option></select>
+  <div class="fsep"></div>
+  <span class="fl">Image</span>
+  <select class="fsel img-filter" id="f-img" onchange="applyFilters()">
+    <option value="">All Products</option>
+    <option value="ok">✅ Image Available</option>
+    <option value="fail">❌ No Image</option>
+    <option value="unknown">⏳ Not Checked</option>
+  </select>
+  <button class="clr-btn" onclick="clearFilters()">✕ Clear</button>
+</div>
+
+<div class="rbar">
+  <span>Showing <strong id="sc">0</strong> of <strong id="tc">0</strong> products</span>
+  <div class="img-stats">
+    <div class="ist"><div class="ist-dot" style="background:var(--green)"></div><span id="stat-ok">0</span> with image</div>
+    <div class="ist"><div class="ist-dot" style="background:var(--red)"></div><span id="stat-fail">0</span> no image</div>
+    <div class="ist"><div class="ist-dot" style="background:var(--text3)"></div><span id="stat-unk">0</span> unchecked</div>
+    <span id="pi" style="font-size:11px;color:var(--text3);margin-left:6px">Page 1/1</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="tside">
+    <div class="twrap" id="twrap">
+      <div class="lstate" id="lstate">
+        <div class="lring"></div>
+        <div id="ltxt" style="font-size:13px">Loading products…</div>
+      </div>
+      <table id="mtbl" style="display:none">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="pgn" id="pgn"></div>
+  </div>
+
+  <div class="dpanel">
+    <div class="dph">
+      <h3>PRODUCT VIEWER</h3>
+      <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3)">
+        <span class="api-dot none" id="apiDot"></span>
+        <span id="apiStat">API: Not set</span>
+      </div>
+    </div>
+    <div class="dpe" id="dpe">
+      <div style="font-size:36px;opacity:.12">📦</div>
+      <p style="font-size:12px;line-height:1.6">Click any product<br>to view image and details</p>
+    </div>
+    <div class="dpb" id="dpb" style="display:none">
+      <div class="imgbox">
+        <div class="isp" id="isp"><div class="isp-ring"></div></div>
+        <img id="pImg" referrerpolicy="no-referrer" alt="Product" onload="imgOk()" onerror="imgFail()">
+      </div>
+      <div class="thumbs" id="thumbs"></div>
+      <div>
+        <div class="dpname" id="dpname">—</div>
+        <div class="dpmeta" id="dpmeta">—</div>
+      </div>
+      <div class="dgrid" id="dgrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="spg" id="spg">
+  <div class="topbar" style="position:static">
+    <div class="logo">BCL</div>
+    <h1>Settings <span>/ Configuration</span></h1>
+    <button class="top-btn" onclick="closeSett()">← Back</button>
+  </div>
+  <div class="swrap">
+    <div class="sc">
+      <h3>📡 Google Sheet CSV URL</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Published CSV URL from your Google Sheet product master.</p>
+      <input type="text" class="sinput" id="csvIn" placeholder="https://docs.google.com/spreadsheets/d/e/...">
+      <button class="sbtn" style="margin-top:10px" onclick="saveUrl()">💾 Save & Reload</button>
+    </div>
+
+    <div class="sc">
+      <h3>🛍 Shopify Storefront API</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Required for loading images of all products. Get token from Bagline Shopify Admin → Settings → Apps → Develop Apps.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Store Domain</label>
+          <input type="text" class="sinput" id="shopDomain" placeholder="bagline.myshopify.com">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Storefront Access Token</label>
+          <input type="text" class="sinput" id="shopToken" placeholder="shpat_xxxxxxxxxxxx">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="sbtn" onclick="saveShopify()">💾 Save API Settings</button>
+        <button class="cbtn" onclick="testShopify()">🧪 Test Connection</button>
+      </div>
+      <div id="apiTestResult" style="font-size:12px;margin-top:10px;display:none"></div>
+    </div>
+
+    <div class="sc">
+      <h3>👁 Field Visibility</h3>
+      <table class="ftbl">
+        <thead><tr><th>Field</th><th>Table Column</th><th>Detail Panel</th></tr></thead>
+        <tbody id="ftbody"></tbody>
+      </table>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="sbtn" onclick="saveFields()">💾 Save</button>
+        <button class="cbtn" onclick="closeSett()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="sc">
+      <h3>🔒 Change Password</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;max-width:500px">
+        <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Current</label><input type="password" id="pwc" class="sinput" placeholder="Current"></div>
+        <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">New</label><input type="password" id="pwn" class="sinput" placeholder="New"></div>
+        <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Confirm</label><input type="password" id="pwcf" class="sinput" placeholder="Confirm"></div>
+      </div>
+      <div id="pwmsg" style="font-size:12px;margin-top:8px;display:none"></div>
+      <button class="sbtn" style="margin-top:10px" onclick="changePw()">🔑 Change Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- PW MODAL -->
+<div class="pwov" id="pwov">
+  <div class="pwbox">
+    <h3>🔒 Settings Access</h3>
+    <p>Enter password to continue</p>
+    <div class="pwerr" id="pwerr">Incorrect password</div>
+    <div class="pwf"><label>Password</label><input type="password" id="pwin" onkeydown="if(event.key==='Enter')vPw()"></div>
+    <div class="pwacts">
+      <button class="cbtn" onclick="cPwOv()">Cancel</button>
+      <button class="sbtn" onclick="vPw()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span>✓</span><span id="tmsg"></span></div>
+
+<script>
+const DEF_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vRLiU87oDRjaduw9esqOPO274qJdMGjrhahcTGClmxfEowUQWNjic6Ea9yc4CWZlmZ_L26yefMbwSiL/pub?gid=1458218765&single=true&output=csv';
+const DEF_PW='Sudhir@123';
+const CSV_K='bcl_v2_csv',PW_K='bcl_v2_pw',FLD_K='bcl_v2_fld',API_K='bcl_v2_api';
+
+const DEF_FIELDS=[
+  {col:'Eancode',label:'EAN',tbl:true,det:true},
+  {col:'Brand N.',label:'Brand',tbl:true,det:true},
+  {col:'Category',label:'Category',tbl:true,det:true},
+  {col:'Sub Category',label:'Sub Category',tbl:true,det:true},
+  {col:'Style Name',label:'Style Name',tbl:true,det:true},
+  {col:'Color',label:'Color',tbl:true,det:true},
+  {col:'SIZE',label:'Size',tbl:true,det:true},
+  {col:'Channel',label:'Channel',tbl:true,det:true},
+  {col:'Season',label:'Season',tbl:true,det:true},
+  {col:'Style Code',label:'Style Code',tbl:false,det:true},
+  {col:'MRP',label:'MRP',tbl:true,det:true},
+  {col:'Cost INR',label:'Cost INR',tbl:true,det:true},
+  {col:'Cost$ ',label:'Cost $',tbl:false,det:true},
+  {col:'Gender',label:'Gender',tbl:false,det:true},
+  {col:'Category-2',label:'Category-2',tbl:false,det:true},
+  {col:'S.Brand',label:'S.Brand',tbl:false,det:true},
+  {col:'Collection Name',label:'Collection',tbl:false,det:true},
+  {col:'S.Wearbility Master',label:'Wearbility',tbl:false,det:true},
+  {col:'SUB Brand',label:'SUB Brand',tbl:false,det:true},
+  {col:'Brand Short Name',label:'Brand Short',tbl:false,det:true},
+  {col:'LINK',label:'Link',tbl:false,det:false},
+];
+
+const BC={'TOMMY HILFIGER':'#cc0001','UCB':'#00843d','SUPERDRY':'#f7a600','JUICY COUTURE':'#e91e8c','AEROPOSTALE':'#003087'};
+const CDC={'Black':'#1a1a1a','Navy':'#1a3a6b','Blue':'#2563eb','Red':'#dc2626','Green':'#16a34a','Yellow':'#eab308','White':'#d4d4d4','Grey':'#6b7280','Gray':'#6b7280','Brown':'#78350f','Pink':'#ec4899','Purple':'#7c3aed','Orange':'#ea580c','Olive':'#65a30d','Dark Green':'#15803d'};
+
+let allData=[],fdata=[],fields=[],sCol=null,sDir=1,pg=1,selectedRow=null;
+let imgStatus={};// ean -> 'ok'|'fail'|'unknown'
+let shopDomain='',shopToken='';
+const PS=50;
+
+function getEan(row){
+  const v=(row['Eancode']||'').toString().trim();
+  if(v.includes('E+')||v.includes('e+'))return Math.round(parseFloat(v)).toString();
+  return v.replace(/\.0+$/,'');
+}
+function getBrand(row){return(row['Brand N.']||'').trim();}
+
+function init(){
+  fields=JSON.parse(localStorage.getItem(FLD_K)||'null')||DEF_FIELDS.map(f=>({...f}));
+  const api=JSON.parse(localStorage.getItem(API_K)||'{}');
+  shopDomain=api.domain||'';shopToken=api.token||'';
+  document.getElementById('csvIn').value=localStorage.getItem(CSV_K)||DEF_CSV;
+  document.getElementById('shopDomain').value=shopDomain;
+  document.getElementById('shopToken').value=shopToken;
+  document.getElementById('sInput').value=''; // Always start with blank search
+  updateApiStatus();
+  buildFldTbl();
+  loadData();
+}
+
+// ── DATA ──
+async function loadData(){
+  document.getElementById('lstate').style.display='flex';
+  document.getElementById('mtbl').style.display='none';
+  document.getElementById('ltxt').textContent='Fetching from Google Sheets…';
+  document.getElementById('ltxt').style.color='var(--text3)';
+  try{
+    const url=localStorage.getItem(CSV_K)||DEF_CSV;
+    const r=await fetch(url+'&t='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    document.getElementById('ltxt').textContent='Parsing data…';
+    const txt=await r.text();
+    await new Promise(res=>setTimeout(res,10));
+    allData=parseCSV(txt);
+    imgStatus={};
+    buildFilters();
+    applyFilters();
+    document.getElementById('cntPill').textContent=allData.length.toLocaleString()+' SKUs';
+    document.getElementById('cntPill').className='pill pill-green';
+    // Start checking ALL images in background
+    checkAllImages();
+  }catch(e){
+    document.getElementById('ltxt').textContent='Failed: '+e.message;
+    document.getElementById('ltxt').style.color='var(--red)';
+  }
+}
+
+function parseCSV(txt){
+  const lines=txt.split('\n');if(!lines.length)return[];
+  const hdrs=parseLine(lines[0]);
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    const vals=parseLine(lines[i]);
+    const obj={};
+    hdrs.forEach((h,idx)=>obj[h.trim()]=(vals[idx]||'').trim());
+    rows.push(obj);
+  }
+  return rows;
+}
+function parseLine(line){
+  const r=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){r.push(cur);cur='';}
+    else cur+=c;
+  }
+  r.push(cur);return r;
+}
+
+// ── IMAGE STATUS CHECK ──
+async function checkPageImages(pageData){
+  const checks=pageData.map(row=>{
+    const ean=getEan(row);
+    if(!ean||imgStatus[ean])return Promise.resolve();
+    imgStatus[ean]='checking';
+    return new Promise(resolve=>{
+      const img=new Image();
+      img.referrerPolicy='no-referrer';
+      img.onload=()=>{imgStatus[ean]='ok';updateEanCell(ean,'ok');resolve();};
+      img.onerror=()=>{imgStatus[ean]='fail';updateEanCell(ean,'fail');resolve();};
+      img.src=`https://www.bagline.com/cdn/shop/files/${ean}_1.jpg`;
+    });
+  });
+  await Promise.all(checks);
+  updateImageStats();
+}
+
+// Check ALL SKUs in background — batches of 50 with small delay between batches
+async function checkAllImages(){
+  const unchecked=allData.filter(r=>{const e=getEan(r);return e&&!imgStatus[e];});
+  if(!unchecked.length)return;
+  const BATCH=50;
+  for(let i=0;i<unchecked.length;i+=BATCH){
+    const batch=unchecked.slice(i,i+BATCH);
+    await checkPageImages(batch);
+    // Update filter counts after each batch
+    updateImageStats();
+    // Small delay to avoid overwhelming the browser
+    await new Promise(res=>setTimeout(res,200));
+  }
+}
+
+function updateEanCell(ean,status){
+  const cells=document.querySelectorAll(`.td-ean[data-ean="${ean}"]`);
+  cells.forEach(c=>{
+    c.className='td-ean';
+    if(status==='ok')c.classList.add('img-ok');
+    else if(status==='fail')c.classList.add('img-fail');
+    else if(status==='checking')c.classList.add('img-check');
+    else c.classList.add('img-unknown');
+  });
+}
+
+function updateImageStats(){
+  const vals=Object.values(imgStatus);
+  const ok=vals.filter(v=>v==='ok').length;
+  const fail=vals.filter(v=>v==='fail').length;
+  const unk=allData.length-ok-fail;
+  document.getElementById('stat-ok').textContent=ok.toLocaleString();
+  document.getElementById('stat-fail').textContent=fail.toLocaleString();
+  document.getElementById('stat-unk').textContent=unk.toLocaleString();
+}
+
+// ── SHOPIFY API — search by SKU (same as EAN in Bagline) ──
+// ── IMAGE FETCH — Bagline product JSON + Shopify API fallback ──
+async function fetchShopifyImage(ean, link){
+
+  // Strategy 1: Bagline product JSON (no token needed, uses LINK handle)
+  if(link){
+    const match=link.match(/\/products\/([^?#\/]+)/);
+    if(match){
+      const handle=match[1];
+      try{
+        const res=await fetch(`https://www.bagline.com/products/${handle}.js`,{referrerPolicy:'no-referrer'});
+        if(res.ok){
+          const prod=await res.json();
+
+          // Fix URL — convert //cdn.shopify.com to https://cdn.shopify.com
+          function fixUrl(url){
+            if(!url)return null;
+            url=url.toString().split('?')[0]; // remove query params
+            if(url.startsWith('//'))return 'https:'+url;
+            if(url.startsWith('http'))return url;
+            return 'https://'+url;
+          }
+
+          // Find variant-specific image matching this EAN
+          let variantImg=null;
+          if(prod.variants){
+            for(const v of prod.variants){
+              const bc=(v.barcode||'').toString().trim();
+              const sk=(v.sku||'').toString().trim();
+              if(bc===ean||sk===ean){
+                if(v.featured_image&&v.featured_image.src){
+                  variantImg=fixUrl(v.featured_image.src);
+                }
+                break;
+              }
+            }
+          }
+
+          const imgs=[];
+          if(variantImg)imgs.push(variantImg);
+
+          // Add all product images
+          if(prod.images&&prod.images.length){
+            for(const url of prod.images){
+              const clean=fixUrl(url);
+              if(clean&&!imgs.includes(clean))imgs.push(clean);
+            }
+          }
+          // Also check media array
+          if(prod.media&&prod.media.length){
+            for(const m of prod.media){
+              if(m.src){
+                const clean=fixUrl(m.src);
+                if(clean&&!imgs.includes(clean))imgs.push(clean);
+              }
+            }
+          }
+
+          if(imgs.length)return imgs;
+        }
+      }catch(e){}
+    }
+  }
+
+  // Strategy 2: Shopify Storefront API with handle
+  if(shopDomain&&shopToken&&link){
+    const match=link.match(/\/products\/([^?#\/]+)/);
+    if(match){
+      const handle=match[1];
+      const query=`{productByHandle(handle:"${handle}"){images(first:10){edges{node{url}}}variants(first:50){edges{node{sku barcode image{url}}}}}}`;
+      try{
+        const res=await fetch(`https://${shopDomain}/api/2024-01/graphql.json`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json','X-Shopify-Storefront-Access-Token':shopToken},
+          body:JSON.stringify({query})
+        });
+        if(res.ok){
+          const data=await res.json();
+          const prod=data?.data?.productByHandle;
+          if(prod){
+            let variantImg=null;
+            for(const{node:v}of(prod.variants?.edges||[])){
+              if((v.sku||'').trim()===ean||(v.barcode||'').trim()===ean){variantImg=v.image?.url||null;break;}
+            }
+            const imgs=[];
+            if(variantImg)imgs.push(variantImg);
+            for(const{node:img}of(prod.images?.edges||[])){if(!imgs.includes(img.url))imgs.push(img.url);}
+            if(imgs.length)return imgs;
+          }
+        }
+      }catch(e){}
+    }
+  }
+
+  return null;
+}
+
+// ── FILTERS ──
+function buildFilters(){
+  const map={'f-brand':'Brand N.','f-cat':'Category','f-subcat':'Sub Category','f-ch':'Channel','f-color':'Color','f-season':'Season','f-gender':'Gender'};
+  const labels={'f-brand':'All Brands','f-cat':'All Categories','f-subcat':'All Sub-Categories','f-ch':'All Channels','f-color':'All Colors','f-season':'All Seasons','f-gender':'All Genders'};
+  Object.entries(map).forEach(([id,col])=>{
+    const el=document.getElementById(id);
+    const vals=[...new Set(allData.map(r=>(r[col]||'').trim()).filter(v=>v&&!['Not Required','NOT REQUIRED','NA','-'].includes(v)))].sort();
+    el.innerHTML=`<option value="">${labels[id]}</option>`+vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+  });
+}
+
+function gf(id){return document.getElementById(id)?.value||'';}
+
+function applyFilters(){
+  if(!allData.length)return;
+  const s=document.getElementById('sInput').value.toLowerCase();
+  const fb=gf('f-brand'),fc=gf('f-cat'),fsc=gf('f-subcat'),fch=gf('f-ch'),fcl=gf('f-color'),fse=gf('f-season'),fg=gf('f-gender'),fi=gf('f-img');
+  fdata=allData.filter(r=>{
+    if(s){const h=[(r['Style Name']||''),(r['Style Code']||''),(r['Eancode']||''),(r['Color']||''),(r['Category']||''),(r['Sub Category']||'')].join(' ').toLowerCase();if(!h.includes(s))return false;}
+    if(fb&&(r['Brand N.']||'').trim()!==fb)return false;
+    if(fc&&(r['Category']||'').trim()!==fc)return false;
+    if(fsc&&(r['Sub Category']||'').trim()!==fsc)return false;
+    if(fch&&(r['Channel']||'').trim()!==fch)return false;
+    if(fcl&&(r['Color']||'').trim()!==fcl)return false;
+    if(fse&&(r['Season']||'').trim()!==fse)return false;
+    if(fg&&(r['Gender']||'').trim()!==fg)return false;
+    if(fi){
+      const ean=getEan(r);
+      const st=imgStatus[ean]||'unknown';
+      if(fi==='ok'&&st!=='ok')return false;
+      if(fi==='fail'&&st!=='fail')return false;
+      if(fi==='unknown'&&st!=='unknown'&&st!==undefined)return false;
+    }
+    return true;
+  });
+  pg=1;
+  document.getElementById('tc').textContent=fdata.length.toLocaleString();
+  renderTbl();
+}
+
+function clearFilters(){
+  document.getElementById('sInput').value='';
+  ['f-brand','f-cat','f-subcat','f-ch','f-color','f-season','f-gender','f-img'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  applyFilters();
+}
+
+// ── TABLE ──
+function renderTbl(){
+  const tCols=fields.filter(f=>f.tbl);
+  const start=(pg-1)*PS;
+  const pd=fdata.slice(start,start+PS);
+  const total=fdata.length,tp=Math.ceil(total/PS)||1;
+  document.getElementById('sc').textContent=Math.min(start+pd.length,total).toLocaleString()+' of '+total.toLocaleString();
+  document.getElementById('pi').textContent='Page '+pg+'/'+tp;
+
+  document.getElementById('thead').innerHTML='<tr>'+tCols.map(f=>`<th onclick="sortBy('${f.col}')" class="${sCol===f.col?'srt':''}">${f.label}${sCol===f.col?(sDir>0?' ↑':' ↓'):''}</th>`).join('')+'</tr>';
+
+  const tbody=document.getElementById('tbody');
+  if(!pd.length){
+    tbody.innerHTML=`<tr class="er"><td colspan="${tCols.length}">No products match your filters</td></tr>`;
+    document.getElementById('lstate').style.display='none';
+    document.getElementById('mtbl').style.display='table';
+    renderPgn(tp);return;
+  }
+
+  tbody.innerHTML=pd.map(row=>{
+    const brand=getBrand(row);
+    const bc=BC[brand.toUpperCase()]||'#888';
+    const ean=getEan(row);
+    const ist=imgStatus[ean]||'unknown';
+    const eanClass=ist==='ok'?'img-ok':ist==='fail'?'img-fail':ist==='checking'?'img-check':'img-unknown';
+    return`<tr>`+tCols.map(f=>{
+      const v=(row[f.col]||'').trim();
+      if(f.col==='Eancode')return`<td><span class="td-ean ${eanClass}" data-ean="${ean}">${ean||'—'}</span></td>`;
+      if(f.col==='Style Name')return`<td><div class="td-name">${v||'—'}</div><div class="td-sub">${(row['Sub Category']||'').trim()}</div></td>`;
+      if(f.col==='Brand N.')return`<td><span style="color:${bc};font-weight:700;font-size:11.5px">${v}</span></td>`;
+      if(f.col==='Color'){const dc=Object.entries(CDC).find(([k])=>v.toLowerCase().startsWith(k.toLowerCase()))?.[1]||'#888';return`<td><span class="cdot" style="background:${dc}"></span>${v}</td>`;}
+      if(f.col==='Channel'){const cls=v.includes('ONLINE')||v.toLowerCase().includes('ecom')?'ch-E':v.includes('RETAIL')||v.includes('EBO')?'ch-R':'ch-O';return`<td><span class="td-ch ${cls}">${v}</span></td>`;}
+      if(f.col==='MRP')return`<td><span class="td-mrp">₹${parseFloat(v||0).toLocaleString('en-IN')}</span></td>`;
+      if(f.col==='Cost INR')return`<td style="color:var(--amber);font-weight:600">₹${parseFloat(v||0).toLocaleString('en-IN')}</td>`;
+      if(f.col==='Category')return`<td><span class="td-badge">${v}</span></td>`;
+      return`<td>${v||'—'}</td>`;
+    }).join('')+'</tr>';
+  }).join('');
+
+  document.querySelectorAll('#tbody tr').forEach((tr,idx)=>{
+    const row=pd[idx];if(!row)return;
+    tr.onclick=()=>showDet(row,tr);
+    if(selectedRow&&row===selectedRow)tr.classList.add('act');
+  });
+
+  document.getElementById('lstate').style.display='none';
+  document.getElementById('mtbl').style.display='table';
+  renderPgn(tp);
+  updateImageStats();
+}
+
+function sortBy(col){
+  if(sCol===col)sDir*=-1;else{sCol=col;sDir=1;}
+  fdata.sort((a,b)=>{
+    const av=a[col]||'',bv=b[col]||'';
+    const an=parseFloat(av),bn=parseFloat(bv);
+    if(!isNaN(an)&&!isNaN(bn))return(an-bn)*sDir;
+    return av.localeCompare(bv)*sDir;
+  });
+  renderTbl();
+}
+
+function renderPgn(tp){
+  const c=document.getElementById('pgn');
+  if(tp<=1){c.innerHTML='';return;}
+  let h=`<button class="pb" onclick="goPg(${pg-1})" ${pg===1?'disabled':''}>‹</button>`;
+  const s=Math.max(1,pg-2),e=Math.min(tp,pg+2);
+  if(s>1)h+=`<button class="pb" onclick="goPg(1)">1</button>${s>2?'<span style="color:var(--text3);padding:0 3px">…</span>':''}`;
+  for(let i=s;i<=e;i++)h+=`<button class="pb ${i===pg?'act':''}" onclick="goPg(${i})">${i}</button>`;
+  if(e<tp)h+=`${e<tp-1?'<span style="color:var(--text3);padding:0 3px">…</span>':''}<button class="pb" onclick="goPg(${tp})">${tp}</button>`;
+  h+=`<button class="pb" onclick="goPg(${pg+1})" ${pg===tp?'disabled':''}>›</button>`;
+  c.innerHTML=h;
+}
+
+function goPg(p){
+  const tp=Math.ceil(fdata.length/PS)||1;
+  if(p<1||p>tp)return;
+  pg=p;renderTbl();
+  document.getElementById('twrap').scrollTop=0;
+}
+
+// ── DETAIL ──
+async function showDet(row,el){
+  selectedRow=row;
+  document.querySelectorAll('#tbody tr').forEach(tr=>tr.classList.remove('act'));
+  if(el)el.classList.add('act');
+  document.getElementById('dpe').style.display='none';
+  document.getElementById('dpb').style.display='flex';
+
+  const ean=getEan(row);
+  const brand=getBrand(row);
+  const bc=BC[brand.toUpperCase()]||'#888';
+
+  document.getElementById('dpname').textContent=row['Style Name']||'—';
+  document.getElementById('dpname').style.color=bc;
+  document.getElementById('dpmeta').textContent=[brand,row['Category'],row['Sub Category']].filter(Boolean).join(' · ');
+
+  const img=document.getElementById('pImg');
+  const sp=document.getElementById('isp');
+  img.classList.remove('ld');
+  sp.style.display='flex';
+  sp.innerHTML='<div class="isp-ring"></div>';
+
+  const tr=document.getElementById('thumbs');
+  tr.innerHTML='';
+
+  if(ean){
+    // Try Shopify API first if configured — pass LINK for handle-based fetch
+    if(shopDomain&&shopToken){
+      const link=(row['LINK']||'').trim();
+      const imgs=await fetchShopifyImage(ean,link);
+      if(imgs&&imgs.length){
+        img.src=imgs[0];
+        imgStatus[ean]='ok';
+        updateEanCell(ean,'ok');
+        // Thumbs
+        imgs.forEach((url,n)=>{
+          const d=document.createElement('div');d.className='thumb'+(n===0?' act':'');
+          const ti=document.createElement('img');ti.src=url;
+          ti.onerror=()=>d.style.display='none';
+          ti.onclick=()=>{
+            img.src=url;img.classList.remove('ld');
+            sp.style.display='flex';sp.innerHTML='<div class="isp-ring"></div>';
+            document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('act'));d.classList.add('act');
+          };
+          d.appendChild(ti);tr.appendChild(d);
+        });
+        renderDetailGrid(row,ean);
+        return;
+      }
+    }
+    // Fallback: direct CDN
+    img.src=`https://www.bagline.com/cdn/shop/products/${ean}_1.jpg`;
+    [1,2,3,4].forEach(n=>{
+      const d=document.createElement('div');d.className='thumb'+(n===1?' act':'');
+      const ti=document.createElement('img');
+      ti.referrerPolicy='no-referrer';
+      ti.src=`https://www.bagline.com/cdn/shop/products/${ean}_${n}.jpg`;
+      ti.onerror=()=>d.style.display='none';
+      const thumbUrl=`https://www.bagline.com/cdn/shop/products/${ean}_${n}.jpg`;
+      d.onclick=()=>{
+        const pi=document.getElementById('pImg');
+        const psp=document.getElementById('isp');
+        pi.classList.remove('ld');
+        psp.style.display='flex';
+        psp.innerHTML='<div class="isp-ring"></div>';
+        pi.referrerPolicy='no-referrer';
+        pi.src=thumbUrl;
+        document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('act'));
+        d.classList.add('act');
+      };
+      d.appendChild(ti);tr.appendChild(d);
+    });
+  } else {imgFail();}
+  renderDetailGrid(row,ean);
+}
+
+function renderDetailGrid(row,ean){
+  const detFields=fields.filter(f=>f.det);
+  const skip=['Style Name','Brand N.','Brand','Category','Sub Category','Eancode','Style Code','MRP','Cost INR','Cost$ '];
+  document.getElementById('dgrid').innerHTML=`
+    <div class="dc"><div class="dcl">EAN / Barcode</div><div class="dcv m">${ean||'—'}</div></div>
+    <div class="dc"><div class="dcl">Style Code</div><div class="dcv m">${row['Style Code']||'—'}</div></div>
+    <div class="dc"><div class="dcl">MRP</div><div class="dcv big g">₹${parseFloat(row['MRP']||0).toLocaleString('en-IN')}</div></div>
+    <div class="dc"><div class="dcl">Cost INR</div><div class="dcv big a">₹${parseFloat(row['Cost INR']||0).toLocaleString('en-IN')}</div></div>
+    ${row['Cost$ ']?`<div class="dc"><div class="dcl">Cost $</div><div class="dcv a">$${row['Cost$ ']}</div></div>`:''}
+    ${detFields.filter(f=>!skip.includes(f.col)).map(f=>`
+      <div class="dc ${['SIZE DESC.','S.Wearbility Master','Collection Name'].includes(f.col)?'full':''}">
+        <div class="dcl">${f.label}</div>
+        <div class="dcv">${row[f.col]||'—'}</div>
+      </div>`).join('')}
+  `;
+}
+
+function imgOk(){
+  document.getElementById('pImg').classList.add('ld');
+  document.getElementById('isp').style.display='none';
+  const ean=selectedRow?getEan(selectedRow):'';
+  if(ean){imgStatus[ean]='ok';updateEanCell(ean,'ok');updateImageStats();}
+}
+function imgFail(){
+  const sp=document.getElementById('isp');
+  sp.style.display='flex';
+  sp.innerHTML='<div class="ino"><span>📷</span><span>No image available</span></div>';
+  document.getElementById('pImg').classList.remove('ld');
+  const ean=selectedRow?getEan(selectedRow):'';
+  if(ean){imgStatus[ean]='fail';updateEanCell(ean,'fail');updateImageStats();}
+}
+
+// ── SETTINGS ──
+function updateApiStatus(){
+  const dot=document.getElementById('apiDot'),stat=document.getElementById('apiStat'),pill=document.getElementById('apiPill');
+  if(shopDomain&&shopToken){
+    dot.className='api-dot ok';stat.textContent='API: Connected';
+    pill.className='pill pill-green';pill.textContent='✅ Shopify API: Connected';
+  }else{
+    dot.className='api-dot none';stat.textContent='API: Not set';
+    pill.className='pill pill-amber';pill.textContent='⚡ API: Not configured';
+  }
+}
+
+function openSettings(){
+  document.getElementById('pwov').classList.add('show');
+  document.getElementById('pwin').value='';
+  document.getElementById('pwerr').classList.remove('show');
+  setTimeout(()=>document.getElementById('pwin').focus(),100);
+}
+function vPw(){
+  const pw=document.getElementById('pwin').value;
+  const stored=localStorage.getItem(PW_K)||DEF_PW;
+  if(pw===stored){document.getElementById('pwov').classList.remove('show');document.getElementById('spg').classList.add('show');}
+  else{document.getElementById('pwerr').classList.add('show');document.getElementById('pwin').value='';}
+}
+function cPwOv(){document.getElementById('pwov').classList.remove('show');}
+function closeSett(){document.getElementById('spg').classList.remove('show');}
+
+function buildFldTbl(){
+  document.getElementById('ftbody').innerHTML=fields.map((f,i)=>`
+    <tr>
+      <td>${f.label}<span style="font-size:9px;color:var(--text3);margin-left:5px">(${f.col})</span></td>
+      <td><input type="checkbox" ${f.tbl?'checked':''} onchange="fields[${i}].tbl=this.checked"></td>
+      <td><input type="checkbox" ${f.det?'checked':''} onchange="fields[${i}].det=this.checked"></td>
+    </tr>`).join('');
+}
+function saveFields(){localStorage.setItem(FLD_K,JSON.stringify(fields));showToast('Field settings saved!');if(fdata.length)renderTbl();}
+
+function saveUrl(){
+  const url=document.getElementById('csvIn').value.trim();if(!url)return;
+  localStorage.setItem(CSV_K,url);showToast('URL saved — reloading…');
+  setTimeout(()=>{closeSett();loadData();},400);
+}
+
+function saveShopify(){
+  const d=document.getElementById('shopDomain').value.trim();
+  const t=document.getElementById('shopToken').value.trim();
+  shopDomain=d;shopToken=t;
+  localStorage.setItem(API_K,JSON.stringify({domain:d,token:t}));
+  updateApiStatus();showToast('Shopify API settings saved!');
+}
+
+async function testShopify(){
+  const d=document.getElementById('shopDomain').value.trim();
+  const t=document.getElementById('shopToken').value.trim();
+  const res=document.getElementById('apiTestResult');
+  res.style.display='block';res.style.color='var(--amber)';res.textContent='Testing connection…';
+  if(!d||!t){res.style.color='var(--red)';res.textContent='Please enter domain and token first.';return;}
+  try{
+    const r=await fetch(`https://${d}/api/2024-01/graphql.json`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Shopify-Storefront-Access-Token':t},
+      body:JSON.stringify({query:'{shop{name}}'})
+    });
+    const data=await r.json();
+    if(data?.data?.shop?.name){
+      res.style.color='var(--green)';
+      res.textContent='✓ Connected to: '+data.data.shop.name;
+    }else{res.style.color='var(--red)';res.textContent='Connection failed. Check token and domain.';}
+  }catch(e){res.style.color='var(--red)';res.textContent='Error: '+e.message;}
+}
+
+function changePw(){
+  const cur=document.getElementById('pwc').value,nw=document.getElementById('pwn').value,cf=document.getElementById('pwcf').value;
+  const stored=localStorage.getItem(PW_K)||DEF_PW;
+  const msg=document.getElementById('pwmsg');msg.style.display='block';
+  if(cur!==stored){msg.style.color='var(--red)';msg.textContent='Current password incorrect.';return;}
+  if(nw.length<6){msg.style.color='var(--red)';msg.textContent='Min 6 characters required.';return;}
+  if(nw!==cf){msg.style.color='var(--red)';msg.textContent='Passwords do not match.';return;}
+  localStorage.setItem(PW_K,nw);
+  ['pwc','pwn','pwcf'].forEach(id=>document.getElementById(id).value='');
+  msg.style.color='var(--green)';msg.textContent='✓ Password changed!';showToast('Password updated!');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');document.getElementById('tmsg').textContent=msg;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+init();
+</script>
+</body>
+</html>
