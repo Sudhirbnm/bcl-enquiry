@@ -478,7 +478,7 @@ async function loadGoogleSheet(){
 
 function parseCSV(txt){
   const lines=txt.split('\n');if(!lines.length)return[];
-  const hdrs=parseLine(lines[0]);
+  const hdrs=parseLine(lines[0]).map(h=>h.replace(/\r/g,''));
   const rows=[];
   for(let i=1;i<lines.length;i++){
     if(!lines[i].trim())continue;
@@ -487,7 +487,7 @@ function parseCSV(txt){
     // Store with ORIGINAL header (not trimmed) so it matches COLS exactly
     // Also store trimmed version as fallback
     hdrs.forEach((h,idx)=>{
-      const v=(vals[idx]||'').trim();
+      (vals[idx]||'').trim().replace(/\r/g,'');
       obj[h]=v;           // original key e.g. "Vander Name "
       obj[h.trim()]=v;    // trimmed key e.g. "Vander Name"
     });
