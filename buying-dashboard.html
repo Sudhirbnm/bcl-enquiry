@@ -399,7 +399,7 @@ function processFile(file){
       // Drop blank/phantom rows (e.g. Excel formatting extending past real data)
       // that have no FY value — these were polluting FY views as a fake "Other" year.
       const beforeCount=rawData.length;
-      rawData=rawData.filter(r=>(r[COLS.FY]||'').toString().trim())});
+      rawData=rawData.filter(r=>/\d{2}-\d{2}/.test((r[COLS.FY]||'').toString().trim()));
       if(rawData.length<beforeCount){
         console.warn('Dropped '+(beforeCount-rawData.length)+' blank row(s) with no FY value');
       }
