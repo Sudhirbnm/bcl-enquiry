@@ -714,7 +714,7 @@ function renderSummary(d){
 
   d.innerHTML=`
     <div class="section-title">Executive Summary — ${filteredData.length.toLocaleString()} records</div>
-    <div class="kpi-grid">
+    <div class="kpi-grid" style="grid-template-columns:repeat(6,1fr)">
       <div class="kpi" style="--accent:var(--blue)">
         <div class="kpi-label">Total Buying Value</div>
         <div class="kpi-val">${fmtCr(totalVal)}</div>
