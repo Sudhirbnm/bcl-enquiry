@@ -202,10 +202,10 @@ function parseCSVLine(line){
   for(let i=0;i<line.length;i++){
     const c=line[i];
     if(c==='"'){inQ=!inQ;}
-    else if(c===','&&!inQ){res.push(cur);cur='';}
+    else if(c===','&&!inQ){res.push(cur.replace(/^"|"$/g,''));cur='';}
     else cur+=c;
   }
-  res.push(cur);return res;
+ res.push(cur.replace(/^"|"$/g,''));return res;
 }
 
 // ── DETECT COLS ──
