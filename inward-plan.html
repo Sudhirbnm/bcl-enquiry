@@ -198,7 +198,8 @@ function parseCSV(txt){
     if(p[1])refreshDate=p[1].replace(/"/g,'').trim();
   }
   // Find header row (row 4 = index 3)
-  const hdrs=parseLine(lines[3]).map(h=>h.replace(/"/g,'').trim());
+  if(!lines[3]){console.error('CSV too short — got:',txt.substring(0,300));return[];}
+const hdrs=parseLine(lines[3]).map(h=>h.replace(/"/g,'').trim());
   const rows=[];
   for(let i=4;i<lines.length;i++){
     if(!lines[i].trim())continue;
