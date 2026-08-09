@@ -1,0 +1,813 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCL · Intelligence Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1e2242;--s1:#262c52;--s2:#303869;--s3:#3c4580;--bd:#4a5499;--bd2:#5b66b8;
+  --blue:#2dd4e0;--blue2:#7de8f0;--purple:#b39ddb;--green:#3ddc97;--amber:#fbbf3e;--red:#fb7189;--cyan:#2dd4e0;--pink:#f472b6;
+  --text:#f1f1fb;--t2:#9599c7;--t3:#6f74a8;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --r:12px;--r2:8px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+/* ── TOPBAR ── */
+.topbar{background:rgba(13,17,32,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:0 24px;height:54px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+.logo-mark{background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:8px;padding:5px 11px;font-size:13px;font-weight:700;color:#111824;letter-spacing:.5px}
+.site-name{font-size:15px;font-weight:600;color:var(--text);flex:1}
+.site-name span{color:var(--t2);font-weight:400;font-size:13px;margin-left:4px}
+.user-chip{display:none;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:4px 12px 4px 6px}
+.user-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#111824;flex-shrink:0}
+.user-name{font-size:12px;font-weight:500;color:var(--text)}
+.logout-btn{background:none;border:1px solid var(--bd);color:var(--t2);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--font);transition:all .15s}
+.logout-btn:hover{color:var(--red);border-color:var(--red)}
+
+/* ── TABS ── */
+.tab-bar{background:var(--s1);border-bottom:1px solid var(--bd);display:flex;padding:0 24px;position:sticky;top:54px;z-index:99}
+.tab{background:none;border:none;color:var(--t2);font-family:var(--font);font-size:13px;font-weight:500;padding:14px 18px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:7px}
+.tab svg{opacity:.6;transition:opacity .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.tab.active svg{opacity:1}
+
+/* ── PAGES ── */
+.page{display:none;flex:1}
+.page.active{display:flex;flex-direction:column}
+
+/* ══ ENQUIRY FORM ══ */
+.enq-wrap{max-width:700px;margin:0 auto;padding:28px 20px 60px;width:100%}
+.enq-hero{margin-bottom:24px}
+.enq-hero h2{font-size:22px;font-weight:700;margin-bottom:4px}
+.enq-hero p{font-size:13px;color:var(--t2)}
+
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:22px;margin-bottom:14px}
+.card-title{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title::after{content:'';flex:1;height:1px;background:var(--bd)}
+
+.toggle-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.toggle-btn{padding:14px;border-radius:var(--r2);border:1.5px solid var(--bd);background:var(--s2);cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);transition:all .2s;text-align:center;font-family:var(--font)}
+.toggle-btn .tb-ico{font-size:24px;display:block;margin-bottom:6px;opacity:.5;transition:opacity .2s}
+.toggle-btn:hover{border-color:var(--bd2);color:var(--text)}
+.toggle-btn.active{border-color:var(--blue);background:rgba(45,212,224,.08);color:var(--blue2)}
+.toggle-btn.active .tb-ico{opacity:1}
+
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;font-weight:500;color:var(--t2)}
+.req{color:var(--red)}
+.field input,.field select,.field textarea{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r2);color:var(--text);font-size:13px;font-family:var(--font);padding:9px 12px;outline:none;transition:border .15s}
+.field input::placeholder,.field textarea::placeholder{color:var(--t3)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue)}
+.field input.err{border-color:var(--red)}
+.field textarea{resize:vertical;min-height:72px}
+.field select option{background:var(--s2)}
+
+.ms-wrap{position:relative}
+.ms-trig{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:var(--r2);border:1px solid var(--bd);background:var(--s2);cursor:pointer;min-height:40px;gap:8px;user-select:none;transition:border .15s}
+.ms-trig:hover,.ms-trig.open{border-color:var(--blue)}
+.ms-tags{display:flex;flex-wrap:wrap;gap:4px;flex:1}
+.ms-ph{font-size:13px;color:var(--t3)}
+.ms-tag{background:rgba(59,130,246,.15);color:var(--blue2);border-radius:5px;padding:2px 8px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px}
+.ms-tag-x{cursor:pointer;font-size:14px;color:var(--blue);opacity:.7}
+.ms-arr{font-size:14px;color:var(--t3);transition:transform .15s}
+.ms-arr.open{transform:rotate(180deg)}
+.ms-drop{position:absolute;top:100%;left:0;right:0;background:var(--s2);border:1px solid var(--blue);border-top:none;border-radius:0 0 var(--r2) var(--r2);z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);max-height:220px;overflow-y:auto;display:none}
+.ms-drop.open{display:block}
+.ms-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;font-size:13px;color:var(--t2);transition:background .1s;border-bottom:1px solid var(--bd)}
+.ms-opt:hover{background:rgba(59,130,246,.08);color:var(--text)}
+.ms-opt.sel{color:var(--cyan)}
+.ms-opt input[type=checkbox]{width:15px;height:15px;accent-color:var(--blue)}
+
+.other-inp{display:none;margin-top:8px}
+.cat-other,.hint{font-size:11px;color:var(--t3);margin-top:3px}
+
+.submit-btn{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;color:#111824;border-radius:var(--r);padding:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:opacity .2s;margin-top:4px}
+.submit-btn:hover{opacity:.88}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+
+.success-banner{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:var(--r);padding:20px;text-align:center;display:none;margin-bottom:14px;animation:fadeUp .3s ease}
+.success-banner .sb-ico{margin-bottom:10px;color:var(--green);display:flex;justify-content:center}
+.success-banner h3{font-size:16px;font-weight:600;color:var(--green);margin-bottom:4px}
+.success-banner p{font-size:13px;color:var(--t2)}
+
+/* ══ LOGIN — split panel ══ */
+@keyframes meshDrift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-4%,3%) scale(1.05)}66%{transform:translate(3%,-3%) scale(1.02)}}
+@keyframes meshDrift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(5%,4%) scale(1.08)}}
+.login-outer{flex:1;display:grid;grid-template-columns:1.15fr 1fr}
+@media(max-width:860px){.login-outer{grid-template-columns:1fr}}
+.login-art{position:relative;overflow:hidden;background:#141832;display:flex;flex-direction:column;justify-content:space-between;padding:40px 56px 36px}
+@media(max-width:860px){.login-art{display:none}}
+.login-art::before{content:'';position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(45,212,224,.28),transparent 70%);top:-140px;left:-120px;filter:blur(10px);animation:meshDrift 16s ease-in-out infinite}
+.login-art::after{content:'';position:absolute;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,rgba(179,157,219,.22),transparent 70%);bottom:-160px;right:-100px;filter:blur(10px);animation:meshDrift2 20s ease-in-out infinite}
+.la-top{position:relative;z-index:2;display:flex;align-items:center;gap:10px}
+.la-mark{background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:9px;padding:6px 12px;font-size:13px;font-weight:700;color:#111824;letter-spacing:.5px}
+.la-topname{font-size:13px;font-weight:600;color:var(--t2)}
+.la-mid{position:relative;z-index:2;max-width:440px}
+.la-mid .kicker{font-size:11px;font-weight:700;color:var(--blue2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:18px;opacity:.85}
+.la-mid h1{font-family:var(--serif);font-size:38px;line-height:1.14;font-weight:500;letter-spacing:-.5px;margin-bottom:16px}
+.la-mid h1 em{font-style:italic;color:var(--blue2)}
+.la-mid p{font-size:14.5px;color:var(--t2);line-height:1.65;max-width:380px}
+.la-stats{position:relative;z-index:2;display:flex;gap:36px}
+.la-stat b{font-family:var(--serif);font-size:26px;font-weight:500;display:block;margin-bottom:2px}
+.la-stat span{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.6px}
+
+.login-panel{display:flex;align-items:center;justify-content:center;padding:40px 20px;background:var(--s1)}
+.login-box{width:100%;max-width:378px;animation:fadeUp .5s ease}
+.login-panel-hd{margin-bottom:34px}
+.login-panel-hd h2{font-family:var(--serif);font-size:27px;font-weight:500;margin-bottom:7px;letter-spacing:-.2px}
+.login-panel-hd p{font-size:13.5px;color:var(--t2)}
+.lf{margin-bottom:17px}
+.lf label{font-size:11px;font-weight:600;color:var(--t2);display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+.lf input{width:100%;background:var(--s2);border:1.5px solid var(--bd);border-radius:10px;color:var(--text);font-size:14px;font-family:var(--font);padding:12px 15px;outline:none;transition:all .15s}
+.lf input:focus{border-color:var(--blue);background:var(--s3);box-shadow:0 0 0 4px rgba(59,130,246,.1)}
+.login-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--r2);padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:14px;display:none;align-items:center;gap:8px}
+.login-err.show{display:flex}
+.login-btn{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;color:#111824;border-radius:10px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);margin-top:8px;transition:all .18s;letter-spacing:.2px;box-shadow:0 4px 20px rgba(45,212,224,.2)}
+.login-btn:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 6px 26px rgba(45,212,224,.3)}
+.login-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.login-foot{margin-top:22px;text-align:center;font-size:11.5px;color:var(--t3)}
+
+/* ══ PORTAL ══ */
+.portal-wrap{max-width:1100px;margin:0 auto;padding:24px 24px 60px;width:100%}
+.welcome-bar{background:linear-gradient(135deg,rgba(45,212,224,.08),rgba(179,157,219,.06));border:1px solid rgba(45,212,224,.15);border-radius:var(--r);padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px}
+.wb-avatar{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#111824;flex-shrink:0}
+.wb-text h3{font-size:18px;font-weight:700;margin-bottom:2px}
+.wb-text p{font-size:12px;color:var(--t2)}
+.wb-badge{margin-left:auto;background:rgba(45,212,224,.12);color:var(--blue2);border:1px solid rgba(45,212,224,.2);border-radius:20px;padding:4px 14px;font-size:11px;font-weight:600;white-space:nowrap}
+
+.ptabs{display:flex;gap:2px;margin-bottom:20px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r2);padding:3px;width:fit-content}
+.ptab{background:none;border:none;color:var(--t2);font-family:var(--font);font-size:12px;font-weight:500;padding:7px 16px;border-radius:6px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.ptab:hover{color:var(--text)}
+.ptab.active{background:rgba(45,212,224,.15);color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+
+.sec-label{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--bd)}
+
+/* TOOL CARDS */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.tool-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:20px;text-decoration:none;color:var(--text);transition:all .2s;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;animation:fadeUp .3s ease both}
+.tool-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent,linear-gradient(90deg,var(--blue),var(--purple)))}
+.tool-card:hover{border-color:var(--bd2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.tc-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--icon-bg,rgba(59,130,246,.12));flex-shrink:0;color:var(--text)}
+.tc-body{flex:1}
+.tc-title{font-size:14px;font-weight:600;margin-bottom:4px;color:var(--text)}
+.tc-desc{font-size:12px;color:var(--t2);line-height:1.5}
+.tc-tag{font-size:10px;font-weight:600;color:var(--t3);background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:3px 10px;width:fit-content;margin-top:8px}
+.tc-ext{font-size:10px;color:var(--t3);margin-left:4px}
+.no-reports{color:var(--t3);font-size:13px;padding:20px 0}
+
+/* ADMIN */
+.admin-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.admin-hdr h3{font-size:15px;font-weight:600}
+.add-btn{background:linear-gradient(135deg,var(--blue),var(--purple));border:none;color:#111824;border-radius:var(--r2);padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px}
+.user-tbl{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.user-tbl table{width:100%;border-collapse:collapse;font-size:13px}
+.user-tbl th{background:var(--s2);color:var(--t2);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--bd)}
+.user-tbl td{padding:11px 14px;border-bottom:1px solid rgba(30,45,69,.5);vertical-align:middle}
+.user-tbl tr:hover td{background:rgba(255,255,255,.02)}
+.lvl-badge{font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;background:rgba(59,130,246,.12);color:var(--blue2);border:1px solid rgba(59,130,246,.2)}
+.action-btn{background:none;border:1px solid var(--bd);color:var(--t2);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--font);margin-right:4px;transition:all .15s}
+.action-btn:hover{color:var(--text);border-color:var(--bd2)}
+.action-btn.del:hover{color:var(--red);border-color:var(--red)}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.show{display:flex}
+.modal-box{background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:28px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,.5);animation:fadeUp .25s ease}
+.modal-box h3{font-size:16px;font-weight:600;margin-bottom:20px}
+.mf{margin-bottom:14px}
+.mf label{font-size:12px;font-weight:500;color:var(--t2);display:block;margin-bottom:5px}
+.mf input,.mf select{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r2);color:var(--text);font-size:13px;font-family:var(--font);padding:9px 12px;outline:none;transition:border .15s}
+.mf input:focus,.mf select:focus{border-color:var(--blue)}
+.mf select option{background:var(--s2)}
+.modal-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.m-cancel{background:var(--s2);border:1px solid var(--bd);color:var(--t2);border-radius:var(--r2);padding:9px 18px;font-size:13px;cursor:pointer;font-family:var(--font)}
+.m-save{background:linear-gradient(135deg,var(--blue),var(--purple));border:none;color:#111824;border-radius:var(--r2);padding:9px 22px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--s2);border:1px solid var(--bd);color:var(--text);padding:10px 18px;border-radius:10px;font-size:13px;display:flex;align-items:center;gap:8px;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast .tick{color:var(--green);font-size:16px}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo-mark">BCL</div>
+  <div class="site-name">BCL Intelligence Suite <span id="headerSub">/ Gifting & Institutional</span></div>
+  <div class="user-chip" id="userChip">
+    <div class="user-av" id="userAv">SJ</div>
+    <span class="user-name" id="userChipName">Sumit Jain</span>
+  </div>
+  <button class="logout-btn" id="logoutBtn" style="display:none" onclick="doLogout()">Sign out</button>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab active" id="tab-enquiry" onclick="switchTab('enquiry')">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    New Enquiry
+  </button>
+  <button class="tab" id="tab-portal" onclick="switchTab('portal')">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Login
+  </button>
+</div>
+
+<!-- ══ ENQUIRY PAGE ══ -->
+<div class="page active" id="page-enquiry" style="overflow-y:auto">
+<div class="enq-wrap">
+  <div class="enq-hero">
+    <h2>Let's get this gifting order moving.</h2>
+    <p>The more precise the details, the faster we can turn this around. Fields marked * are the ones we can't work without.</p>
+  </div>
+
+  <div class="success-banner" id="successBanner">
+    <div class="sb-ico"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+    <h3>You're all set.</h3>
+    <p id="successRef">We've got it — someone will be in touch shortly. Reference: —</p>
+    <button onclick="resetForm()" style="margin-top:12px;background:var(--green);border:none;color:#fff;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer">Raise another</button>
+  </div>
+
+  <div id="enquiryForm">
+    <!-- SOURCE -->
+    <div class="card">
+      <div class="card-title">Enquiry Source</div>
+      <div class="toggle-row">
+        <button class="toggle-btn active" id="tb-direct" onclick="setType('direct')">
+          <span class="tb-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"/><line x1="9" y1="6" x2="9" y2="6.01"/><line x1="15" y1="6" x2="15" y2="6.01"/><line x1="9" y1="10" x2="9" y2="10.01"/><line x1="15" y1="10" x2="15" y2="10.01"/><line x1="9" y1="14" x2="9" y2="14.01"/><line x1="15" y1="14" x2="15" y2="14.01"/><line x1="9" y1="18" x2="15" y2="18"/></svg></span>Direct Enquiry
+        </button>
+        <button class="toggle-btn" id="tb-third" onclick="setType('third')">
+          <span class="tb-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M9 3.13a4 4 0 0 0 0 7.75"/><path d="M12.5 12h-1a4 4 0 0 0-4 4v5h9v-5a4 4 0 0 0-4-4z"/></svg></span>Via 3rd Party
+        </button>
+      </div>
+    </div>
+
+    <!-- CLIENT -->
+    <div class="card">
+      <div class="card-title">Client Details</div>
+      <div class="field-grid">
+        <div class="field"><label>Company / Person <span class="req">*</span></label><input type="text" id="clientName" placeholder="e.g. Infosys Ltd"></div>
+        <div class="field"><label>Contact Person <span class="req">*</span></label><input type="text" id="contactPerson" placeholder="Full name"></div>
+        <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" id="phone" placeholder="+91 XXXXX XXXXX"></div>
+        <div class="field"><label>Email <span class="req">*</span></label><input type="email" id="email" placeholder="contact@company.com"></div>
+        <div class="field"><label>City <span class="req">*</span></label><input type="text" id="city" placeholder="e.g. Mumbai"></div>
+        <div class="field" id="agencyField" style="display:none"><label>Agency Name <span class="req">*</span></label><input type="text" id="agencyName" placeholder="Agency name"></div>
+      </div>
+    </div>
+
+    <!-- PRODUCT -->
+    <div class="card">
+      <div class="card-title">Brand & Product Details</div>
+      <div class="field-grid">
+        <div class="field full">
+          <label>Brand(s) <span class="req">*</span></label>
+          <div class="ms-wrap">
+            <div class="ms-trig" id="brandTrig" onclick="toggleDD()">
+              <div class="ms-tags" id="brandTags"><span class="ms-ph">Select brands…</span></div>
+              <span class="ms-arr" id="brandArr">▾</span>
+            </div>
+            <div class="ms-drop" id="brandDrop"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Category <span class="req">*</span></label>
+          <select id="category" onchange="handleCatChange()">
+            <option value="">Select category</option>
+            <option>Backpack</option><option>Luggage</option><option>Wallet</option>
+            <option>Belt</option><option>Handbag</option><option>Business Case</option>
+            <option>Cross Body</option><option>Gym Bag</option><option>Other</option>
+          </select>
+          <input type="text" id="catOther" class="other-inp" placeholder="Specify category">
+        </div>
+        <div class="field">
+          <label>Product Name <span class="opt">(optional)</span></label>
+          <input type="text" id="productName" placeholder="Specific product / style">
+        </div>
+        <div class="field">
+          <label>Size(s) <span class="opt">(optional)</span></label>
+          <input type="text" id="sizes" placeholder="e.g. 20 inch, Small/Medium">
+        </div>
+        <div class="field">
+          <label>Quantity <span class="req">*</span></label>
+          <input type="number" id="quantity" placeholder="Total units required" min="1">
+        </div>
+        <div class="field">
+          <label>Budget / WSV (₹) <span class="req">*</span></label>
+          <input type="number" id="budget" placeholder="Per unit or total">
+          <span class="hint">Tax extra</span>
+        </div>
+        <div class="field">
+          <label>Gifting Occasion</label>
+          <select id="occasion" onchange="handleOccasionChange()">
+            <option value="">Select occasion</option>
+            <option>Corporate Gifting</option><option>Diwali</option><option>New Year</option>
+            <option>Annual Day</option><option>Sales Incentive</option><option>Milestone Award</option>
+            <option>Bulk Purchase</option><option>Other</option>
+          </select>
+          <input type="text" id="occasionOther" class="other-inp" placeholder="Specify occasion">
+        </div>
+        <div class="field">
+          <label>Delivery Date</label>
+          <input type="date" id="deliveryDate">
+        </div>
+        <div class="field full">
+          <label>Delivery Location(s)</label>
+          <input type="text" id="deliveryLoc" placeholder="City or cities for delivery">
+        </div>
+        <div class="field full">
+          <label>Special Requirements</label>
+          <textarea id="specialReq" placeholder="Customisation, branding, packaging notes…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- OWNER -->
+    <div class="card">
+      <div class="card-title">Enquiry Owner</div>
+      <div class="field-grid">
+        <div class="field"><label>Your Name <span class="req">*</span></label><input type="text" id="ownerName" placeholder="Your full name"></div>
+        <div class="field">
+          <label>Channel / Team <span class="req">*</span></label>
+          <select id="ownerChannel">
+            <option value="">Select channel</option>
+            <option>DND</option><option>LFS</option><option>EBO</option>
+            <option>Govt/CSD</option><option>Institutional</option><option>E-Commerce</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field full"><label>Reference No. <span class="opt">(optional)</span></label><input type="text" id="refNo" placeholder="Internal reference number"></div>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitEnquiry()">Submit →</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ PORTAL PAGE ══ -->
+<div class="page" id="page-portal" style="overflow-y:auto">
+
+  <!-- LOGIN -->
+  <div class="login-outer" id="loginState">
+    <div class="login-art">
+      <div class="la-top">
+        <div class="la-mark">BCL</div>
+        <div class="la-topname">Intelligence Suite</div>
+      </div>
+      <div class="la-mid">
+        <div class="kicker">Staff Workspace</div>
+        <h1>Everything you need to <em>decide faster.</em></h1>
+        <p>Buying intelligence, live sell-through, OTB planning and more — built for the people who run Brand Concepts, day to day.</p>
+      </div>
+      <div class="la-stats">
+        <div class="la-stat"><b>8</b><span>Live Tools</span></div>
+        <div class="la-stat"><b>5yr</b><span>Sales History</span></div>
+        <div class="la-stat"><b>24/7</b><span>Real-Time Data</span></div>
+      </div>
+    </div>
+    <div class="login-panel">
+      <div class="login-box">
+        <div class="login-panel-hd">
+          <h2>Welcome back.</h2>
+          <p>Sign in with your BCL workspace credentials.</p>
+        </div>
+        <div class="login-err" id="loginErr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span id="loginErrText">Invalid username or password</span></div>
+        <div class="lf"><label>Username</label><input type="text" id="loginUser" placeholder="Your username" autocomplete="username"></div>
+        <div class="lf"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="login-btn" id="loginBtnEl" onclick="doLogin()">Sign In →</button>
+        <div class="login-foot">Restricted to Brand Concepts staff · Contact your admin for access</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PORTAL DASHBOARD -->
+  <div id="portalState" style="display:none">
+  <div class="portal-wrap">
+
+    <div class="welcome-bar">
+      <div class="wb-avatar" id="wbAv">SJ</div>
+      <div class="wb-text">
+        <h3>Good to have you, <span id="welcomeName"></span>.</h3>
+        <p id="welcomeSub">Everything's in place — pick up where you left off.</p>
+      </div>
+      <div class="wb-badge" id="wbBadge">Management · L1</div>
+    </div>
+
+    <div id="adminTabsWrap" style="display:none">
+      <div class="ptabs">
+        <button class="ptab active" id="ptab-tools" onclick="switchPTab('tools')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Workspace
+        </button>
+        <button class="ptab" id="ptab-admin" onclick="switchPTab('admin')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          People
+        </button>
+      </div>
+    </div>
+
+    <!-- TOOLS -->
+    <div id="toolsView">
+      <div class="sec-label">Reports & Tools</div>
+      <div class="tools-grid" id="reportsGrid"></div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="adminView" style="display:none">
+      <div class="admin-hdr">
+        <h3>Team Access</h3>
+        <button class="add-btn" onclick="openAddUser()">+ Add User</button>
+      </div>
+      <div class="user-tbl">
+        <table><thead><tr><th>Name</th><th>Username</th><th>Department</th><th>Level</th><th>Tools</th><th>Actions</th></tr></thead>
+        <tbody id="userTableBody"></tbody></table>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-ov" id="userModal">
+  <div class="modal-box">
+    <h3 id="modalTitle">New Member</h3>
+    <div class="mf"><label>Full Name <span class="req">*</span></label><input type="text" id="mName" placeholder="e.g. Roshan Mishra"></div>
+    <div class="mf"><label>Username <span class="req">*</span></label><input type="text" id="mUsername" placeholder="e.g. roshan.mishra"></div>
+    <div class="mf"><label>Password <span class="req">*</span></label><input type="password" id="mPassword" placeholder="Set a password"></div>
+    <div class="mf">
+      <label>Department <span class="req">*</span></label>
+      <select id="mDept">
+        <option value="">Select department</option>
+        <option value="Sales-LFS">Sales — LFS</option>
+        <option value="Sales-DND">Sales — DND</option>
+        <option value="Sales-EBO">Sales — EBO</option>
+        <option value="Sales-Govt">Sales — Govt/CSD</option>
+        <option value="Sales-Insti">Sales — Insti</option>
+        <option value="Sales-Ecom">Sales — Ecom</option>
+        <option value="Buying">Merchandising / Buying</option>
+        <option value="Management">Management</option>
+      </select>
+    </div>
+    <div class="mf">
+      <label>Access Level <span class="req">*</span></label>
+      <select id="mLevel">
+        <option value="">Select level</option>
+        <option value="L1">L1 · Principal — Full suite</option>
+        <option value="L2">L2 · Associate — Department view</option>
+        <option value="L3">L3 · Executive — Core access</option>
+        <option value="L4">L4 · Trainee — View only</option>
+      </select>
+    </div>
+    <div class="mf">
+      <label>Tool Access <span style="color:var(--t3);font-size:11px">(leave all unchecked = dept-based default)</span></label>
+      <div id="mTools" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"></div>
+    </div>
+    <div class="modal-acts">
+      <button class="m-cancel" onclick="closeModal()">Cancel</button>
+      <button class="m-save" onclick="saveUser()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="tick">✓</span><span id="toastMsg"></span></div>
+
+<script>
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxBOckKcP30K-vdg3THER8xkGKDAju8ha1pjyzcdQBZRxKK9La-p_1-zXnhJDF6i6Sr/exec';
+const ADMIN={name:'Sumit Jain',username:'Sumit.jain',password:'Sumi@2211',dept:'Management',level:'L1',isAdmin:true};
+
+const ICON_SVG={
+  folder:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h5l2 3h9a1 1 0 0 1 1 1v10a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/></svg>',
+  chart:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
+  clipboard:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>',
+  calc:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10.01"/><line x1="12" y1="10" x2="12" y2="10.01"/><line x1="16" y1="10" x2="16" y2="10.01"/><line x1="8" y1="14" x2="8" y2="14.01"/><line x1="12" y1="14" x2="12" y2="14.01"/><line x1="16" y1="14" x2="16" y2="18"/><line x1="8" y1="18" x2="12" y2="18"/></svg>',
+  trend:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>',
+  store:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 21v-6h6v6"/></svg>',
+  package:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>',
+  bag:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
+  check:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+};
+
+const ALL_REPORTS=[
+  {id:'catalogue',title:'Product Intelligence',desc:'Every SKU. Every colour. Every price. Instant.',icon:'folder',accent:'linear-gradient(135deg,#3b82f6,#8b5cf6)',ibg:'rgba(59,130,246,.12)',dept:['Sales-LFS','Sales-DND','Sales-EBO','Sales-Govt','Sales-Insti','Sales-Ecom','Buying','Management'],level:['L1','L2','L3'],url:'catalogue.html',tag:'All Brands · All Channels',ext:false},
+  {id:'buying',title:'Buying Intelligence',desc:'Five years of buying intelligence. Ask anything.',icon:'chart',accent:'linear-gradient(135deg,#10b981,#06b6d4)',ibg:'rgba(16,185,129,.12)',dept:['Buying','Management'],level:['L1','L2'],url:'buying-dashboard.html',tag:'Buying · 5 Year',ext:false},
+  {id:'enquiry-data',title:'Enquiry Log',desc:'Live enquiry log. Every lead, every status.',icon:'clipboard',accent:'linear-gradient(135deg,#06b6d4,#3b82f6)',ibg:'rgba(6,182,212,.12)',dept:['Management','Sales-LFS','Sales-DND','Sales-EBO','Sales-Govt','Sales-Insti','Sales-Ecom'],level:['L1','L2'],url:'https://docs.google.com/spreadsheets/d/1gOTr8sAGYpbLbI-U5J4iBBmwafaf1RGKdUbl3wrgFrQ/edit',tag:'Sales · Management',ext:true},
+  {id:'otb',title:'OTB Planner',desc:'Know exactly what to buy — before you commit.',icon:'calc',accent:'linear-gradient(135deg,#f59e0b,#ef4444)',ibg:'rgba(245,158,11,.12)',dept:['Buying','Management'],level:['L1','L2','L3'],url:'otb.html',tag:'Buying · Planning',ext:false},
+  {id:'lfs',title:'LFS Performance',desc:'Five years of LFS performance, distilled.',icon:'trend',accent:'linear-gradient(135deg,#10b981,#84cc16)',ibg:'rgba(16,185,129,.12)',dept:['Sales-LFS','Management','Buying'],level:['L1','L2','L3'],url:'lfs.html',tag:'Sales · LFS',ext:false},
+  {id:'secondary',title:'Secondary Sales',desc:'Channel-wise sell-through. Every brand, every store.',icon:'store',accent:'linear-gradient(135deg,#f59e0b,#06b6d4)',ibg:'rgba(245,158,11,.12)',dept:['Sales-LFS','Sales-EBO','Management','Buying'],level:['L1','L2','L3'],url:'secondary-sales.html',tag:'Sales · 5 Year',ext:false},
+  {id:'inward',title:'Inward Plan',desc:'Q2 pipeline by brand, vendor and payment.',icon:'package',accent:'linear-gradient(135deg,#f59e0b,#ef4444)',ibg:'rgba(245,158,11,.12)',dept:['Buying','Management'],level:['L1','L2','L3'],url:'inward-plan.html',tag:'Buying · Q2',ext:false},
+  {id:'myntra',title:'Myntra Launch',desc:'Built to win Myntra. Catalog, copy, strategy.',icon:'bag',accent:'linear-gradient(135deg,#8b5cf6,#ec4899)',ibg:'rgba(139,92,246,.12)',dept:['Sales-Ecom','Buying','Management'],level:['L1','L2','L3'],url:'myntra.html',tag:'Ecom · Merchandising',ext:false},
+];
+
+const BRANDS=[
+  {label:'Tommy Hilfiger',short:'TH'},{label:'United Colors of Benetton',short:'UCB'},
+  {label:'Superdry',short:'SD'},{label:'Juicy Couture',short:'JC'},
+  {label:'Aeropostale',short:'AP'},{label:'Unbranded',short:''},{label:'Any Brand',short:''}
+];
+
+let enquiryType='direct',selBrands=[],ddOpen=false;
+let currentUser=null,editingIdx=null,users=[];
+
+// ── TABS ──
+function switchTab(tab){
+  ['enquiry','portal'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('page-'+t).classList.toggle('active',t===tab);
+  });
+  document.getElementById('headerSub').textContent=tab==='enquiry'?'/ Gifting & Institutional':'/ Login';
+}
+
+// ── ENQUIRY FORM ──
+function setType(t){
+  enquiryType=t;
+  document.getElementById('tb-direct').classList.toggle('active',t==='direct');
+  document.getElementById('tb-third').classList.toggle('active',t==='third');
+  document.getElementById('agencyField').style.display=t==='third'?'flex':'none';
+}
+
+function handleCatChange(){
+  document.getElementById('catOther').style.display=document.getElementById('category').value==='Other'?'block':'none';
+}
+function handleOccasionChange(){
+  document.getElementById('occasionOther').style.display=document.getElementById('occasion').value==='Other'?'block':'none';
+}
+
+// Brand multiselect
+function buildDD(){
+  const drop=document.getElementById('brandDrop');
+  drop.innerHTML=BRANDS.map((b,i)=>`<div class="ms-opt" onclick="toggleBrand(${i})"><input type="checkbox" id="bchk${i}"><label for="bchk${i}">${b.label}${b.short?' ('+b.short+')':''}</label></div>`).join('');
+}
+function toggleDD(){
+  ddOpen=!ddOpen;
+  document.getElementById('brandDrop').classList.toggle('open',ddOpen);
+  document.getElementById('brandTrig').classList.toggle('open',ddOpen);
+  document.getElementById('brandArr').classList.toggle('open',ddOpen);
+}
+function toggleBrand(i){
+  const idx=selBrands.indexOf(i);
+  if(idx>=0)selBrands.splice(idx,1);else selBrands.push(i);
+  document.getElementById('bchk'+i).checked=selBrands.includes(i);
+  renderTags();
+}
+function renderTags(){
+  const ct=document.getElementById('brandTags');
+  if(!selBrands.length){ct.innerHTML='<span class="ms-ph">Select brands…</span>';return;}
+  ct.innerHTML=selBrands.map(i=>`<span class="ms-tag">${BRANDS[i].short||BRANDS[i].label}<span class="ms-tag-x" onclick="event.stopPropagation();toggleBrand(${i})">×</span></span>`).join('');
+}
+document.addEventListener('click',e=>{if(ddOpen&&!e.target.closest('.ms-wrap')){ddOpen=false;document.getElementById('brandDrop').classList.remove('open');document.getElementById('brandTrig').classList.remove('open');document.getElementById('brandArr').classList.remove('open');}});
+
+async function submitEnquiry(){
+  const req=v=>document.getElementById(v).value.trim();
+  const fields=[['clientName','Company/Person name'],['contactPerson','Contact person'],['phone','Phone'],['email','Email'],['city','City'],['quantity','Quantity'],['budget','Budget'],['ownerName','Your name'],['ownerChannel','Channel']];
+  let err=null;
+  for(const[id,label]of fields){if(!req(id)){err=`${label} is required`;break;}}
+  if(!selBrands.length)err='Please select at least one brand';
+  if(!req('category'))err='Please select a category';
+  if(enquiryType==='third'&&!req('agencyName'))err='Agency name is required';
+  if(err){showToast(err,'error');return;}
+
+  const btn=document.getElementById('submitBtn');
+  btn.textContent='Submitting…';btn.disabled=true;
+
+  const payload={
+    action:'enquiry',source:enquiryType,
+    clientName:req('clientName'),contactPerson:req('contactPerson'),
+    phone:req('phone'),email:req('email'),city:req('city'),
+    agencyName:req('agencyName'),
+    brands:selBrands.map(i=>BRANDS[i].label).join(', '),
+    category:req('category')==='Other'?req('catOther'):req('category'),
+    productName:req('productName'),sizes:req('sizes'),
+    quantity:req('quantity'),budget:req('budget'),
+    occasion:req('occasion')==='Other'?req('occasionOther'):req('occasion'),
+    deliveryDate:req('deliveryDate'),deliveryLoc:req('deliveryLoc'),
+    specialReq:req('specialReq'),
+    ownerName:req('ownerName'),ownerChannel:req('ownerChannel'),refNo:req('refNo'),
+    timestamp:new Date().toLocaleString('en-IN')
+  };
+
+  try{
+    const fd=new FormData();
+    fd.append('payload',JSON.stringify(payload));
+    await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:fd});
+    const ref='ENQ-'+Date.now().toString(36).toUpperCase();
+    document.getElementById('enquiryForm').style.display='none';
+    document.getElementById('successBanner').style.display='block';
+    document.getElementById('successRef').textContent='We\u2019ve got it — someone will be in touch shortly. Reference: '+ref+' · Logged by '+payload.ownerName;
+  }catch(e){showToast('Submission failed. Please try again.');}
+  finally{btn.textContent='Submit →';btn.disabled=false;}
+}
+
+function resetForm(){
+  document.getElementById('enquiryForm').style.display='block';
+  document.getElementById('successBanner').style.display='none';
+  document.getElementById('enquiryForm').querySelectorAll('input,select,textarea').forEach(el=>el.value='');
+  selBrands=[];renderTags();setType('direct');
+}
+
+// ── LOGIN ──
+async function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginErr');
+  const errText=document.getElementById('loginErrText');
+  const btn=document.getElementById('loginBtnEl');
+  err.classList.remove('show');
+  if(!u||!p){errText.textContent='Enter your username and password to continue';err.classList.add('show');return;}
+  if(u===ADMIN.username&&p===ADMIN.password){showPortal({...ADMIN});return;}
+  btn.textContent='Signing in…';btn.disabled=true;
+  try{
+    const r=await fetch(SCRIPT_URL+'?action=login&username='+encodeURIComponent(u)+'&password='+encodeURIComponent(p));
+    const data=await r.json();
+    if(data.status==='success'){
+      showPortal({name:data.name,username:data.username,dept:data.dept,level:data.level,tools:data.tools||'',isAdmin:data.level==='L1'});
+    }else{
+      errText.textContent='That username or password doesn\u2019t match our records';err.classList.add('show');
+      document.getElementById('loginPass').value='';
+    }
+  }catch(e){errText.textContent='Couldn\u2019t reach the server \u2014 check your connection and try again';err.classList.add('show');}
+  finally{btn.textContent='Sign In →';btn.disabled=false;}
+}
+
+function showPortal(user){
+  currentUser=user;
+  document.getElementById('loginState').style.display='none';
+  document.getElementById('portalState').style.display='block';
+  const initials=user.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('welcomeName').textContent=user.name.split(' ')[0];
+  const userTools=user.tools?user.tools.split(',').filter(Boolean):[];
+  const accessCount=user.isAdmin?ALL_REPORTS.length:
+    userTools.length?ALL_REPORTS.filter(r=>userTools.includes(r.id)).length:
+    ALL_REPORTS.filter(r=>r.dept.includes(user.dept)&&r.level.includes(user.level)).length;
+  document.getElementById('welcomeSub').textContent=accessCount+' tool'+(accessCount===1?'':'s')+' ready for you below.';
+  document.getElementById('wbBadge').textContent=user.dept+' · '+user.level;
+  document.getElementById('wbAv').textContent=initials;
+  document.getElementById('userChip').style.display='flex';
+  document.getElementById('userAv').textContent=initials;
+  document.getElementById('userChipName').textContent=user.name.split(' ')[0];
+  document.getElementById('logoutBtn').style.display='block';
+  document.getElementById('adminTabsWrap').style.display=user.isAdmin?'block':'none';
+  buildReports();
+}
+
+function doLogout(){
+  currentUser=null;users=[];
+  document.getElementById('loginState').style.display='flex';
+  document.getElementById('portalState').style.display='none';
+  document.getElementById('userChip').style.display='none';
+  document.getElementById('logoutBtn').style.display='none';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginErr').classList.remove('show');
+  switchPTab('tools');
+}
+
+// ── PORTAL ──
+function switchPTab(tab){
+  ['tools','admin'].forEach(t=>{
+    document.getElementById('ptab-'+t).classList.toggle('active',t===tab);
+    document.getElementById(t+'View').style.display=t===tab?'block':'none';
+  });
+  if(tab==='admin')loadUsers();
+}
+
+function buildReports(){
+  const grid=document.getElementById('reportsGrid');
+  grid.innerHTML='';
+  // If user has specific tools assigned, use those; else fall back to dept/level
+  const userTools=currentUser.tools?currentUser.tools.split(',').filter(Boolean):[];
+  const show=currentUser.isAdmin?ALL_REPORTS:
+    userTools.length?ALL_REPORTS.filter(r=>userTools.includes(r.id)):
+    ALL_REPORTS.filter(r=>r.dept.includes(currentUser.dept)&&r.level.includes(currentUser.level));
+  if(!show.length){grid.innerHTML='<p class="no-reports">Nothing\u2019s been assigned to you yet — reach out to your admin to get set up.</p>';return;}
+  show.forEach((r,i)=>{
+    const a=document.createElement('a');
+    a.href=r.url;a.target=r.ext?'_blank':'_self';
+    a.className='tool-card';
+    a.style.setProperty('--card-accent',r.accent);
+    a.style.animationDelay=(i*.06)+'s';
+    a.innerHTML=`
+      <div class="tc-icon" style="background:${r.ibg}">${ICON_SVG[r.icon]||''}</div>
+      <div class="tc-body">
+        <div class="tc-title">${r.title}${r.ext?' <span class="tc-ext">↗</span>':''}</div>
+        <div class="tc-desc">${r.desc}</div>
+        <div class="tc-tag">${r.tag}</div>
+      </div>`;
+    grid.appendChild(a);
+  });
+}
+
+// ── ADMIN ──
+async function loadUsers(){
+  try{
+    const r=await fetch(SCRIPT_URL+'?action=getUsers');
+    const data=await r.json();
+    if(data.status==='success')renderUsers(data.users||[]);
+  }catch(e){}
+}
+
+function renderUsers(us){
+  users=us;
+  const tb=document.getElementById('userTableBody');
+  if(!us.length){tb.innerHTML='<tr><td colspan="5" style="color:var(--t3);padding:20px;text-align:center">No one\u2019s been added yet — bring your team in.</td></tr>';return;}
+  tb.innerHTML=us.map((u,i)=>{
+    const toolNames=u.tools?u.tools.split(',').filter(Boolean).map(id=>{const r=ALL_REPORTS.find(r=>r.id===id);return r?r.icon+' '+r.title:id;}).join(', '):'<span style="color:var(--t3)">Dept default</span>';
+    return`<tr>
+    <td><b>${u.name}</b></td>
+    <td style="color:var(--t3);font-size:12px">${u.username}</td>
+    <td style="font-size:12px">${u.dept}</td>
+    <td><span class="lvl-badge">${u.level}</span></td>
+    <td style="font-size:11px;max-width:200px;white-space:normal">${toolNames}</td>
+    <td>
+      <button class="action-btn" onclick="editUser(${i})">Edit</button>
+      <button class="action-btn del" onclick="delUser('${u.username}')">Remove</button>
+    </td>
+  </tr>`;}).join('');
+}
+
+function buildToolCheckboxes(selectedTools){
+  const container=document.getElementById('mTools');
+  container.innerHTML=ALL_REPORTS.map(r=>`
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:var(--s2);padding:5px 8px;border-radius:5px;border:1px solid var(--bd)">
+      <input type="checkbox" value="${r.id}" ${selectedTools&&selectedTools.includes(r.id)?'checked':''} style="accent-color:var(--blue)">
+      ${r.icon} ${r.title}
+    </label>`).join('');
+}
+function getSelectedTools(){
+  return [...document.querySelectorAll('#mTools input:checked')].map(i=>i.value);
+}
+function openAddUser(){
+  editingIdx=null;
+  document.getElementById('modalTitle').textContent='New Member';
+  ['mName','mUsername','mPassword'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mDept').value='';
+  document.getElementById('mLevel').value='';
+  buildToolCheckboxes([]);
+  document.getElementById('userModal').classList.add('show');
+}
+function editUser(i){
+  editingIdx=i;const u=users[i];
+  document.getElementById('modalTitle').textContent='Edit Access';
+  document.getElementById('mName').value=u.name;
+  document.getElementById('mUsername').value=u.username;
+  document.getElementById('mPassword').value='';
+  document.getElementById('mDept').value=u.dept;
+  document.getElementById('mLevel').value=u.level;
+  buildToolCheckboxes(u.tools?u.tools.split(','):[]);
+  document.getElementById('userModal').classList.add('show');
+}
+function closeModal(){document.getElementById('userModal').classList.remove('show');}
+
+async function saveUser(){
+  const name=document.getElementById('mName').value.trim();
+  const username=document.getElementById('mUsername').value.trim();
+  const password=document.getElementById('mPassword').value;
+  const dept=document.getElementById('mDept').value;
+  const level=document.getElementById('mLevel').value;
+  if(!name||!username||!dept||!level){showToast('All fields required');return;}
+  if(editingIdx===null&&!password){showToast('Password required for new user');return;}
+  const tools=getSelectedTools().join(',');
+  const action=editingIdx===null?'addUser':'updateUser';
+  const payload={action,name,username,password,dept,level,tools};
+  try{
+    const fd=new FormData();fd.append('payload',JSON.stringify(payload));
+    await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:fd});
+    showToast(editingIdx===null?'User added!':'User updated!');
+    closeModal();setTimeout(loadUsers,1500);
+  }catch(e){showToast('Error saving user');}
+}
+
+async function delUser(username){
+  if(!confirm('Remove member "'+username+'"?'))return;
+  try{
+    const fd=new FormData();fd.append('payload',JSON.stringify({action:'deleteUser',username}));
+    await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:fd});
+    showToast('Member removed.');setTimeout(loadUsers,1500);
+  }catch(e){showToast('Error removing user');}
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+buildDD();
+</script>
+</body>
+</html>
