@@ -1,0 +1,63 @@
+/* BCL HUD theme — shared by dashboards. Loaded after each page's own <style>. */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Orbitron:wght@500;600;700;800&family=Share+Tech+Mono&display=swap');
+:root{
+  --bg:#031820;--s1:#06252f;--s2:#08303c;--s3:#0b3d4b;--bd:#0f5566;--bd2:#178aa0;
+  --bg2:#06252f;--bg3:#08303c;--bg4:#0b3d4b;
+  --surface:#06252f;--surface2:#08303c;--border:#0f5566;
+  --text:#e6fbff;--t2:#8cc4cf;--t3:#56909c;--muted:#8cc4cf;--text2:#8cc4cf;--text3:#56909c;
+  --blue:#22e4ff;--accent:#22e4ff;--cyan:#22e4ff;--purple:#5aa8ff;--pink:#ff4fd8;
+  --green:#00ffa3;--amber:#ffb300;--accent2:#ffb300;--yellow:#ffd866;--red:#ff3d5a;
+  --font:'Exo 2',-apple-system,'Segoe UI',sans-serif;--mono:'Share Tech Mono',ui-monospace,monospace;
+  --r:3px;
+}
+body{
+  font-family:'Exo 2',-apple-system,'Segoe UI',sans-serif!important;
+  background:
+    linear-gradient(rgba(34,228,255,.04) 1px,transparent 1px) 0 0/44px 44px,
+    linear-gradient(90deg,rgba(34,228,255,.04) 1px,transparent 1px) 0 0/44px 44px,
+    radial-gradient(ellipse 75% 70% at 50% 50%,#0b4c58 0%,#062c37 45%,#031820 100%)!important;
+  background-attachment:fixed!important;
+}
+/* animated HUD background */
+.hud-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;transition:opacity .6s}
+.hud-bg svg{width:100%;height:100%;display:block}
+.hud-bg .spin{transform-box:view-box;transform-origin:800px 500px;animation:rot linear infinite}
+.hud-bg .rev{animation-direction:reverse}
+@keyframes rot{to{transform:rotate(360deg)}}
+.hud-bg .lspin{transform-box:fill-box;transform-origin:center;animation:rot linear infinite}
+.hud-bg .bar{transform-box:fill-box;transform-origin:left center;animation:barw ease-in-out infinite alternate}
+@keyframes barw{0%{transform:scaleX(.25)}100%{transform:scaleX(1)}}
+.hud-bg .wave{animation:wave 4s linear infinite}
+@keyframes wave{to{transform:translateX(-120px)}}
+.hud-bg .blink{animation:hblink 1.4s steps(2) infinite}
+@keyframes hblink{50%{opacity:.2}}
+.hud-bg .pulse{transform-box:fill-box;transform-origin:center;animation:hpulse 2.4s ease-in-out infinite}
+@keyframes hpulse{50%{transform:scale(1.12);opacity:.55}}
+.hud-bg .slide{animation:slide ease-in-out infinite alternate}
+@keyframes slide{from{transform:translateX(0)}to{transform:translateX(var(--d,120px))}}
+.hud-bg .stripes{animation:stripes 2s linear infinite}
+@keyframes stripes{to{transform:translateX(-24px)}}
+.hud-bg .float{animation:floaty 6s ease-in-out infinite alternate}
+@keyframes floaty{to{transform:translateY(-10px)}}
+@media(prefers-reduced-motion:reduce){.hud-bg *{animation:none!important}}
+@media(max-width:780px){.hud-bg .side{display:none}}
+.hud-bg{opacity:.22}
+.hud-bg .side{opacity:.8}
+
+/* type */
+h1,h2{font-family:'Orbitron','Exo 2',sans-serif!important;letter-spacing:1.5px;text-transform:uppercase}
+th{font-family:'Share Tech Mono',monospace!important;letter-spacing:1px;text-transform:uppercase}
+::selection{background:rgba(34,228,255,.3)}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#041c25}::-webkit-scrollbar-thumb{background:#0f5566}::-webkit-scrollbar-thumb:hover{background:#22e4ff}
+
+/* controls */
+button,select,input,textarea{border-radius:2px!important}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#22e4ff!important;box-shadow:0 0 0 1px rgba(34,228,255,.5),0 0 16px rgba(34,228,255,.25)!important}
+select option{background:#06252f;color:#e6fbff}
+input[type=date],input[type=month]{color-scheme:dark}
+
+/* dark text on bright cyan buttons */
+.logo:not(:has(*)),.logo-badge,.up-btn,.gs-btn,.msg.user .msg-bubble,.ai-send,.btn-primary,.btn-blue,.page-tabs button.on,.sbtn{color:#03171e!important;text-shadow:none}
+.logo:not(:has(*)),.logo-badge{font-family:'Orbitron',sans-serif;letter-spacing:2px;box-shadow:0 0 14px rgba(34,228,255,.45)}
+.btn-primary,.btn-blue,.up-btn,.gs-btn,.sbtn,.ai-send{box-shadow:0 0 14px rgba(34,228,255,.3);transition:box-shadow .2s}
+.btn-primary:hover,.btn-blue:hover,.up-btn:hover,.gs-btn:hover,.sbtn:hover,.ai-send:hover{box-shadow:0 0 24px rgba(34,228,255,.6)}
