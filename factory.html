@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCL — Factory Dashboard</title>
+<script>
+/* Access: only after portal login, and only for users who have the Factory report */
+(function(){
+  var u=null;try{u=JSON.parse(sessionStorage.getItem('bcl_user')||'null');}catch(e){}
+  var tools=u&&u.tools?String(u.tools).split(',').filter(Boolean):[];
+  var ok=!!u&&(u.isAdmin||(tools.length?tools.indexOf('factory')>=0:
+    (['Management','Buying'].indexOf(u.dept)>=0&&['L1','L2','L3'].indexOf(u.level)>=0)));
+  if(!ok){document.documentElement.style.visibility='hidden';location.replace('index.html');}
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#031820;--s1:#06252f;--s2:#08303c;--s3:#0b3d4b;--bd:#0f5566;--text:#e6fbff;--muted:#8cc4cf;--dim:#56909c;
+  --accent:#22e4ff;--green:#00ffa3;--amber:#ffb300;--red:#ff3d5a;--blue:#5aa8ff}
+body{background:var(--bg);color:var(--text);font-family:'Exo 2','Segoe UI',system-ui,sans-serif;font-size:13px;min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:rgba(6,37,47,.92);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100;backdrop-filter:blur(6px)}
+.logo{display:flex;align-items:center;gap:10px;min-width:0}
+.logo-badge{background:var(--accent);font-weight:700;font-size:14px;padding:4px 10px;border-radius:6px}
+.logo-title{font-size:15px;font-weight:600;letter-spacing:.5px}
+.logo-sub{font-size:11px;color:var(--muted)}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.badge{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--bd);padding:6px 10px;white-space:nowrap}
+.badge b{color:var(--accent);font-weight:400}
+.btn{background:var(--s2);border:1px solid var(--bd);color:var(--text);font:inherit;font-size:12px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn-primary{background:var(--accent);border-color:var(--accent);font-weight:600}
+
+.tabs{display:flex;gap:2px;padding:0 16px;background:rgba(6,37,47,.75);border-bottom:1px solid var(--bd);position:sticky;top:57px;z-index:90}
+.tab{padding:12px 16px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;font-weight:500;letter-spacing:.3px;white-space:nowrap;background:none;border-top:0;border-left:0;border-right:0;font:inherit}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid rgba(15,85,102,.5)}
+.filter-label{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:1px}
+.filter-bar select,.filter-bar input{background:var(--s1);border:1px solid var(--bd);color:var(--text);font:inherit;font-size:12px;padding:6px 8px;min-width:150px;max-width:220px}
+.btn-clear{font-size:12px}
+
+.main{padding:16px;max-width:1500px;margin:0 auto}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:rgba(6,37,47,.85);border:1px solid var(--bd);border-left:3px solid var(--accent);padding:12px 14px}
+.kpi-label{font-size:11px;color:var(--muted);letter-spacing:.4px}
+.kpi-value{font-family:'Share Tech Mono',monospace;font-size:24px;margin-top:4px}
+.kpi.warn{border-left-color:var(--red)}.kpi.warn .kpi-value{color:var(--red)}
+.kpi.good{border-left-color:var(--green)}
+
+.tbl-card{background:rgba(6,37,47,.85);border:1px solid var(--bd);margin-bottom:16px}
+.tbl-wrap{overflow:auto;max-height:70vh}
+.data-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.data-tbl th{position:sticky;top:0;z-index:3;background:#072a35;color:var(--muted);font-weight:400;font-size:11px;text-align:right;padding:9px 10px;border-bottom:2px solid var(--accent);white-space:nowrap}
+.data-tbl th.l,.data-tbl td.l{text-align:left}
+.data-tbl td{padding:7px 10px;text-align:right;border-bottom:1px solid rgba(15,85,102,.45);white-space:nowrap;font-variant-numeric:tabular-nums}
+.data-tbl tbody tr:hover td{background:rgba(34,228,255,.05)}
+.data-tbl tr.tot td{font-weight:600;color:var(--accent);border-top:1px solid var(--accent);background:rgba(34,228,255,.06)}
+.data-tbl tr.grp td{font-weight:600;background:rgba(34,228,255,.03);cursor:pointer}
+.data-tbl tr.sub td.l{padding-left:30px;color:var(--muted)}
+.data-tbl td.ob,.data-tbl th.ob{background:rgba(90,168,255,.10)}
+.data-tbl th.ob{background:#0b3346}
+.data-tbl td.gap,.data-tbl th.gap{width:14px;padding:0;border-bottom-color:transparent;background:transparent}
+.tog{display:inline-block;width:16px;color:var(--accent)}
+.z{color:var(--dim)}
+.extra{color:var(--blue)}
+.c-red{background:rgba(255,61,90,.16);color:#ff8a9c}
+.c-amber{background:rgba(255,179,0,.14);color:#ffcf66}
+.c-green{background:rgba(0,255,163,.12);color:#5dffc4}
+.s-pend{color:#ffb35c;font-weight:600}.s-done{color:#5dffc4;font-weight:600}.s-short{color:#c79bff;font-weight:600}
+
+.state{padding:60px 20px;text-align:center;color:var(--muted)}
+.spinner{width:34px;height:34px;border:3px solid var(--bd);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.state .btn{margin-top:14px}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--s3);border:1px solid var(--bd);padding:10px 16px;font-size:12px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+input[type=file]{display:none}
+</style>
+<link rel="stylesheet" href="hud-theme.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <span class="logo-badge">BCL</span>
+    <div>
+      <div class="logo-title">Factory Dashboard</div>
+      <div class="logo-sub">Hard luggage · PP &amp; PC · Order book, production, dispatch</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="badge" id="asOf" style="display:none">Data as of <b id="asOfVal">—</b></span>
+    <button class="btn btn-primary" onclick="loadData()">↻ Refresh</button>
+    <button class="btn" onclick="document.getElementById('fileInput').click()" title="Open a copy of Factory data.xlsx from this computer">📁 Open file</button>
+    <a class="btn" href="index.html">◂ Portal</a>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="openFile(event)">
+  </div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-v="book" onclick="switchView('book')">Order Book</button>
+  <button class="tab" data-v="prod" onclick="switchView('prod')">Production</button>
+  <button class="tab" data-v="ful" onclick="switchView('ful')">Order Fulfillment</button>
+  <button class="tab" data-v="fg" onclick="switchView('fg')">FG Ready</button>
+  <button class="tab" data-v="pipe" onclick="switchView('pipe')">Pipeline</button>
+</div>
+
+<div class="filter-bar" id="filterBar" style="display:none"></div>
+
+<div class="main">
+  <div class="state" id="stateBox"><div class="spinner"></div><div>Loading factory data…</div></div>
+  <div id="view" style="display:none"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ───────────────── SETTINGS ───────────────── */
+// Web App URL of the "Factory Relay" Google Apps Script (fetches Factory data.xlsx from Dropbox).
+const FACTORY_RELAY='';
+
+/* ═════════════════ ENGINE (pure calculations) ═════════════════ */
+/*ENGINE-START*/
+const ENGINE=(function(){
+  // ---- dates as Excel serial day numbers ----
+  const DAY=86400000;
+  function serialOf(y,m,d){return Math.round(Date.UTC(y,m,d)/DAY)+25569;}
+  function ymd(s){const dt=new Date((s-25569)*DAY);return [dt.getUTCFullYear(),dt.getUTCMonth(),dt.getUTCDate()];}
+  function eom(s,k){const [y,m]=ymd(s);return serialOf(y,m+k+1,0);}
+  function monthDiff(a,b){const [ya,ma]=ymd(a),[yb,mb]=ymd(b);return (ya-yb)*12+(ma-mb);}
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function monLabel(s,k){const [y,m]=ymd(eom(s,k));return MON[m]+'-'+String(y).slice(-2);}
+  function fmtDate(s){if(s==null)return'';const [y,m,d]=ymd(s);return String(d).padStart(2,'0')+'-'+MON[m]+'-'+String(y).slice(-2);}
+  function todaySerial(now){const d=now||new Date();return serialOf(d.getFullYear(),d.getMonth(),d.getDate());}
+
+  // ---- cell readers ----
+  function txt(v){return v==null?'':String(v).trim();}
+  function num(v){if(v==null||v==='')return null;if(typeof v==='number')return v;const n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?null:n;}
+  function dateS(v){
+    if(v==null||v==='')return null;
+    if(typeof v==='number')return Math.floor(v);
+    if(v instanceof Date)return serialOf(v.getFullYear(),v.getMonth(),v.getDate());
+    const s=String(v).trim();let m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/);
+    if(m){let y=+m[3];if(y<100)y+=2000;return serialOf(y,+m[2]-1,+m[1]);}
+    const t=Date.parse(s);if(!isNaN(t)){const d=new Date(t);return serialOf(d.getFullYear(),d.getMonth(),d.getDate());}
+    return null;
+  }
+  function eanTxt(v){if(v==null)return'';if(typeof v==='number')return Number.isInteger(v)?String(v):String(v);return String(v).trim();}
+  function proper(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
+
+  function readSheet(XLSX,wb,name,marker){
+    const ws=wb.Sheets[name];if(!ws)return [];
+    const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});
+    const hi=aoa.findIndex(r=>r&&r.some(v=>v!=null&&String(v).trim()===marker));
+    if(hi<0)return [];
+    const hdr=aoa[hi].map(v=>v==null?'':String(v).trim());
+    return aoa.slice(hi+1).map(r=>{const o={};hdr.forEach((h,i)=>{if(h&&!(h in o))o[h]=r[i];});return o;});
+  }
+
+  // ---- build the model from the workbook ----
+  function build(XLSX,wb,today){
+    const t=today;
+    const bom=eom(t,-1)+1, eom0=eom(t,0), eom5=eom(t,5);
+
+    const orders=readSheet(XLSX,wb,'Order','EAN Code').map(r=>({
+      customer:txt(r['Customer Name']),ean:eanTxt(r['EAN Code']),line:txt(r['PP/PC']).toUpperCase(),
+      ctype:txt(r['Customer Type']),brand:txt(r['Brand']),style:txt(r['Style']),color:txt(r['Color']),size:txt(r['Size']),
+      qty:num(r['Qty']),orderNo:txt(r['Order No']),od:dateS(r['Order Date']),due:dateS(r['Committed Delivery Date (at PO)']),
+      status:txt(r['Status'])?proper(txt(r['Status'])):'Open'
+    })).filter(o=>o.ean!==''&&o.qty!=null).map((o,i)=>(o.ix=i+1,o));
+
+    const production=readSheet(XLSX,wb,'Daily Production','EAN Code').map(r=>({date:dateS(r['Date']),ean:eanTxt(r['EAN Code']),qty:num(r['Production Qty'])}))
+      .filter(p=>p.ean!==''&&p.qty!=null);
+    const dispatch=readSheet(XLSX,wb,'Dispatch','EAN Code').map(r=>({date:dateS(r['Date']),orderNo:txt(r['Order No']),ean:eanTxt(r['EAN Code']),qty:num(r['Dispatch Qty'])}))
+      .filter(d=>d.ean!==''&&d.qty!=null);
+    const discussion=readSheet(XLSX,wb,'Order In Discussion','Tentative Delivery Date').map(r=>({
+      customer:txt(r['Customer Name']),ctype:txt(r['Customer Type']),line:txt(r['PP/PC']).toUpperCase(),brand:txt(r['Brand']),
+      style:txt(r['Style']),qty:num(r['Qty']),date:dateS(r['Tentative Delivery Date']),status:txt(r['Status'])||'In Discussion'
+    })).filter(d=>d.qty!=null);
+    const ctypes=[];readSheet(XLSX,wb,'Lists','Customer Type').forEach(r=>{const v=txt(r['Customer Type']);if(v&&!ctypes.includes(v))ctypes.push(v);});
+    [...orders,...discussion].forEach(o=>{if(o.ctype&&!ctypes.includes(o.ctype))ctypes.push(o.ctype);});
+
+    // product master: first order line per EAN
+    const product={};
+    orders.forEach(o=>{if(!product[o.ean])product[o.ean]={ean:o.ean,line:o.line,brand:o.brand,style:o.style,color:o.color,size:o.size};});
+
+    // dispatch / production aggregates
+    const add=(m,k,v)=>{m[k]=(m[k]||0)+v;};
+    const dispKey={},dispKeyBefore={},dispEan={},prodEan={},lastDisp={};
+    dispatch.forEach(d=>{
+      const k=d.orderNo+'|'+d.ean;add(dispKey,k,d.qty);add(dispEan,d.ean,d.qty);
+      if(d.date!=null&&d.date<bom)add(dispKeyBefore,k,d.qty);
+      const p=product[d.ean];
+      if(p&&d.date!=null){const lk=d.orderNo+'|'+p.line+'|'+p.style;if(lastDisp[lk]==null||d.date>lastDisp[lk])lastDisp[lk]=d.date;}
+    });
+    production.forEach(p=>add(prodEan,p.ean,p.qty));
+
+    // order line calculations
+    orders.forEach(o=>{
+      const k=o.orderNo+'|'+o.ean;
+      o.dispatched=dispKey[k]||0;
+      o.isOpen=o.status!=='Closed';
+      o.pending=o.isOpen?Math.max(0,o.qty-o.dispatched):0;
+      o.daysLeft=(o.pending>0&&o.due!=null)?o.due-t:null;
+      o.flag=o.dispatched>o.qty?'Excess Dispatch':!o.isOpen?(o.dispatched<o.qty?'Short Supply Closed':'Completed'):
+        o.pending<=0?'Completed':o.due==null?'No Date':o.daysLeft<0?'Delayed':o.daysLeft<=15?'Due in 15 days':'On Track';
+      o.shortSupply=!o.isOpen?Math.max(0,o.qty-o.dispatched):0;
+      o.dispBefore=dispKeyBefore[k]||0;
+      o.mob=(o.isOpen&&o.due!=null&&o.due<=eom0)?Math.max(0,o.qty-o.dispBefore):0;
+      o.bucket=o.due==null?7:o.due<=eom0?0:o.due>eom5?6:monthDiff(o.due,t);
+      o.fgEan=(prodEan[o.ean]||0)-(dispEan[o.ean]||0);
+    });
+    // Pending to Produce: FG stock per EAN shared by committed date → order date → row
+    const byEan={};orders.forEach(o=>(byEan[o.ean]=byEan[o.ean]||[]).push(o));
+    Object.values(byEan).forEach(list=>{
+      const dated=list.filter(o=>o.due!=null).sort((a,b)=>a.due-b.due||((a.od||0)-(b.od||0))||a.ix-b.ix);
+      const blank=list.filter(o=>o.due==null).sort((a,b)=>a.ix-b.ix);
+      let ahead=0;
+      [...dated,...blank].forEach(o=>{
+        o.ptp=!o.isOpen?0:o.pending-Math.max(0,Math.min(o.pending,o.fgEan-ahead));
+        if(o.isOpen)ahead+=o.pending;
+      });
+    });
+
+    return {t,bom,eom0,eom5,orders,production,dispatch,discussion,ctypes,product,dispEan,prodEan,lastDisp,
+      labels:{cur:monLabel(t,0),m:[0,1,2,3,4,5].map(k=>monLabel(t,k))}};
+  }
+
+  // ---- production metrics for a group ----
+  function prodMetrics(M,orderSel,eanSel){
+    const t=M.t;
+    let prod=0,disp=0,lastDay=0,last15=0;
+    M.production.forEach(p=>{if(!eanSel(p.ean))return;prod+=p.qty;
+      if(p.date===t-1)lastDay+=p.qty;if(p.date!=null&&p.date>=t-15&&p.date<=t-1)last15+=p.qty;});
+    M.dispatch.forEach(d=>{if(eanSel(d.ean))disp+=d.qty;});
+    const ready=prod-disp;
+    const rows=M.orders.filter(orderSel);
+    let due45=0,latePending=0;
+    rows.forEach(o=>{if(o.due==null)return;if(o.due<=t+45)due45+=o.pending;if(o.due<=t)latePending+=o.pending;});
+    const remaining=due45-ready;
+    const late=Math.max(0,latePending-ready);
+    const arr=last15/15;
+    let rrr=0;
+    if(remaining>0){
+      const base=Math.max(ready,latePending);
+      const live=rows.filter(o=>o.due!=null&&o.pending>0);
+      const dates=[...new Set(live.filter(o=>o.due>t&&o.due<=t+45).map(o=>o.due))];
+      dates.forEach(d=>{const cum=live.reduce((s,o)=>s+(o.due<=d?o.pending:0),0);const r=(cum-base)/(d-t);if(r>rrr)rrr=r;});
+    }
+    return {prod,disp,ready,due45,latePending,remaining,late,lastDay,last15,arr,rrr};
+  }
+
+  // ---- order fulfillment rows ----
+  function fulfillment(M){
+    const t=M.t,g={};
+    M.orders.forEach(o=>{
+      const k=o.orderNo+'|'+o.style+'|'+o.line;
+      let r=g[k];
+      if(!r)r=g[k]={orderNo:o.orderNo,style:o.style,line:o.line,customer:o.customer,ctype:o.ctype,brand:o.brand,od:o.od,due:o.due,
+        total:0,supplied:0,openBal:0,readyFG:0};
+      if(o.customer&&(!r.customer||o.customer<r.customer))r.customer=o.customer;
+      if(o.ctype&&(!r.ctype||o.ctype<r.ctype))r.ctype=o.ctype;
+      if(o.od!=null&&(r.od==null||o.od<r.od))r.od=o.od;
+      if(o.due!=null&&(r.due==null||o.due<r.due))r.due=o.due;
+      r.total+=o.qty;r.supplied+=o.dispatched;r.openBal+=o.pending;r.readyFG+=o.pending-o.ptp;
+    });
+    const out=Object.values(g).map(r=>{
+      r.lastDispatch=M.lastDisp[r.orderNo+'|'+r.line+'|'+r.style];if(r.lastDispatch===undefined)r.lastDispatch=null;
+      r.grp=r.openBal>0?((r.due!=null&&t>r.due)?1:2):(r.supplied<r.total?3:4);
+      r.days=r.due==null?null:r.grp<=2?t-r.due:(r.lastDispatch==null?null:r.lastDispatch-r.due);
+      r.balance=Math.max(0,r.total-(r.supplied+r.readyFG));
+      r.status=r.grp<=2?'Pending':r.grp===3?'Short closed':'Completed';
+      r.remark=r.due==null?'No committed date':r.grp<=2?(r.days>0?'Delay, '+r.days+' days':r.days===0?'Due today':'Due in '+(-r.days)+' days')
+        :(r.days==null?'Closed, nothing supplied':r.days>0?'Delay, '+r.days+' days':'On time');
+      r.remarkCat=r.remark.startsWith('Delay')?'Delayed':(r.grp<=2&&r.days!=null&&r.days<=0&&r.days>=-15)?'Due within 15 days':
+        r.remark.startsWith('Due in')?'Due later':r.remark==='On time'?'On time':'Other';
+      r.sortKey=r.grp*100000+(r.grp===1?99999-r.days:r.grp===2?(r.due==null?99998:-r.days):(r.due==null?99999:99999-(r.due-45000)));
+      return r;
+    });
+    out.sort((a,b)=>a.sortKey-b.sortKey||(a.orderNo<b.orderNo?-1:1));
+    return out;
+  }
+
+  return {build,prodMetrics,fulfillment,fmtDate,monLabel,todaySerial,eom,monthDiff};
+})();
+/*ENGINE-END*/
+
+/* ═════════════════ UI ═════════════════ */
+let M=null,FUL=null,VIEW='book',fetchedAt=null;
+const F={book:{ctype:'',brand:''},prod:{brand:''},ful:{orderNo:'',customer:'',ctype:'',style:'',remark:'',status:''},
+  fg:{ean:'',brand:'',style:'',line:'',flag:''},pipe:{ctype:'',brand:''}};
+const OPEN={book:{},prod:{}};
+try{const v=localStorage.getItem('bcl_factory_view');if(v&&F[v])VIEW=v;}catch(e){}
+
+const $=id=>document.getElementById(id);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function n0(v){if(v==null||isNaN(v))return'<span class="z">–</span>';const r=Math.round(v);return r===0?'<span class="z">–</span>':r.toLocaleString('en-IN');}
+function nRem(v){const r=Math.round(v);return r<0?'<span class="extra">Extra '+(-r).toLocaleString('en-IN')+'</span>':n0(r);}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function uniq(a){return [...new Set(a.filter(Boolean))].sort((x,y)=>x.localeCompare(y));}
+
+/* ---- data loading ---- */
+async function loadData(){
+  if(!FACTORY_RELAY){showState('<div>The live data connection isn’t set up yet.</div><div style="margin-top:6px">Use <b>📁 Open file</b> to view a copy of Factory data.xlsx.</div>');return;}
+  showState('<div class="spinner"></div><div>Loading factory data…</div>');
+  try{
+    const r=await fetch(FACTORY_RELAY+(FACTORY_RELAY.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'});
+    const j=await r.json();
+    if(j.status!=='ok'||!j.b64)throw new Error(j.message||'No data returned');
+    const bin=atob(j.b64),bytes=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    useWorkbook(XLSX.read(bytes,{type:'array'}),j.fetchedAt?new Date(j.fetchedAt):new Date());
+  }catch(e){
+    console.error(e);
+    showState('<div>Couldn’t load the factory data.</div><div class="z" style="margin-top:6px">'+esc(e.message)+'</div><button class="btn btn-primary" onclick="loadData()">↻ Try again</button>');
+  }
+}
+function openFile(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{try{useWorkbook(XLSX.read(new Uint8Array(e.target.result),{type:'array'}),new Date(f.lastModified||Date.now()));toast('Loaded '+f.name);}
+    catch(err){showState('<div>That file couldn’t be read.</div>');}};
+  rd.readAsArrayBuffer(f);ev.target.value='';
+}
+function useWorkbook(wb,when){
+  M=ENGINE.build(XLSX,wb,ENGINE.todaySerial());
+  if(!M.orders.length){showState('<div>No order lines found. Check that the file has the Order sheet with its usual headers.</div>');return;}
+  FUL=ENGINE.fulfillment(M);fetchedAt=when;
+  $('asOf').style.display='';
+  $('asOfVal').textContent=ENGINE.fmtDate(ENGINE.todaySerial(when))+' '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
+  $('stateBox').style.display='none';$('view').style.display='block';
+  render();
+}
+function showState(html){$('stateBox').innerHTML=html;$('stateBox').style.display='block';$('view').style.display='none';$('filterBar').style.display='none';}
+
+/* ---- navigation & filters ---- */
+function switchView(v){VIEW=v;try{localStorage.setItem('bcl_factory_view',v);}catch(e){}
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));if(M)render();window.scrollTo(0,0);}
+function setF(k,v){F[VIEW][k]=v;render();}
+function clearF(){Object.keys(F[VIEW]).forEach(k=>F[VIEW][k]='');render();}
+function sel(k,label,opts){
+  const cur=F[VIEW][k];
+  return `<select onchange="setF('${k}',this.value)" title="${esc(label)}"><option value="">All ${esc(label)}</option>${
+    opts.map(o=>`<option value="${esc(o)}"${o===cur?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+}
+function filterBar(html){const b=$('filterBar');b.innerHTML='<span class="filter-label">FILTER</span>'+html+'<button class="btn btn-clear" onclick="clearF()">✕ Clear</button>';b.style.display='flex';}
+function brandOf(ean){const p=M.product[ean];return p?p.brand:'';}
+function kpis(items){return '<div class="kpi-grid">'+items.map(([l,v,c])=>`<div class="kpi ${c||''}"><div class="kpi-label">${esc(l)}</div><div class="kpi-value">${v}</div></div>`).join('')+'</div>';}
+function card(inner){return '<div class="tbl-card"><div class="tbl-wrap">'+inner+'</div></div>';}
+function toggle(view,key){OPEN[view][key]=!OPEN[view][key];render();}
+
+function render(){
+  ({book:renderBook,prod:renderProd,ful:renderFul,fg:renderFG,pipe:renderPipe})[VIEW]();
+}
+
+/* ---- 1. Order Book ---- */
+function renderBook(){
+  const f=F.book,L=M.labels;
+  filterBar(sel('ctype','Customer Types',M.ctypes)+sel('brand','Brands',uniq(M.orders.map(o=>o.brand))));
+  const rows=M.orders.filter(o=>(!f.ctype||o.ctype===f.ctype)&&(!f.brand||o.brand===f.brand));
+  const agg=list=>{const a={mob:0,b:[0,0,0,0,0,0,0,0],tot:0};list.forEach(o=>{a.mob+=o.mob;a.b[o.bucket]+=o.pending;a.tot+=o.pending;});a.disp=a.mob-a.b[0];return a;};
+  const all=agg(rows);
+  const show=[1,2,3,4,5,6,7].filter(k=>all.b[k]!==0);
+  const bucketHdr=k=>k<=5?L.m[k]:k===6?'Later':'Unallocated';
+  let h=kpis([['Current month order book ('+L.cur+')',n0(all.mob)],['Dispatched this month',n0(all.disp),'good'],
+    ['Remaining this month',n0(all.b[0])],['Total open order book',n0(all.tot)]]);
+
+  // by customer type
+  const types=f.ctype?[f.ctype]:M.ctypes;
+  let t='<table class="data-tbl"><thead><tr><th class="l">Customer Type</th><th class="ob">Current Month Order Book ('+L.cur+')</th><th>'+L.m[0]+'</th>'+
+    show.map(k=>'<th>'+bucketHdr(k)+'</th>').join('')+'<th>Total</th></tr></thead><tbody>';
+  types.forEach(ct=>{const a=agg(rows.filter(o=>o.ctype===ct));
+    t+=`<tr><td class="l">${esc(ct)}</td><td class="ob">${n0(a.mob)}</td><td>${n0(a.b[0])}</td>${show.map(k=>'<td>'+n0(a.b[k])+'</td>').join('')}<td>${n0(a.tot)}</td></tr>`;});
+  t+=`<tr class="tot"><td class="l">Total</td><td class="ob">${n0(all.mob)}</td><td>${n0(all.b[0])}</td>${show.map(k=>'<td>'+n0(all.b[k])+'</td>').join('')}<td>${n0(all.tot)}</td></tr></tbody></table>`;
+  h+=card(t);
+
+  // PP/PC → style
+  const cols=a=>`<td class="ob">${n0(a.mob)}</td><td>${n0(a.disp)}</td><td>${n0(a.b[0])}</td>${show.map(k=>'<td>'+n0(a.b[k])+'</td>').join('')}<td>${n0(a.tot)}</td>`;
+  let s='<table class="data-tbl"><thead><tr><th class="l">PP / PC · Style</th><th class="ob">Current Month Order Book</th><th>Dispatched This Month</th><th>Remaining ('+L.cur+')</th>'+
+    show.map(k=>'<th>'+bucketHdr(k)+'</th>').join('')+'<th>Total Open Order Book</th></tr></thead><tbody>';
+  s+=`<tr class="tot"><td class="l">Grand Total</td>${cols(all)}</tr>`;
+  uniq(rows.map(o=>o.line)).forEach(ln=>{
+    const lr=rows.filter(o=>o.line===ln),open=!!OPEN.book[ln];
+    s+=`<tr class="grp" onclick="toggle('book','${esc(ln)}')"><td class="l"><span class="tog">${open?'−':'+'}</span>${esc(ln)}</td>${cols(agg(lr))}</tr>`;
+    if(open)uniq(lr.map(o=>o.style)).map(st=>[st,agg(lr.filter(o=>o.style===st))]).filter(([,a])=>a.mob||a.tot)
+      .sort((x,y)=>y[1].tot-x[1].tot).forEach(([st,a])=>{s+=`<tr class="sub"><td class="l">${esc(st)}</td>${cols(a)}</tr>`;});
+  });
+  s+='</tbody></table>';
+  h+=card(s);
+  $('view').innerHTML=h;
+}
+
+/* ---- 2. Production ---- */
+function renderProd(){
+  const f=F.prod;
+  filterBar(sel('brand','Brands',uniq(M.orders.map(o=>o.brand))));
+  const bOk=o=>!f.brand||o.brand===f.brand;
+  const eOk=(e,fn)=>{const p=M.product[e];return !!p&&(!f.brand||p.brand===f.brand)&&fn(p);};
+  const lines=['PP','PC'].concat(uniq(M.orders.map(o=>o.line)).filter(l=>l!=='PP'&&l!=='PC'));
+  const lm=lines.map(ln=>[ln,ENGINE.prodMetrics(M,o=>o.line===ln&&bOk(o),e=>eOk(e,p=>p.line===ln))]);
+  const tot={remaining:0,lastDay:0,last15:0,arr:0,late:0,rrr:0};
+  lm.forEach(([,m])=>{tot.remaining+=Math.max(0,m.remaining);['lastDay','last15','arr','late','rrr'].forEach(k=>tot[k]+=m[k]);});
+  let h=kpis([['Remaining to produce (next 45 days)',n0(tot.remaining)],['Actual run rate / day',n0(tot.arr)],
+    ['Required run rate / day',n0(tot.rrr),tot.rrr>tot.arr?'warn':'good'],['Late – produce now',n0(tot.late),tot.late>0?'warn':'']]);
+  const rrrC=m=>m.rrr>m.arr?'c-red':'c-green';
+  const row=(lbl,m,cls,isLine,key)=>`<tr class="${cls}"${key?` onclick="toggle('prod','${esc(key)}')"`:''}><td class="l">${lbl}</td><td>${nRem(m.remaining)}</td>
+    <td class="${isLine&&Math.round(m.lastDay)===0?'c-red':''}">${isLine&&Math.round(m.lastDay)===0?'0':n0(m.lastDay)}</td><td>${n0(m.last15)}</td><td>${n0(m.arr)}</td>
+    <td class="${m.late>0?'c-red':''}">${n0(m.late)}</td><td class="${rrrC(m)}">${n0(m.rrr)}</td></tr>`;
+  let t='<table class="data-tbl"><thead><tr><th class="l">Line · Style</th><th>Remaining (Next 45 Days)</th><th>Last Day</th><th>Last 15 Days</th><th>Actual Run Rate / Day</th><th>Late – Produce Now</th><th>Required Run Rate / Day (future committed dates)</th></tr></thead><tbody>';
+  lm.forEach(([ln,m])=>{
+    if(ln!=='PP'&&ln!=='PC'&&!m.prod&&!m.due45)return;
+    const open=!!OPEN.prod[ln];
+    t+=row(`<span class="tog">${open?'−':'+'}</span>${esc(ln)}`,m,'grp',true,ln);
+    if(open){
+      uniq(M.orders.filter(o=>o.line===ln&&bOk(o)).map(o=>o.style)).map(st=>[st,ENGINE.prodMetrics(M,o=>o.line===ln&&o.style===st&&bOk(o),e=>eOk(e,p=>p.line===ln&&p.style===st))])
+        .filter(([,m])=>m.remaining||m.last15||m.late||m.lastDay).sort((a,b)=>b[1].remaining-a[1].remaining)
+        .forEach(([st,m])=>{t+=row(esc(st),m,'sub',false);});
+    }
+  });
+  t+=row('Total',tot,'tot',false);
+  t+='</tbody></table>';
+  h+=card(t);
+  $('view').innerHTML=h;
+}
+
+/* ---- 3. Order Fulfillment ---- */
+function renderFul(){
+  const f=F.ful;
+  filterBar(sel('orderNo','Order Numbers',uniq(FUL.map(r=>r.orderNo)))+sel('customer','Customers',uniq(FUL.map(r=>r.customer)))+
+    sel('ctype','Customer Types',M.ctypes)+sel('style','Styles',uniq(FUL.map(r=>r.style)))+
+    sel('remark','Remarks',['Delayed','Due within 15 days','Due later','On time','Other'])+sel('status','Statuses',['Pending','Short closed','Completed']));
+  const rows=FUL.filter(r=>(!f.orderNo||r.orderNo===f.orderNo)&&(!f.customer||r.customer===f.customer)&&(!f.ctype||r.ctype===f.ctype)&&
+    (!f.style||r.style===f.style)&&(!f.remark||r.remarkCat===f.remark)&&(!f.status||r.status===f.status));
+  let h=kpis([['Orders delayed',n0(rows.filter(r=>r.grp===1).length),'warn'],['Orders pending',n0(rows.filter(r=>r.grp<=2).length)],
+    ['Orders completed',n0(rows.filter(r=>r.grp===4).length),'good']]);
+  if(!rows.length){$('view').innerHTML=h+card('<div class="empty">No orders match these filters.</div>');return;}
+  const rc=r=>r.remarkCat==='Delayed'?'c-red':r.remarkCat==='Due within 15 days'?'c-amber':r.remark==='On time'?'c-green':'';
+  const sc=r=>r.status==='Pending'?'s-pend':r.status==='Completed'?'s-done':'s-short';
+  let t='<table class="data-tbl"><thead><tr><th>#</th><th class="l">Order Number</th><th class="l">Customer Name</th><th class="l">Customer Type</th><th>Order Date</th><th class="l">Style Name</th>'+
+    '<th>Total Order Qty</th><th>Supplied Qty</th><th>Ready in FG</th><th>Balance Qty</th><th class="l">Remark</th><th class="l">Status</th><th class="gap"></th><th>Committed Date</th><th>Last Dispatch Date</th></tr></thead><tbody>';
+  rows.forEach((r,i)=>{t+=`<tr><td>${i+1}</td><td class="l">${esc(r.orderNo)}</td><td class="l">${esc(r.customer)}</td><td class="l">${esc(r.ctype)}</td><td>${ENGINE.fmtDate(r.od)}</td>
+    <td class="l">${esc(r.style)}</td><td>${n0(r.total)}</td><td>${n0(r.supplied)}</td><td>${n0(r.readyFG)}</td><td>${n0(r.balance)}</td>
+    <td class="l ${rc(r)}">${esc(r.remark)}</td><td class="l ${sc(r)}">${r.status}</td><td class="gap"></td><td>${ENGINE.fmtDate(r.due)}</td><td>${r.lastDispatch!=null?ENGINE.fmtDate(r.lastDispatch):'<span class="z">–</span>'}</td></tr>`;});
+  t+='</tbody></table>';
+  $('view').innerHTML=h+card(t);
+}
+
+/* ---- 4. FG Ready ---- */
+function renderFG(){
+  const f=F.fg;
+  const prods=Object.values(M.product);
+  filterBar(`<input type="search" placeholder="Search EAN" value="${esc(f.ean)}" onchange="setF('ean',this.value.trim())">`+
+    sel('brand','Brands',uniq(prods.map(p=>p.brand)))+sel('style','Styles',uniq(prods.map(p=>p.style)))+
+    sel('line','PP/PC',uniq(prods.map(p=>p.line)))+sel('flag','Flags',['Stock at factory','Dispatch > Production','Balanced']));
+  const byLine={};let notInOrder=0;
+  M.production.forEach(p=>{const pr=M.product[p.ean];if(!pr){notInOrder+=p.qty;return;}(byLine[pr.line]=byLine[pr.line]||{p:0,d:0}).p+=p.qty;});
+  M.dispatch.forEach(d=>{const pr=M.product[d.ean];if(pr)(byLine[pr.line]=byLine[pr.line]||{p:0,d:0}).d+=d.qty;});
+  const lines=Object.keys(byLine).sort((a,b)=>(a==='PP'?0:a==='PC'?1:2)-(b==='PP'?0:b==='PC'?1:2));
+  const tp=lines.reduce((s,l)=>s+byLine[l].p,0),td=lines.reduce((s,l)=>s+byLine[l].d,0);
+  const excess=M.orders.filter(o=>o.flag==='Excess Dispatch').length;
+  const textEan=M.orders.filter(o=>!/^\d+$/.test(o.ean)).length;
+  let h=kpis([['Total produced',n0(tp)],['Dispatched',n0(td)],['FG ready at factory',n0(tp-td),tp-td<0?'warn':'good'],
+    ['Production not in Order sheet',n0(notInOrder),notInOrder?'warn':''],['Excess dispatch lines',n0(excess),excess?'warn':''],['Order lines with text EAN',n0(textEan),textEan?'warn':'']]);
+  let s='<table class="data-tbl"><thead><tr><th class="l">Line</th><th>Total Produced</th><th>Dispatched</th><th>FG Ready at Factory</th></tr></thead><tbody>';
+  lines.forEach(l=>{const v=byLine[l],fg=v.p-v.d;s+=`<tr><td class="l">${esc(l)}</td><td>${n0(v.p)}</td><td>${n0(v.d)}</td><td class="${fg<0?'c-red':''}">${n0(fg)}</td></tr>`;});
+  s+=`<tr class="tot"><td class="l">Total</td><td>${n0(tp)}</td><td>${n0(td)}</td><td>${n0(tp-td)}</td></tr></tbody></table>`;
+  h+='<div style="max-width:620px">'+card(s)+'</div>';
+  const list=prods.map(p=>{const pr=M.prodEan[p.ean]||0,di=M.dispEan[p.ean]||0,fg=pr-di;
+      return {...p,pr,di,fg,flag:fg>0?'Stock at factory':fg<0?'Dispatch > Production':'Balanced'};})
+    .filter(r=>r.pr+r.di!==0&&(!f.ean||r.ean.includes(f.ean))&&(!f.brand||r.brand===f.brand)&&(!f.style||r.style===f.style)&&(!f.line||r.line===f.line)&&(!f.flag||r.flag===f.flag))
+    .sort((a,b)=>b.fg-a.fg);
+  let t='<table class="data-tbl"><thead><tr><th class="l">EAN</th><th class="l">Brand</th><th class="l">Style</th><th class="l">Color</th><th class="l">Size</th><th class="l">PP/PC</th><th>Total Produced</th><th>Dispatched</th><th>FG Ready at Factory</th><th class="l">Flag</th></tr></thead><tbody>';
+  if(!list.length)t+='<tr><td colspan="10" class="empty">No EANs match these filters.</td></tr>';
+  list.forEach(r=>{const fc=r.flag==='Dispatch > Production'?'c-red':r.flag==='Stock at factory'?'c-amber':'';
+    t+=`<tr><td class="l">${esc(r.ean)}</td><td class="l">${esc(r.brand)}</td><td class="l">${esc(r.style)}</td><td class="l">${esc(r.color)}</td><td class="l">${esc(r.size)}</td><td class="l">${esc(r.line)}</td>
+      <td>${n0(r.pr)}</td><td>${n0(r.di)}</td><td>${n0(r.fg)}</td><td class="l ${fc}">${r.flag}</td></tr>`;});
+  t+='</tbody></table>';
+  $('view').innerHTML=h+card(t);
+}
+
+/* ---- 5. Pipeline ---- */
+function renderPipe(){
+  const f=F.pipe,L=M.labels;
+  filterBar(sel('ctype','Customer Types',M.ctypes)+sel('brand','Brands',uniq(M.discussion.map(d=>d.brand))));
+  const rows=M.discussion.filter(d=>!['Converted to PO','Dropped'].includes(d.status)&&d.date!=null&&(!f.ctype||d.ctype===f.ctype)&&(!f.brand||d.brand===f.brand))
+    .map(d=>({...d,b:d.date<M.bom?0:d.date>M.eom5?7:ENGINE.monthDiff(d.date,M.t)+1}));
+  const agg=list=>{const b=[0,0,0,0,0,0,0,0];let tot=0;list.forEach(d=>{b[d.b]+=d.qty;tot+=d.qty;});return {b,tot};};
+  const all=agg(rows);
+  let h=kpis([['Total pipeline qty',n0(all.tot)],['Tentative date passed',n0(all.b[0]),all.b[0]?'warn':'']]);
+  if(!rows.length){$('view').innerHTML=h+card('<div class="empty">No orders in discussion right now. They appear here once added to the Order In Discussion sheet.</div>');return;}
+  const show=[0,1,2,3,4,5,6,7].filter(k=>k===1||all.b[k]!==0);
+  const hdr=k=>k===0?'Date Passed':k===7?'Later':L.m[k-1];
+  const tbl=(title,groups,key)=>{let t='<table class="data-tbl"><thead><tr><th class="l">'+title+'</th>'+show.map(k=>'<th>'+hdr(k)+'</th>').join('')+'<th>Total</th></tr></thead><tbody>';
+    groups.forEach(g=>{const a=agg(rows.filter(d=>d[key]===g));t+=`<tr><td class="l">${esc(g)}</td>${show.map(k=>`<td class="${k===0&&a.b[0]?'c-amber':''}">${n0(a.b[k])}</td>`).join('')}<td>${n0(a.tot)}</td></tr>`;});
+    return t+`<tr class="tot"><td class="l">Total</td>${show.map(k=>'<td>'+n0(all.b[k])+'</td>').join('')}<td>${n0(all.tot)}</td></tr></tbody></table>`;};
+  h+=card(tbl('Customer Type',f.ctype?[f.ctype]:M.ctypes,'ctype'));
+  h+=card(tbl('PP / PC',uniq(rows.map(d=>d.line)),'line'));
+  $('view').innerHTML=h;
+}
+
+document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===VIEW));
+function stickTabs(){const tb=document.querySelector('.topbar');$('tabs').style.top=(tb?tb.offsetHeight:0)+'px';}
+window.addEventListener('resize',stickTabs);
+window.addEventListener('load',()=>{stickTabs();loadData();});
+</script>
+<script src="hud-bg.js"></script>
+</body>
+</html>

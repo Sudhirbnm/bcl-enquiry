@@ -968,6 +968,7 @@ const ICON_SVG={
   store:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 21v-6h6v6"/></svg>',
   package:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>',
   bag:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
+  factory:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20V9l6 4V9l6 4V4h4l1 16Z"/><path d="M2 20h20"/><path d="M7 16h2"/><path d="M12 16h2"/></svg>',
   check:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
 };
 
@@ -979,6 +980,7 @@ const ALL_REPORTS=[
   {id:'lfs',title:'LFS Performance',desc:'Five years of LFS performance, distilled.',icon:'trend',accent:'linear-gradient(135deg,#10b981,#84cc16)',ibg:'rgba(16,185,129,.12)',dept:['Sales-LFS','Management','Buying'],level:['L1','L2','L3'],url:'lfs.html',tag:'Sales · LFS',ext:false},
   {id:'secondary',title:'Secondary Sales',desc:'Channel-wise sell-through. Every brand, every store.',icon:'store',accent:'linear-gradient(135deg,#f59e0b,#06b6d4)',ibg:'rgba(245,158,11,.12)',dept:['Sales-LFS','Sales-EBO','Management','Buying'],level:['L1','L2','L3'],url:'secondary-sales.html',tag:'Sales · 5 Year',ext:false},
   {id:'inward',title:'Inward Plan',desc:'Q2 pipeline by brand, vendor and payment.',icon:'package',accent:'linear-gradient(135deg,#f59e0b,#ef4444)',ibg:'rgba(245,158,11,.12)',dept:['Buying','Management'],level:['L1','L2','L3'],url:'inward-plan.html',tag:'Buying · Q2',ext:false},
+  {id:'factory',title:'Factory Dashboard',desc:'Order book, production and dispatch. Live from the factory.',icon:'factory',accent:'linear-gradient(135deg,#22e4ff,#00ffa3)',ibg:'rgba(34,228,255,.12)',dept:['Management','Buying'],level:['L1','L2','L3'],url:'factory.html',tag:'Factory · PP & PC',ext:false},
   {id:'myntra',title:'Myntra Launch',desc:'Built to win Myntra. Catalog, copy, strategy.',icon:'bag',accent:'linear-gradient(135deg,#8b5cf6,#ec4899)',ibg:'rgba(139,92,246,.12)',dept:['Sales-Ecom','Buying','Management'],level:['L1','L2','L3'],url:'myntra.html',tag:'Ecom · Merchandising',ext:false},
 ];
 
@@ -1116,6 +1118,7 @@ async function doLogin(){
 
 function showPortal(user){
   currentUser=user;
+  try{sessionStorage.setItem('bcl_user',JSON.stringify({name:user.name,username:user.username,dept:user.dept,level:user.level,tools:user.tools||'',isAdmin:!!user.isAdmin}));}catch(e){}
   document.body.classList.remove('on-login');
   document.getElementById('loginState').style.display='none';
   document.getElementById('portalState').style.display='block';
@@ -1138,6 +1141,7 @@ function showPortal(user){
 
 function doLogout(){
   currentUser=null;users=[];
+  try{sessionStorage.removeItem('bcl_user');}catch(e){}
   document.body.classList.add('on-login');
   document.getElementById('loginState').style.display='flex';
   document.getElementById('portalState').style.display='none';
@@ -1293,6 +1297,9 @@ function showToast(msg){
 }
 
 buildDD();
+
+// Coming back from a report in the same tab: stay signed in
+try{const s=JSON.parse(sessionStorage.getItem('bcl_user')||'null');if(s&&s.name){switchTab('portal');showPortal(s);}}catch(e){}
 
 // ── HUD live readouts ──
 (function(){
