@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BCL Product Catalogue</title>
+<title>Product Catalogue — Brand Concepts Limited</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -58,8 +58,8 @@ table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
 thead th{background:var(--surface);color:var(--text3);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;position:sticky;top:0;z-index:5;cursor:pointer}
 thead th:hover{color:var(--text)}
 thead th.srt{color:var(--accent)}
-tbody tr{border-bottom:1px solid rgba(46,50,72,.35);cursor:pointer;transition:background .08s}
-tbody tr:hover{background:rgba(255,255,255,.022)}
+tbody tr{border-bottom:1px solid rgba(0,0,0,.07);cursor:pointer;transition:background .08s}
+tbody tr:hover{background:rgba(0,0,0,.03)}
 tbody tr.act{background:rgba(79,142,247,.08);box-shadow:inset 3px 0 0 var(--accent)}
 td{padding:7px 10px;vertical-align:middle;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
 .td-ean{font-family:var(--mono);font-size:10px;font-weight:700;transition:color .3s}
@@ -70,13 +70,13 @@ td{padding:7px 10px;vertical-align:middle;white-space:nowrap;max-width:180px;ove
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .td-name{font-weight:700;font-size:12px}
 .td-sub{font-size:9.5px;color:var(--text3);margin-top:1px}
-.td-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2)}
+.td-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:rgba(0,0,0,.04);border:1px solid var(--border);color:var(--text2)}
 .td-ch{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700}
-.ch-R{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
-.ch-O{background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.2)}
-.ch-E{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.ch-R{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.ch-O{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2)}
+.ch-E{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
 .td-mrp{font-weight:700;font-size:12px}
-.cdot{display:inline-block;width:8px;height:8px;border-radius:50%;border:1px solid rgba(255,255,255,.15);margin-right:4px;vertical-align:middle}
+.cdot{display:inline-block;width:8px;height:8px;border-radius:50%;border:1px solid rgba(0,0,0,.15);margin-right:4px;vertical-align:middle}
 .er td{text-align:center;padding:50px;color:var(--text3)}
 
 .pgn{padding:7px 12px;display:flex;align-items:center;justify-content:center;gap:4px;border-top:1px solid var(--border);flex-shrink:0}
@@ -134,13 +134,13 @@ td{padding:7px 10px;vertical-align:middle;white-space:nowrap;max-width:180px;ove
 .ftbl{width:100%;border-collapse:collapse}
 .ftbl th{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:5px 9px;border-bottom:1px solid var(--border);text-align:left}
 .ftbl th:not(:first-child){text-align:center}
-.ftbl td{padding:5px 9px;border-bottom:1px solid rgba(46,50,72,.25);font-size:12px;color:var(--text2)}
-.ftbl tr:hover td{background:rgba(255,255,255,.02)}
+.ftbl td{padding:5px 9px;border-bottom:1px solid rgba(0,0,0,.06);font-size:12px;color:var(--text2)}
+.ftbl tr:hover td{background:rgba(0,0,0,.03)}
 .ftbl input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer}
 .ftbl td:not(:first-child){text-align:center}
 .sbtn{background:linear-gradient(135deg,var(--accent),#7c3aed);border:none;color:#fff;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
 .cbtn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:var(--font)}
-.pwov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center}
+.pwov{position:fixed;inset:0;background:rgba(0,0,0,.25);backdrop-filter:blur(2px);z-index:300;display:none;align-items:center;justify-content:center}
 .pwov.show{display:flex}
 .pwbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;width:100%;max-width:340px}
 .pwbox h3{font-size:15px;font-weight:600;margin-bottom:4px}
@@ -152,7 +152,7 @@ td{padding:7px 10px;vertical-align:middle;white-space:nowrap;max-width:180px;ove
 .pwf input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;font-family:var(--font)}
 .pwf input:focus{border-color:var(--accent)}
 .pwacts{display:flex;gap:7px;justify-content:flex-end;margin-top:14px}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(50px);background:#1a2a1a;color:#fff;padding:9px 16px;border-radius:7px;font-size:12px;display:flex;align-items:center;gap:7px;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(50px);background:rgba(29,29,31,.92);color:#fff;padding:9px 16px;border-radius:7px;font-size:12px;display:flex;align-items:center;gap:7px;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 @media(max-width:800px){.dpanel{display:none}}
 </style>
@@ -161,7 +161,7 @@ td{padding:7px 10px;vertical-align:middle;white-space:nowrap;max-width:180px;ove
 <body>
 
 <div class="topbar">
-  <div class="logo">BCL</div>
+  <div class="logo">Brand Concepts Limited</div>
   <h1>Product Search <span>/ Image Viewer</span></h1>
   <span class="pill pill-grey" id="cntPill">Loading…</span>
   <span class="pill pill-grey" id="mapPill" style="display:none">🗺 Map: 0</span>
@@ -252,7 +252,7 @@ td{padding:7px 10px;vertical-align:middle;white-space:nowrap;max-width:180px;ove
 <!-- SETTINGS -->
 <div class="spg" id="spg">
   <div class="topbar" style="position:static">
-    <div class="logo">BCL</div>
+    <div class="logo">Brand Concepts Limited</div>
     <h1>Settings <span>/ Configuration</span></h1>
     <button class="top-btn" onclick="closeSett()">← Back</button>
   </div>
@@ -1033,6 +1033,5 @@ function showToast(msg){
 
 init();
 </script>
-<script src="hud-bg.js"></script>
 </body>
 </html>

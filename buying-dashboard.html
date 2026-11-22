@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BCL — Buying Analytics Dashboard</title>
+<title>Buying Analytics — Brand Concepts Limited</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -100,8 +100,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .tbl-head h3{font-size:13px;font-weight:600}
 .data-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .data-tbl th{background:var(--s2);color:var(--t2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:9px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--bd)}
-.data-tbl td{padding:8px 12px;border-bottom:1px solid rgba(42,48,80,.5);white-space:nowrap;vertical-align:middle}
-.data-tbl tr:hover td{background:rgba(255,255,255,.02)}
+.data-tbl td{padding:8px 12px;border-bottom:1px solid rgba(0,0,0,.07);white-space:nowrap;vertical-align:middle}
+.data-tbl tr:hover td{background:rgba(0,0,0,.03)}
 .data-tbl tr.highlighted td{background:rgba(79,142,247,.08);box-shadow:inset 3px 0 0 var(--blue)}
 .bar-cell{display:flex;align-items:center;gap:8px}
 .bar-track{flex:1;height:4px;background:var(--s3);border-radius:2px;overflow:hidden;min-width:60px}
@@ -150,14 +150,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 <body>
 
 <div class="topbar">
-  <div class="logo">BCL</div>
+  <div class="logo">Brand Concepts Limited</div>
   <h1>Buying Analytics <span>/ 5 Year Dashboard</span></h1>
   <span class="pill pill-grey" id="dataPill">No Data</span>
-  <span class="pill" id="dataUpdatedPill" style="display:none;background:rgba(45,212,224,.1);color:#2dd4e0;border-color:rgba(45,212,224,.25)">📅 Data Updated: —</span>
+  <span class="pill" id="dataUpdatedPill" style="display:none;background:rgba(45,212,224,.1);color:var(--cyan);border-color:rgba(45,212,224,.25)">📅 Data Updated: —</span>
   <span class="pill" id="aiKeyPill" onclick="openApiKeyModal()" style="cursor:pointer;background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.25)">🔑 AI: Setup required</span>
   <button class="tbtn" id="refreshBtn" onclick="refreshGoogleSheet()" style="display:none;background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.25);color:var(--cyan)">↻ Refresh</button>
   <button class="tbtn" onclick="downloadTemplate()" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:var(--green)">⬇ Template</button>
-  <button class="tbtn" onclick="downloadFullData()" style="background:rgba(251,191,62,.1);border-color:rgba(251,191,62,.25);color:#fbbf3e">⬇ Full Data (Excel)</button>
+  <button class="tbtn" onclick="downloadFullData()" style="background:rgba(251,191,62,.1);border-color:rgba(251,191,62,.25);color:var(--amber)">⬇ Full Data (Excel)</button>
   <button class="up-btn" onclick="document.getElementById('fileIn').click()">📁 Upload Excel/CSV</button>
   <input type="file" id="fileIn" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFile(event)">
 </div>
@@ -189,7 +189,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   <div class="upzone" id="upzone">
     <div class="updrop" id="updrop" onclick="document.getElementById('fileIn').click()">
       <div class="upico">⏳</div>
-      <h2>Loading BCL Buying Data…</h2>
+      <h2>Loading Buying Data…</h2>
       <p>Auto-connecting to Google Sheet<br>or click here to upload an Excel/CSV file manually</p>
       <div class="hint">Supports .xlsx, .xls, .csv — All FY years in one file (not limited to 5 years)</div>
     </div>
@@ -239,7 +239,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <!-- API KEY MODAL -->
 <div id="apiKeyModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:400;align-items:center;justify-content:center">
-  <div style="background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+  <div style="background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
     <h3 style="font-size:16px;font-weight:600;margin-bottom:6px">🤖 AI Assistant Setup</h3>
     <p style="font-size:12px;color:var(--t2);margin-bottom:18px;line-height:1.6">Enter your Anthropic API key to enable the AI assistant. Your key is stored only in this browser — never sent to GitHub or any server.</p>
     <div style="margin-bottom:14px">
@@ -681,9 +681,9 @@ function mkChart(id,config){
 }
 
 const chartDefaults={
-  color:'#8892b0',
-  plugins:{legend:{labels:{color:'#8892b0',font:{size:11}}},tooltip:{backgroundColor:'#1a1f2e',titleColor:'#e2e6f0',bodyColor:'#8892b0',borderColor:'#2a3050',borderWidth:1}},
-  scales:{x:{ticks:{color:'#8892b0',font:{size:10}},grid:{color:'rgba(42,48,80,.5)'}},y:{ticks:{color:'#8892b0',font:{size:10}},grid:{color:'rgba(42,48,80,.5)'}}}
+  color:'#86868b',
+  plugins:{legend:{labels:{color:'#86868b',font:{size:11}}},tooltip:{backgroundColor:'rgba(29,29,31,.92)',titleColor:'#fff',bodyColor:'#e5e5ea',borderColor:'rgba(0,0,0,0)',borderWidth:1}},
+  scales:{x:{ticks:{color:'#86868b',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'}},y:{ticks:{color:'#86868b',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'}}}
 };
 
 // ── PAGE ROUTING ──
@@ -738,7 +738,7 @@ function renderFullData(d){
     const start=page*PAGE,end=Math.min(start+PAGE,total);
     const rows=filteredData.slice(start,end);
     const thead='<tr>'+cols.map(c=>`<th style="background:var(--s2);padding:7px 10px;font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap;position:sticky;top:0">${c}</th>`).join('')+'</tr>';
-    const tbody=rows.map(r=>'<tr>'+cols.map(c=>`<td style="padding:5px 10px;font-size:11px;color:var(--t2);border-bottom:1px solid rgba(42,48,80,.3);white-space:nowrap">${r[c]!==undefined&&r[c]!==''?r[c]:'—'}</td>`).join('')+'</tr>').join('');
+    const tbody=rows.map(r=>'<tr>'+cols.map(c=>`<td style="padding:5px 10px;font-size:11px;color:var(--t2);border-bottom:1px solid rgba(0,0,0,.07);white-space:nowrap">${r[c]!==undefined&&r[c]!==''?r[c]:'—'}</td>`).join('')+'</tr>').join('');
     const nav=total>PAGE?`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;font-size:12px;color:var(--t2)">
       <button onclick="window._fdPage=Math.max(0,window._fdPage-1);renderPage('fulldata')" style="background:var(--s2);border:1px solid var(--bd);color:var(--t2);border-radius:5px;padding:5px 10px;cursor:pointer;font-family:var(--font)">← Prev</button>
       <span>Showing ${start+1}–${end} of ${total.toLocaleString()} records</span>
@@ -747,7 +747,7 @@ function renderFullData(d){
     d.innerHTML=`<div style="padding:16px 20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px">Full Data — ${total.toLocaleString()} records (${cols.length} columns)</div>
-        <button onclick="downloadFullData()" style="background:rgba(251,191,62,.1);border:1px solid rgba(251,191,62,.25);color:#fbbf3e;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;font-family:var(--font);font-weight:600">⬇ Download Excel</button>
+        <button onclick="downloadFullData()" style="background:rgba(251,191,62,.1);border:1px solid rgba(251,191,62,.25);color:var(--amber);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;font-family:var(--font);font-weight:600">⬇ Download Excel</button>
       </div>
       ${nav}
       <div style="overflow:auto;max-height:calc(100vh - 250px);border:1px solid var(--bd);border-radius:8px">
@@ -858,20 +858,20 @@ function renderSummary(d){
       {label:'Buying Value (₹)',data:fyVals,backgroundColor:fys.map((_,i)=>FY_COLORS[i%FY_COLORS.length]+'cc'),borderColor:fys.map((_,i)=>FY_COLORS[i%FY_COLORS.length]),borderWidth:2,borderRadius:5},
       {label:'Qty (Units)',data:fyQtys,type:'line',yAxisID:'y2',borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.1)',tension:.4,pointRadius:4}
     ]},options:{...JSON.parse(JSON.stringify(chartDefaults)),responsive:true,maintainAspectRatio:false,scales:{
-      x:{ticks:{color:'#8892b0'},grid:{color:'rgba(42,48,80,.5)'}},
-      y:{ticks:{color:'#8892b0',callback:v=>fmtCr(v)},grid:{color:'rgba(42,48,80,.5)'}},
+      x:{ticks:{color:'#86868b'},grid:{color:'rgba(0,0,0,.06)'}},
+      y:{ticks:{color:'#86868b',callback:v=>fmtCr(v)},grid:{color:'rgba(0,0,0,.06)'}},
       y2:{position:'right',ticks:{color:'#f59e0b',callback:v=>fmtK(v)},grid:{drawOnChartArea:false}}
     }}});
 
     // Brand Mix
     const brandG=groupBy(filteredData,COLS.BRAND);
     const bLabels=Object.keys(brandG).sort((a,b)=>sumBy(brandG[b],COLS.NET)-sumBy(brandG[a],COLS.NET)).slice(0,8);
-    mkChart('ch-brandMix',{type:'doughnut',data:{labels:bLabels,datasets:[{data:bLabels.map(b=>sumBy(brandG[b],COLS.NET)),backgroundColor:bLabels.map(b=>getBrandColor(b)+'cc'),borderColor:bLabels.map(b=>getBrandColor(b)),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8892b0',font:{size:10}}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmtCr(ctx.raw)}}}}});
+    mkChart('ch-brandMix',{type:'doughnut',data:{labels:bLabels,datasets:[{data:bLabels.map(b=>sumBy(brandG[b],COLS.NET)),backgroundColor:bLabels.map(b=>getBrandColor(b)+'cc'),borderColor:bLabels.map(b=>getBrandColor(b)),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#86868b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmtCr(ctx.raw)}}}}});
 
     // Category Mix
     const catG=groupBy(filteredData,COLS.CAT);
     const cLabels=Object.keys(catG).sort((a,b)=>sumBy(catG[b],COLS.NET)-sumBy(catG[a],COLS.NET));
-    mkChart('ch-catMix',{type:'doughnut',data:{labels:cLabels,datasets:[{data:cLabels.map(c=>sumBy(catG[c],COLS.NET)),backgroundColor:cLabels.map((_,i)=>CAT_COLORS[i%CAT_COLORS.length]+'cc'),borderColor:cLabels.map((_,i)=>CAT_COLORS[i%CAT_COLORS.length]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8892b0',font:{size:10}}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmtCr(ctx.raw)}}}}});
+    mkChart('ch-catMix',{type:'doughnut',data:{labels:cLabels,datasets:[{data:cLabels.map(c=>sumBy(catG[c],COLS.NET)),backgroundColor:cLabels.map((_,i)=>CAT_COLORS[i%CAT_COLORS.length]+'cc'),borderColor:cLabels.map((_,i)=>CAT_COLORS[i%CAT_COLORS.length]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#86868b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmtCr(ctx.raw)}}}}});
 
     // Monthly
     const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -881,7 +881,7 @@ function renderSummary(d){
     // Top vendors
     const vG=groupBy(filteredData,COLS.VENDOR);
     const vTop=Object.keys(vG).sort((a,b)=>sumBy(vG[b],COLS.NET)-sumBy(vG[a],COLS.NET)).slice(0,5);
-    mkChart('ch-topVendors',{type:'bar',data:{labels:vTop,datasets:[{label:'Net Value',data:vTop.map(v=>sumBy(vG[v],COLS.NET)),backgroundColor:vTop.map((_,i)=>FY_COLORS[i%FY_COLORS.length]+'cc'),borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,...chartDefaults,scales:{x:{ticks:{color:'#8892b0',callback:v=>fmtCr(v)},grid:{color:'rgba(42,48,80,.5)'}},y:{ticks:{color:'#8892b0'},grid:{display:false}}}}});
+    mkChart('ch-topVendors',{type:'bar',data:{labels:vTop,datasets:[{label:'Net Value',data:vTop.map(v=>sumBy(vG[v],COLS.NET)),backgroundColor:vTop.map((_,i)=>FY_COLORS[i%FY_COLORS.length]+'cc'),borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,...chartDefaults,scales:{x:{ticks:{color:'#86868b',callback:v=>fmtCr(v)},grid:{color:'rgba(0,0,0,.06)'}},y:{ticks:{color:'#86868b'},grid:{display:false}}}}});
   },50);
 }
 
@@ -956,8 +956,8 @@ function buildUnifiedTable(rows, fys, labelKey, labelFn, clickFn, title, subtitl
   const nFy=fys.length+1; // FY cols + Total
 
   const th=(t,align='right',extra='')=>`<th style="background:var(--s3);color:var(--t2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:6px 9px;text-align:${align};border:1px solid var(--bd);white-space:nowrap;${extra}">${t}</th>`;
-  const td=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(42,48,80,.3);text-align:right;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
-  const tdL=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(42,48,80,.3);text-align:left;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
+  const td=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(0,0,0,.07);text-align:right;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
+  const tdL=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(0,0,0,.07);text-align:left;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
   const tdGT=(t,extra='')=>`<td style="padding:6px 9px;border:1px solid var(--bd);text-align:right;font-weight:700;font-size:11.5px;background:var(--s3);${extra}">${t}</td>`;
   const tdGTL=(t)=>`<td style="padding:6px 9px;border:1px solid var(--bd);text-align:left;font-weight:700;font-size:11.5px;background:var(--s3)">${t}</td>`;
   const sep=`<td style="padding:0;border:none;width:5px;background:var(--bg)"></td>`;
@@ -967,7 +967,7 @@ function buildUnifiedTable(rows, fys, labelKey, labelFn, clickFn, title, subtitl
   function buyCell(val, prevVal, bold=false){
     const pct=prevVal>0?golyPct(val,prevVal):null;
     const v=val>0?fmtCr(val):'—';
-    return`<td style="padding:5px 9px;border:1px solid rgba(42,48,80,.3);text-align:right;white-space:nowrap;font-size:11.5px;${bold?'font-weight:700;color:var(--text)':''}">
+    return`<td style="padding:5px 9px;border:1px solid rgba(0,0,0,.07);text-align:right;white-space:nowrap;font-size:11.5px;${bold?'font-weight:700;color:var(--text)':''}">
       <div>${v}</div>
       ${pct!==null?`<div style="font-size:9px;font-weight:600;color:${pct>=0?'#22c55e':'#ef4444'};margin-top:1px">${pct>=0?'+':''}${pct.toFixed(0)}%</div>`:'<div style="font-size:9px;color:var(--t3)"> </div>'}
     </td>`;
@@ -983,11 +983,11 @@ function buildUnifiedTable(rows, fys, labelKey, labelFn, clickFn, title, subtitl
   // Section header: Buying+GOLY merged, then Avg Cost, then Factor
   const headerRow1=`<tr>
     ${th('','left')}
-    <th colspan="${nFy}" style="background:rgba(59,130,246,.15);color:#60a5fa;font-size:10px;font-weight:700;text-align:center;padding:5px 9px;border:1px solid rgba(59,130,246,.3)">BUYING (₹ Cr) + GOLY%</th>
+    <th colspan="${nFy}" style="background:rgba(59,130,246,.15);color:var(--blue);font-size:10px;font-weight:700;text-align:center;padding:5px 9px;border:1px solid rgba(59,130,246,.3)">BUYING (₹ Cr) + GOLY%</th>
     ${thSep('var(--bg)')}
-    <th colspan="${nFy}" style="background:rgba(34,197,94,.12);color:#4ade80;font-size:10px;font-weight:700;text-align:center;padding:5px 9px;border:1px solid rgba(34,197,94,.3)">AVG BUYING COST (₹/unit)</th>
+    <th colspan="${nFy}" style="background:rgba(34,197,94,.12);color:var(--green);font-size:10px;font-weight:700;text-align:center;padding:5px 9px;border:1px solid rgba(34,197,94,.3)">AVG BUYING COST (₹/unit)</th>
     ${thSep('var(--bg)')}
-    <th colspan="${nFy}" style="background:rgba(124,58,237,.12);color:#a78bfa;font-size:10px;font-weight:700;text-align:center;padding:5px 9px;border:1px solid rgba(124,58,237,.3)">COST TO MRP FACTOR</th>
+    <th colspan="${nFy}" style="background:rgba(124,58,237,.12);color:var(--purple);font-size:10px;font-weight:700;text-align:center;padding:5px 9px;border:1px solid rgba(124,58,237,.3)">COST TO MRP FACTOR</th>
   </tr>`;
 
   const headerRow2=`<tr>
@@ -1001,10 +1001,10 @@ function buildUnifiedTable(rows, fys, labelKey, labelFn, clickFn, title, subtitl
 
   // Data rows
   const dataRows=rows.map((r,ri)=>{
-    const rowBg=ri%2===0?'':'background:rgba(255,255,255,.012)';
+    const rowBg=ri%2===0?'':'background:rgba(0,0,0,.018)';
     const clickAttr=clickFn?`onclick="${clickFn}('${r.key.replace(/'/g,"\\'")}',event)"`:'' ;
     return`<tr ${clickAttr} style="cursor:${clickFn?'pointer':'default'};${rowBg}"
-      onmouseover="this.style.background='rgba(79,142,247,.07)'" onmouseout="this.style.background='${ri%2===0?'':'rgba(255,255,255,.012)'}' ">
+      onmouseover="this.style.background='rgba(79,142,247,.07)'" onmouseout="this.style.background='${ri%2===0?'':'rgba(0,0,0,.018)'}' ">
       ${tdL(labelFn(r.key))}
       ${r.grossVals.map((v,i)=>buyCell(v,r.grossVals[i-1]||0)).join('')}
       ${buyCell(r.totalGross,r.grossVals[r.grossVals.length-2]||0,true)}
@@ -1162,8 +1162,8 @@ function buildVendorTable(rows, fys, groupKey, labelKey, labelFn, clickFn, title
   const gtTotalGross=gtGross;
 
   const th=(t,al='right',extra='')=>`<th style="background:var(--s3);color:var(--t2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:6px 9px;text-align:${al};border:1px solid var(--bd);white-space:nowrap;${extra}">${t}</th>`;
-  const td=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(42,48,80,.3);text-align:right;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
-  const tdL=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(42,48,80,.3);text-align:left;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
+  const td=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(0,0,0,.07);text-align:right;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
+  const tdL=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(0,0,0,.07);text-align:left;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
   const tdGT=(t,extra='')=>`<td style="padding:6px 9px;border:1px solid var(--bd);text-align:right;font-weight:700;font-size:11.5px;background:var(--s3);${extra}">${t}</td>`;
   const tdGTL=(t)=>`<td style="padding:6px 9px;border:1px solid var(--bd);text-align:left;font-weight:700;font-size:11.5px;background:var(--s3)">${t}</td>`;
   const sep=`<td style="padding:0;border:none;width:5px;background:var(--bg)"></td>`;
@@ -1171,7 +1171,7 @@ function buildVendorTable(rows, fys, groupKey, labelKey, labelFn, clickFn, title
 
   function buyCell(val,prevVal,bold=false){
     const pct=prevVal>0?golyPct(val,prevVal):null;
-    return`<td style="padding:5px 9px;border:1px solid rgba(42,48,80,.3);text-align:right;white-space:nowrap;font-size:11.5px;${bold?'font-weight:700':''}">
+    return`<td style="padding:5px 9px;border:1px solid rgba(0,0,0,.07);text-align:right;white-space:nowrap;font-size:11.5px;${bold?'font-weight:700':''}">
       <div>${val>0?fmtCr(val):'—'}</div>
       ${pct!==null?`<div style="font-size:9px;font-weight:600;color:${pct>=0?'#22c55e':'#ef4444'}">${pct>=0?'+':''}${pct.toFixed(0)}%</div>`:'<div style="font-size:9px"> </div>'}
     </td>`;
@@ -1187,10 +1187,10 @@ function buildVendorTable(rows, fys, groupKey, labelKey, labelFn, clickFn, title
   const nFy=fys.length+1;
   let headerRow1=`<tr>${th(labelKey,'left')}`;
   if(showBuying){
-    headerRow1+=`<th colspan="${nFy}" style="background:rgba(59,130,246,.15);color:#60a5fa;font-size:10px;font-weight:700;text-align:center;padding:5px;border:1px solid rgba(59,130,246,.3)">BUYING (₹ Cr) + GOLY%</th>${thSep}`;
+    headerRow1+=`<th colspan="${nFy}" style="background:rgba(59,130,246,.15);color:var(--blue);font-size:10px;font-weight:700;text-align:center;padding:5px;border:1px solid rgba(59,130,246,.3)">BUYING (₹ Cr) + GOLY%</th>${thSep}`;
   }
-  headerRow1+=`<th colspan="${nFy}" style="background:rgba(124,58,237,.12);color:#a78bfa;font-size:10px;font-weight:700;text-align:center;padding:5px;border:1px solid rgba(124,58,237,.3)">COST TO MRP FACTOR</th>${thSep}`;
-  headerRow1+=`<th colspan="${nFy+1}" style="background:rgba(245,158,11,.12);color:#fbbf24;font-size:10px;font-weight:700;text-align:center;padding:5px;border:1px solid rgba(245,158,11,.3)">LEAD TIME (Days: PO → GRN)</th>`;
+  headerRow1+=`<th colspan="${nFy}" style="background:rgba(124,58,237,.12);color:var(--purple);font-size:10px;font-weight:700;text-align:center;padding:5px;border:1px solid rgba(124,58,237,.3)">COST TO MRP FACTOR</th>${thSep}`;
+  headerRow1+=`<th colspan="${nFy+1}" style="background:rgba(245,158,11,.12);color:var(--amber);font-size:10px;font-weight:700;text-align:center;padding:5px;border:1px solid rgba(245,158,11,.3)">LEAD TIME (Days: PO → GRN)</th>`;
   headerRow1+=`</tr>`;
 
   let headerRow2=`<tr>${th(labelKey,'left')}`;
@@ -1200,10 +1200,10 @@ function buildVendorTable(rows, fys, groupKey, labelKey, labelFn, clickFn, title
   headerRow2+=`</tr>`;
 
   const dataRows=rows.map((r,ri)=>{
-    const rowBg=ri%2===0?'':'background:rgba(255,255,255,.012)';
+    const rowBg=ri%2===0?'':'background:rgba(0,0,0,.018)';
     const clickAttr=clickFn?`onclick="${clickFn}('${r.key.replace(/'/g,"\\'")}',event)"` :'';
     let row=`<tr ${clickAttr} style="cursor:${clickFn?'pointer':'default'};${rowBg}"
-      onmouseover="this.style.background='rgba(79,142,247,.07)'" onmouseout="this.style.background='${ri%2===0?'':'rgba(255,255,255,.012)'}' ">
+      onmouseover="this.style.background='rgba(79,142,247,.07)'" onmouseout="this.style.background='${ri%2===0?'':'rgba(0,0,0,.018)'}' ">
       ${tdL(labelFn(r.key))}`;
     if(showBuying){
       row+=r.grossVals.map((v,i)=>buyCell(v,r.grossVals[i-1]||0)).join('');
@@ -1370,16 +1370,16 @@ function renderCategory(d){
   const gtFactor=gtGross>0?gtMRPCr/gtGross:0;
 
   const th=(t,al='right')=>`<th style="background:var(--s3);color:var(--t2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:6px 9px;text-align:${al};border:1px solid var(--bd);white-space:nowrap">${t}</th>`;
-  const td=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(42,48,80,.3);text-align:right;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
-  const tdL=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(42,48,80,.3);text-align:left;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
+  const td=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(0,0,0,.07);text-align:right;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
+  const tdL=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(0,0,0,.07);text-align:left;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
   const tdGT=(t)=>`<td style="padding:6px 9px;border:1px solid var(--bd);text-align:right;font-weight:700;font-size:11.5px;background:var(--s3)">${t}</td>`;
   const tdGTL=(t)=>`<td style="padding:6px 9px;border:1px solid var(--bd);text-align:left;font-weight:700;font-size:11.5px;background:var(--s3)">${t}</td>`;
 
   // Level 1 table
   const l1rows=styleRows.map((r,ri)=>`<tr onclick="drillStyle('${r.key.replace(/'/g,"\'")}',event)"
-    style="cursor:pointer;${ri%2===0?'':'background:rgba(255,255,255,.012)'}"
+    style="cursor:pointer;${ri%2===0?'':'background:rgba(0,0,0,.018)'}"
     onmouseover="this.style.background='rgba(79,142,247,.07)'"
-    onmouseout="this.style.background='${ri%2===0?'':'rgba(255,255,255,.012)'}'">
+    onmouseout="this.style.background='${ri%2===0?'':'rgba(0,0,0,.018)'}'">
     ${tdL(`<span style="color:var(--blue2);font-weight:600">${r.key}</span>`)}
     ${td(r.qty>0?Math.round(r.qty).toLocaleString('en-IN'):'—')}
     ${td(r.avgCost>0?'₹'+Math.round(r.avgCost).toLocaleString('en-IN'):'—')}
@@ -1419,8 +1419,8 @@ function drillStyle(style,evt){
   const vendors=Object.keys(vendorG).sort((a,b)=>sumBy(vendorG[b],COLS.GRN_QTY)-sumBy(vendorG[a],COLS.GRN_QTY));
 
   const th=(t,al='right')=>`<th style="background:var(--s3);color:var(--t2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:6px 9px;text-align:${al};border:1px solid var(--bd);white-space:nowrap">${t}</th>`;
-  const td=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(42,48,80,.3);text-align:right;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
-  const tdL=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(42,48,80,.3);text-align:left;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
+  const td=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(0,0,0,.07);text-align:right;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
+  const tdL=(t,extra='')=>`<td style="padding:5px 9px;border:1px solid rgba(0,0,0,.07);text-align:left;white-space:nowrap;font-size:11.5px;${extra}">${t}</td>`;
   const tdGT=(t)=>`<td style="padding:6px 9px;border:1px solid var(--bd);text-align:right;font-weight:700;font-size:11.5px;background:var(--s3)">${t}</td>`;
   const tdGTL=(t)=>`<td style="padding:6px 9px;border:1px solid var(--bd);text-align:left;font-weight:700;font-size:11.5px;background:var(--s3)">${t}</td>`;
   const thSep=`<th style="padding:0;border:none;width:5px;background:var(--bg)"></th>`;
@@ -1445,7 +1445,7 @@ function drillStyle(style,evt){
   const gtTotalGross=sumBy(styleData,COLS.GROSS);
   const gtTotalCost=gtTotalQty>0?(gtTotalGross/gtTotalQty)*10000000:0;
 
-  const vendorRows=vRows.map((r,ri)=>`<tr style="${ri%2===0?'':'background:rgba(255,255,255,.012)'}">
+  const vendorRows=vRows.map((r,ri)=>`<tr style="${ri%2===0?'':'background:rgba(0,0,0,.018)'}">
     ${tdL(`<span style="font-weight:600;color:var(--blue2)">${r.v}</span>`)}
     ${r.qtyVals.map(v=>td(v>0?Math.round(v).toLocaleString('en-IN'):'—')).join('')}${td(Math.round(r.totalQty).toLocaleString('en-IN'),';font-weight:700')}
     ${sep}
@@ -1466,8 +1466,8 @@ function drillStyle(style,evt){
       const qty=sumBy(md,COLS.GRN_QTY);
       const gross=sumBy(md,COLS.GROSS);
       const avgCost=qty>0?(gross/qty)*10000000:0;
-      return`<tr style="${mi%2===0?'':'background:rgba(255,255,255,.012)'}">
-        ${mi===0?`<td rowspan="${months.length}" style="padding:6px 9px;border:1px solid rgba(42,48,80,.3);text-align:left;font-weight:700;vertical-align:top;color:var(--amber);font-size:11.5px">${fy}</td>`:''}
+      return`<tr style="${mi%2===0?'':'background:rgba(0,0,0,.018)'}">
+        ${mi===0?`<td rowspan="${months.length}" style="padding:6px 9px;border:1px solid rgba(0,0,0,.07);text-align:left;font-weight:700;vertical-align:top;color:var(--amber);font-size:11.5px">${fy}</td>`:''}
         ${tdL(mo)}
         ${td(qty>0?Math.round(qty).toLocaleString('en-IN'):'—')}
         ${td(avgCost>0?'₹'+Math.round(avgCost).toLocaleString('en-IN'):'—')}
@@ -1492,9 +1492,9 @@ function drillStyle(style,evt){
         <table style="width:100%;border-collapse:collapse">
           <thead><tr>
             ${th('Vendor','left')}
-            <th colspan="${fys.length+1}" style="background:rgba(59,130,246,.12);color:#60a5fa;font-size:9px;font-weight:700;text-align:center;padding:4px;border:1px solid rgba(59,130,246,.3)">GRN Qty</th>
+            <th colspan="${fys.length+1}" style="background:rgba(59,130,246,.12);color:var(--blue);font-size:9px;font-weight:700;text-align:center;padding:4px;border:1px solid rgba(59,130,246,.3)">GRN Qty</th>
             ${thSep}
-            <th colspan="${fys.length+1}" style="background:rgba(34,197,94,.12);color:#4ade80;font-size:9px;font-weight:700;text-align:center;padding:4px;border:1px solid rgba(34,197,94,.3)">Avg Buying Price (₹)</th>
+            <th colspan="${fys.length+1}" style="background:rgba(34,197,94,.12);color:var(--green);font-size:9px;font-weight:700;text-align:center;padding:4px;border:1px solid rgba(34,197,94,.3)">Avg Buying Price (₹)</th>
           </tr><tr>
             ${th('','left')}
             ${fys.map(fy=>th(fy)).join('')}${th('Total')}
@@ -1586,17 +1586,17 @@ function renderSeason(d){
       {label:'SS (Spring/Summer)',data:fys.map(fy=>sumBy(filteredData.filter(r=>r[COLS.FY]===fy&&ssCodes.includes(r[COLS.SEASON])),COLS.NET)),backgroundColor:'rgba(6,182,212,.6)',borderColor:'#06b6d4',borderWidth:2,borderRadius:4},
       {label:'FW (Fall/Winter)',data:fys.map(fy=>sumBy(filteredData.filter(r=>r[COLS.FY]===fy&&fwCodes.includes(r[COLS.SEASON])),COLS.NET)),backgroundColor:'rgba(124,58,237,.6)',borderColor:'#7c3aed',borderWidth:2,borderRadius:4},
       {label:'Core/Other',data:fys.map(fy=>sumBy(filteredData.filter(r=>r[COLS.FY]===fy&&!ssCodes.includes(r[COLS.SEASON])&&!fwCodes.includes(r[COLS.SEASON])),COLS.NET)),backgroundColor:'rgba(245,158,11,.6)',borderColor:'#f59e0b',borderWidth:2,borderRadius:4}
-    ]},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{stacked:true,ticks:{color:'#8892b0'},grid:{color:'rgba(42,48,80,.5)'}},y:{stacked:true,ticks:{color:'#8892b0',callback:v=>fmtCr(v)},grid:{color:'rgba(42,48,80,.5)'}}}}});
+    ]},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{stacked:true,ticks:{color:'#86868b'},grid:{color:'rgba(0,0,0,.06)'}},y:{stacked:true,ticks:{color:'#86868b',callback:v=>fmtCr(v)},grid:{color:'rgba(0,0,0,.06)'}}}}});
 
     // Category YoY
-    mkChart('ch-catYoy',{type:'line',data:{labels:fys,datasets:cats.slice(0,6).map((c,i)=>({label:c,data:fys.map(fy=>sumBy(filteredData.filter(r=>r[COLS.CAT]===c&&r[COLS.FY]===fy),COLS.NET)),borderColor:CAT_COLORS[i],backgroundColor:CAT_COLORS[i]+'22',tension:.4,pointRadius:3,fill:false}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{ticks:{color:'#8892b0'},grid:{color:'rgba(42,48,80,.5)'}},y:{ticks:{color:'#8892b0',callback:v=>fmtCr(v)},grid:{color:'rgba(42,48,80,.5)'}}}}});
+    mkChart('ch-catYoy',{type:'line',data:{labels:fys,datasets:cats.slice(0,6).map((c,i)=>({label:c,data:fys.map(fy=>sumBy(filteredData.filter(r=>r[COLS.CAT]===c&&r[COLS.FY]===fy),COLS.NET)),borderColor:CAT_COLORS[i],backgroundColor:CAT_COLORS[i]+'22',tension:.4,pointRadius:3,fill:false}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{ticks:{color:'#86868b'},grid:{color:'rgba(0,0,0,.06)'}},y:{ticks:{color:'#86868b',callback:v=>fmtCr(v)},grid:{color:'rgba(0,0,0,.06)'}}}}});
 
     // Month FY
     const mths=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    mkChart('ch-monthFy',{type:'bar',data:{labels:mths,datasets:fys.map((fy,i)=>({label:fy,data:mths.map(m=>sumBy(filteredData.filter(r=>r[COLS.FY]===fy&&r[COLS.MONTH]&&r[COLS.MONTH].includes(m)),COLS.GRN_QTY)),backgroundColor:FY_COLORS[i]+'99',borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{ticks:{color:'#8892b0'},grid:{color:'rgba(42,48,80,.5)'}},y:{ticks:{color:'#8892b0',callback:v=>fmtK(v)},grid:{color:'rgba(42,48,80,.5)'}}}}});
+    mkChart('ch-monthFy',{type:'bar',data:{labels:mths,datasets:fys.map((fy,i)=>({label:fy,data:mths.map(m=>sumBy(filteredData.filter(r=>r[COLS.FY]===fy&&r[COLS.MONTH]&&r[COLS.MONTH].includes(m)),COLS.GRN_QTY)),backgroundColor:FY_COLORS[i]+'99',borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{ticks:{color:'#86868b'},grid:{color:'rgba(0,0,0,.06)'}},y:{ticks:{color:'#86868b',callback:v=>fmtK(v)},grid:{color:'rgba(0,0,0,.06)'}}}}});
 
     // Cat × Season
-    mkChart('ch-catSeason',{type:'bar',data:{labels:cats.slice(0,8),datasets:seasons.slice(0,6).map((s,i)=>({label:s,data:cats.slice(0,8).map(c=>sumBy(filteredData.filter(r=>r[COLS.CAT]===c&&r[COLS.SEASON]===s),COLS.NET)),backgroundColor:CAT_COLORS[i]+'aa',borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{stacked:true,ticks:{color:'#8892b0',font:{size:9}},grid:{color:'rgba(42,48,80,.5)'}},y:{stacked:true,ticks:{color:'#8892b0',callback:v=>fmtCr(v)},grid:{color:'rgba(42,48,80,.5)'}}}}});
+    mkChart('ch-catSeason',{type:'bar',data:{labels:cats.slice(0,8),datasets:seasons.slice(0,6).map((s,i)=>({label:s,data:cats.slice(0,8).map(c=>sumBy(filteredData.filter(r=>r[COLS.CAT]===c&&r[COLS.SEASON]===s),COLS.NET)),backgroundColor:CAT_COLORS[i]+'aa',borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{stacked:true,ticks:{color:'#86868b',font:{size:9}},grid:{color:'rgba(0,0,0,.06)'}},y:{stacked:true,ticks:{color:'#86868b',callback:v=>fmtCr(v)},grid:{color:'rgba(0,0,0,.06)'}}}}});
   },50);
 }
 
@@ -1651,16 +1651,16 @@ function renderChannel(d){
     </div>`;
 
   setTimeout(()=>{
-    mkChart('ch-chYoy',{type:'bar',data:{labels:fys,datasets:channels.slice(0,6).map((c,i)=>({label:c,data:fys.map(fy=>sumBy(filteredData.filter(r=>r[COLS.CHANNEL]===c&&r[COLS.FY]===fy),COLS.NET)),backgroundColor:CAT_COLORS[i]+'aa',borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{stacked:true,ticks:{color:'#8892b0'},grid:{color:'rgba(42,48,80,.5)'}},y:{stacked:true,ticks:{color:'#8892b0',callback:v=>fmtCr(v)},grid:{color:'rgba(42,48,80,.5)'}}}}});
-    mkChart('ch-chMix',{type:'doughnut',data:{labels:channels,datasets:[{data:channels.map(c=>sumBy(chG[c],COLS.NET)),backgroundColor:channels.map((_,i)=>CAT_COLORS[i%CAT_COLORS.length]+'cc'),borderColor:channels.map((_,i)=>CAT_COLORS[i%CAT_COLORS.length]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8892b0',font:{size:10}}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmtCr(ctx.raw)}}}}});
+    mkChart('ch-chYoy',{type:'bar',data:{labels:fys,datasets:channels.slice(0,6).map((c,i)=>({label:c,data:fys.map(fy=>sumBy(filteredData.filter(r=>r[COLS.CHANNEL]===c&&r[COLS.FY]===fy),COLS.NET)),backgroundColor:CAT_COLORS[i]+'aa',borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{stacked:true,ticks:{color:'#86868b'},grid:{color:'rgba(0,0,0,.06)'}},y:{stacked:true,ticks:{color:'#86868b',callback:v=>fmtCr(v)},grid:{color:'rgba(0,0,0,.06)'}}}}});
+    mkChart('ch-chMix',{type:'doughnut',data:{labels:channels,datasets:[{data:channels.map(c=>sumBy(chG[c],COLS.NET)),backgroundColor:channels.map((_,i)=>CAT_COLORS[i%CAT_COLORS.length]+'cc'),borderColor:channels.map((_,i)=>CAT_COLORS[i%CAT_COLORS.length]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#86868b',font:{size:10}}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmtCr(ctx.raw)}}}}});
 
     const brandG=groupBy(filteredData,COLS.BRAND);
     const brands=Object.keys(brandG).sort((a,b)=>sumBy(brandG[b],COLS.NET)-sumBy(brandG[a],COLS.NET)).slice(0,6);
-    mkChart('ch-chBrand',{type:'bar',data:{labels:channels.slice(0,8),datasets:brands.map((b,i)=>({label:b,data:channels.slice(0,8).map(c=>sumBy(filteredData.filter(r=>r[COLS.CHANNEL]===c&&r[COLS.BRAND]===b),COLS.NET)),backgroundColor:getBrandColor(b)+'aa',borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{stacked:true,ticks:{color:'#8892b0',font:{size:9}},grid:{color:'rgba(42,48,80,.5)'}},y:{stacked:true,ticks:{color:'#8892b0',callback:v=>fmtCr(v)},grid:{color:'rgba(42,48,80,.5)'}}}}});
+    mkChart('ch-chBrand',{type:'bar',data:{labels:channels.slice(0,8),datasets:brands.map((b,i)=>({label:b,data:channels.slice(0,8).map(c=>sumBy(filteredData.filter(r=>r[COLS.CHANNEL]===c&&r[COLS.BRAND]===b),COLS.NET)),backgroundColor:getBrandColor(b)+'aa',borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{stacked:true,ticks:{color:'#86868b',font:{size:9}},grid:{color:'rgba(0,0,0,.06)'}},y:{stacked:true,ticks:{color:'#86868b',callback:v=>fmtCr(v)},grid:{color:'rgba(0,0,0,.06)'}}}}});
 
     const catG=groupBy(filteredData,COLS.CAT);
     const cats=Object.keys(catG).sort((a,b)=>sumBy(catG[b],COLS.NET)-sumBy(catG[a],COLS.NET)).slice(0,6);
-    mkChart('ch-chCat',{type:'bar',data:{labels:channels.slice(0,8),datasets:cats.map((c,i)=>({label:c,data:channels.slice(0,8).map(ch=>sumBy(filteredData.filter(r=>r[COLS.CHANNEL]===ch&&r[COLS.CAT]===c),COLS.NET)),backgroundColor:CAT_COLORS[i]+'aa',borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{stacked:true,ticks:{color:'#8892b0',font:{size:9}},grid:{color:'rgba(42,48,80,.5)'}},y:{stacked:true,ticks:{color:'#8892b0',callback:v=>fmtCr(v)},grid:{color:'rgba(42,48,80,.5)'}}}}});
+    mkChart('ch-chCat',{type:'bar',data:{labels:channels.slice(0,8),datasets:cats.map((c,i)=>({label:c,data:channels.slice(0,8).map(ch=>sumBy(filteredData.filter(r=>r[COLS.CHANNEL]===ch&&r[COLS.CAT]===c),COLS.NET)),backgroundColor:CAT_COLORS[i]+'aa',borderRadius:3}))},options:{responsive:true,maintainAspectRatio:false,...JSON.parse(JSON.stringify(chartDefaults)),scales:{x:{stacked:true,ticks:{color:'#86868b',font:{size:9}},grid:{color:'rgba(0,0,0,.06)'}},y:{stacked:true,ticks:{color:'#86868b',callback:v=>fmtCr(v)},grid:{color:'rgba(0,0,0,.06)'}}}}});
   },50);
 }
 
@@ -1704,7 +1704,7 @@ function downloadTemplate(){
       ['Vander Name ','Text','OM','Short vendor code. IMPORTANT: column has trailing space - do not remove.'],
       [' EANCode ','Text','8903496215250','13-digit EAN barcode. IMPORTANT: column has leading and trailing spaces. Enter as text to avoid scientific notation.'],
       ['Party Bill Date','Date','02-Apr-25','Vendor invoice date. Format: DD-Mon-YY e.g. 02-Apr-25.'],
-      ['GRN No.','Text','GRCBIW25-26/00000115','BCL system Goods Receipt Note number.'],
+      ['GRN No.','Text','GRCBIW25-26/00000115','Brand Concepts Limited system Goods Receipt Note number.'],
       ['Pary Bill No','Text','OM318/2024-25','Vendor invoice number. Note: Pary is a system typo - keep as-is.'],
       ['GRN Date','Date','02-Apr-25','Date goods received at warehouse. Format: DD-Mon-YY.'],
       ['GRN  Qty','Number','498','Units received. IMPORTANT: column name has double space between GRN and Qty.'],
@@ -1712,7 +1712,7 @@ function downloadTemplate(){
       ['Rate','Number','270','Cost per unit in actual rupees.'],
       ['Gross Amount','Number','0.013446','Total buying value in CRORE. Formula: Rate x Qty divided by 1 crore. Values are small decimals like 0.013 - this is correct.'],
       ['Net Purchase Amount','Number','158662.8','Invoice value including taxes in actual rupees (not Cr).'],
-      ['Purchase Order No.','Text','POBIW25-26/00000040','BCL Purchase Order number. Used to calculate lead time.'],
+      ['Purchase Order No.','Text','POBIW25-26/00000040','Brand Concepts Limited Purchase Order number. Used to calculate lead time.'],
       ['Purchase Order Date','Date','01-Apr-25','Date PO was raised. Format: DD-Mon-YY. Used with GRN Date for lead time.'],
       ['BRAND','Text','Tommy Hilfiger','Licensed brand name. Use full consistent name: Tommy Hilfiger, United colors of Benetton, Superdry, Juicy Couture, Aeropostale etc.'],
       ['CATEGORY','Text','BACKPACK','Product category. Values: BACKPACK, LUGGAGE, WALLET, BELT, HANDBAG, DUFFEL, OVERNIGHTER, GIFT SET, ACCESSORIES, CROSS BODY, BELT-W, BUSINESS CASE, WALLET-W, SLING.'],
@@ -2044,7 +2044,7 @@ async function autoLoadData(){
   if(drop){
     drop.querySelector('.upico').textContent='⏳';
     drop.querySelector('h2').textContent='Connecting to Google Sheet…';
-    drop.querySelector('p').textContent='Trying to load BCL buying data automatically';
+    drop.querySelector('p').textContent='Trying to load buying data automatically';
   }
 
   const encoded=encodeURIComponent(url);
@@ -2125,6 +2125,5 @@ function showRefreshBtn(){
   if(btn)btn.style.display='flex';
 }
 </script>
-<script src="hud-bg.js"></script>
 </body>
 </html>

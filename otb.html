@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Brand Concepts — OTB Report</title>
+<title>OTB Report — Brand Concepts Limited</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -21,14 +21,14 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .badge{font-size:9px;padding:2px 6px;border-radius:8px;font-weight:600;background:rgba(45,212,224,.12);color:var(--blue);border:1px solid rgba(45,212,224,.2);white-space:nowrap;flex-shrink:0}
 .btn{font-size:10px;padding:5px 10px;border-radius:5px;border:1px solid var(--bd);background:var(--bg3);color:var(--t2);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
 .btn:hover{background:var(--bg4);color:var(--text)}
-.btn-blue{background:var(--blue);border-color:var(--blue);color:#101433}
+.btn-blue{background:var(--blue);border-color:var(--blue);color:#fff}
 .btn-blue:hover{opacity:.9}
-.btn-green{background:var(--green);border-color:var(--green);color:#101433}
+.btn-green{background:var(--green);border-color:var(--green);color:#fff}
 .btn-green:hover{opacity:.9}
 input[type=file]{display:none}
 .page-tabs{display:flex;background:var(--bg3);border:1px solid var(--bd);border-radius:5px;overflow:hidden;flex-shrink:0;margin-left:auto}
 .page-tabs button{border:none;background:transparent;color:var(--t3);font-size:10px;font-weight:600;padding:4px 9px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:.15s}
-.page-tabs button.on{background:var(--blue);color:#101433}
+.page-tabs button.on{background:var(--blue);color:#fff}
 .fbar{background:var(--bg2);border-bottom:1px solid var(--bd);padding:4px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;position:relative}
 .flbl{font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
 .kpis{display:flex;gap:9px;padding:6px 18px;background:var(--bg2);border-bottom:1px solid var(--bd);flex-wrap:wrap}
@@ -51,8 +51,8 @@ thead tr:first-child th{top:0;z-index:7;height:31px}
 thead tr:last-child th{top:31px;z-index:6}
 thead th:first-child{text-align:left;min-width:170px;position:sticky;left:0;z-index:8;background:var(--bg3)}
 tbody tr{border-bottom:1px solid var(--bd)}
-tbody tr:hover:not(.gtot) td{background:rgba(255,255,255,.02)}
-tbody tr:hover td:first-child{background:#242a54}
+tbody tr:hover:not(.gtot) td{background:rgba(0,0,0,.03)}
+tbody tr:hover td:first-child{background:#f0f0f5}
 tbody td{padding:6px 10px;text-align:right;font-size:11px;font-family:'DM Mono',monospace;color:var(--t2)}
 tbody td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weight:600;color:var(--text);position:sticky;left:0;background:var(--bg2);z-index:2}
 .gtot td{background:var(--bg3);font-weight:700;color:var(--amber);border-top:2px solid var(--bd)}
@@ -89,7 +89,7 @@ tbody td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weigh
 <body>
 
 <div class="hdr">
-  <div class="logo">Brand<span>C</span></div>
+  <div class="logo">Brand Concepts Limited</div>
   <div><div class="htitle">OTB Report</div><div class="hsub">Open-to-Buy · Quarterly</div></div>
   <span class="badge" id="rec-badge" style="display:none">— rows</span>
   <span class="badge" id="refresh-badge" style="display:none;color:var(--amber);border-color:rgba(251,191,62,.25);background:rgba(251,191,62,.1)">— </span>
@@ -678,6 +678,5 @@ function downloadFullData(){
   showToast('⬇ Downloaded full data');
 }
 </script>
-<script src="hud-bg.js"></script>
 </body>
 </html>
