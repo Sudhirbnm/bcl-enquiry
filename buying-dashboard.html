@@ -640,6 +640,11 @@ function normFY(v){
   return stripped||s;
 }
 
+// FY keys for charts/tables: only real years like '24-25' (drops blank / 'Other' rows)
+function validFYs(groups){
+  const ks=Object.keys(groups).filter(k=>/^\d{2}-\d{2}$/.test(k)).sort();
+  return ks.length?ks:Object.keys(groups).sort();
+}
 function groupBy(data,key){
   return data.reduce((acc,r)=>{
     let k=r[key];
@@ -781,7 +786,7 @@ function renderSummary(d){
 
   // FY trend
   const fyGroups=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyGroups).sort();
+  const fys=validFYs(fyGroups);
   const fyVals=fys.map(fy=>sumBy(fyGroups[fy],COLS.NET));
   const fyQtys=fys.map(fy=>sumBy(fyGroups[fy],COLS.GRN_QTY));
 
@@ -1043,7 +1048,7 @@ function buildUnifiedTable(rows, fys, labelKey, labelFn, clickFn, title, subtitl
 
 function renderBrand(d){
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
   const rows=calcRows(filteredData,COLS.BRAND,fys,true);
 
   d.innerHTML=`
@@ -1067,7 +1072,7 @@ let _drillBrand=null,_drillCat=null;
 function drillBrand(brand,evt){
   _drillBrand=brand;_drillCat=null;
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
   const brandData=filteredData.filter(r=>r[COLS.BRAND]===brand);
   const rows=calcRows(brandData,COLS.CAT,fys,true);
   const sec=document.getElementById('brandDrillSection');
@@ -1091,7 +1096,7 @@ function drillBrand(brand,evt){
 function drillCat(brand,cat){
   _drillCat=cat;
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
   const catData=filteredData.filter(r=>r[COLS.BRAND]===brand&&r[COLS.CAT]===cat);
   const rows=calcRows(catData,COLS.VENDOR,fys,true);
   const sec=document.getElementById('vendorDrillSection');
@@ -1279,7 +1284,7 @@ function calcVendorRows(data, groupKey, fys, sortByTotal){
 
 function renderVendor(d){
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
   const rows=calcVendorRows(filteredData,COLS.VENDOR,fys,true);
 
   d.innerHTML=`
@@ -1294,7 +1299,7 @@ function renderVendor(d){
 
 function drillVendor(vendor,evt){
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
   const vData=filteredData.filter(r=>r[COLS.VENDOR]===vendor);
   const rows=calcVendorRows(vData,COLS.CAT,fys,false);
   const sec=document.getElementById('vendorCatSection');
@@ -1314,7 +1319,7 @@ function drillVendor(vendor,evt){
 
 function drillVendorCat(vendor,cat){
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
   const vcData=filteredData.filter(r=>r[COLS.VENDOR]===vendor&&r[COLS.CAT]===cat);
   const rows=calcVendorRows(vcData,COLS.BRAND,fys,false);
   const sec=document.getElementById('vendorBrandSection');
@@ -1337,7 +1342,7 @@ function drillVendorCat(vendor,cat){
 // ══ PAGE: CATEGORY REPORT ══
 function renderCategory(d){
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
   const styleG=groupBy(filteredData,COLS.STYLE);
 
   // Level 1: Style wise — GRN Qty, Avg Buying Cost, Cost to MRP Factor
@@ -1407,7 +1412,7 @@ function renderCategory(d){
 function drillStyle(style,evt){
   const styleData=filteredData.filter(r=>r[COLS.STYLE]===style);
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
 
   // Level 2A: Vendor × FY (GRN Qty + Avg Buying Price)
   const vendorG=groupBy(styleData,COLS.VENDOR);
@@ -1525,7 +1530,7 @@ function drillStyle(style,evt){
 // ══ PAGE 4: SEASON & CATEGORY ══
 function renderSeason(d){
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
   const catG=groupBy(filteredData,COLS.CAT);
   const cats=Object.keys(catG).sort((a,b)=>sumBy(catG[b],COLS.NET)-sumBy(catG[a],COLS.NET));
   const seasons=[...new Set(filteredData.map(r=>r[COLS.SEASON]).filter(Boolean))].sort();
@@ -1598,7 +1603,7 @@ function renderSeason(d){
 // ══ PAGE 5: CHANNEL ANALYSIS ══
 function renderChannel(d){
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
   const chG=groupBy(filteredData,COLS.CHANNEL);
   const channels=Object.keys(chG).sort((a,b)=>sumBy(chG[b],COLS.NET)-sumBy(chG[a],COLS.NET));
   const totalVal=sumBy(filteredData,COLS.NET);
@@ -1882,7 +1887,7 @@ async function sendAI(){
 
 function buildDataSummary(){
   const fyG=groupBy(filteredData,COLS.FY);
-  const fys=Object.keys(fyG).sort();
+  const fys=validFYs(fyG);
   const brandG=groupBy(filteredData,COLS.BRAND);
   const vG=groupBy(filteredData,COLS.VENDOR);
   const catG=groupBy(filteredData,COLS.CAT);
