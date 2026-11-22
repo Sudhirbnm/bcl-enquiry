@@ -450,15 +450,16 @@ async function loadGoogleSheet(){
 }
 
 function parseCSV(txt){
-  // Strip BOM if present (Google Sheets sometimes adds \uFEFF at start)
-  txt=txt.replace(/^\uFEFF/,'');
-  const lines=txt.split('\n').map(l=>l.replace(/\r$/,''));
-  if(!lines.length)return[];
+  // Strip BOM if present (Google Sheets sometimes adds ﻿ at start)
+  txt=txt.replace(/^﻿/,'');
+  // Parse the whole text at once so quoted cells containing line breaks stay in one row.
+  // (Splitting on '\n' first broke those rows and pushed whole rows of text into the FY column.)
+  const all=parseRows(txt);
+  if(!all.length)return[];
 
-  // ── Scan every line for a "Data Updated" / "DataUpdated" label ──
+  // ── Scan the first rows for a "Data Updated" / "DataUpdated" label ──
   window._dataUpdated='';
-  lines.slice(0,10).forEach(line=>{
-    const row=parseLine(line);
+  all.slice(0,10).forEach(row=>{
     row.forEach((cell,ci)=>{
       if(cell&&cell.toString().trim().toLowerCase().replace(/\s/g,'').indexOf('dataupdated')>=0&&row[ci+1]){
         window._dataUpdated=row[ci+1].toString().trim();
@@ -466,24 +467,20 @@ function parseCSV(txt){
     });
   });
 
-  // ── Find the real header row: the first line that contains 'FY' as a field ──
-  // Handles cases where Data Updated, empty rows, or filter rows appear before headers
+  // ── Find the real header row: the first row that contains 'FY' as a field ──
   let headerIdx=-1;
-  for(let i=0;i<Math.min(lines.length,15);i++){
-    const row=parseLine(lines[i]);
-    // Real header row must contain 'FY' and at least 5 columns
+  for(let i=0;i<Math.min(all.length,15);i++){
+    const row=all[i];
     if(row.length>=5&&row.some(c=>c&&c.toString().trim().toUpperCase()==='FY')){
       headerIdx=i;break;
     }
   }
   if(headerIdx<0){showToast('Could not find header row in sheet');return[];}
 
-  const hdrs=parseLine(lines[headerIdx]);
+  const hdrs=all[headerIdx];
   const rows=[];
-  for(let i=headerIdx+1;i<lines.length;i++){
-    if(!lines[i].trim())continue;
-    const vals=parseLine(lines[i]);
-    // Skip rows where all meaningful fields are empty
+  for(let i=headerIdx+1;i<all.length;i++){
+    const vals=all[i];
     if(vals.every(v=>!v||!v.trim()))continue;
     const obj={};
     hdrs.forEach((h,idx)=>{
@@ -495,16 +492,25 @@ function parseCSV(txt){
   }
   return rows;
 }
-function parseLine(line){
-  const r=[];let cur='',inQ=false;
-  for(let i=0;i<line.length;i++){
-    const c=line[i];
-    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
-    else if(c===','&&!inQ){r.push(cur);cur='';}
-    else cur+=c;
+// Full CSV parser: handles quoted commas, escaped quotes ("") and line breaks inside quoted cells.
+function parseRows(txt){
+  const rows=[];let row=[],cur='',inQ=false;
+  for(let i=0;i<txt.length;i++){
+    const c=txt[i];
+    if(inQ){
+      if(c==='"'){if(txt[i+1]==='"'){cur+='"';i++;}else inQ=false;}
+      else cur+=c;
+    }else if(c==='"')inQ=true;
+    else if(c===','){row.push(cur.replace(/\s*[\r\n]+\s*/g,' '));cur='';}
+    else if(c==='\n'||c==='\r'){
+      if(c==='\r'&&txt[i+1]==='\n')i++;
+      row.push(cur.replace(/\s*[\r\n]+\s*/g,' '));rows.push(row);row=[];cur='';
+    }else cur+=c;
   }
-  r.push(cur);return r;
+  if(cur!==''||row.length){row.push(cur.replace(/\s*[\r\n]+\s*/g,' '));rows.push(row);}
+  return rows;
 }
+function parseLine(line){return parseRows(line)[0]||[];}
 
 // ── Standalone fn to refresh the Data Updated pill — call right after any data load ──
 function updateDataUpdatedPill(){
