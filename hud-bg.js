@@ -9,5 +9,11 @@
   function p(n){return String(n).padStart(2,'0');}
   setInterval(function(){var ms=Date.now()-t0,s=Math.floor(ms/1000);if($('hudClock'))$('hudClock').textContent=p(Math.floor(s/3600))+':'+p(Math.floor(s/60)%60)+':'+p(s%60)+':'+p(Math.floor(ms/10)%100);},50);
   setInterval(function(){pct=Math.min(99.9,Math.max(5,pct+(Math.random()-.45)*2.4));if(!$('hudPct'))return;$('hudPct').textContent=pct.toFixed(1)+'%';$('hudG1').textContent=(40+Math.floor(Math.random()*30))+'%';$('hudG2').textContent=(15+Math.floor(Math.random()*25))+'%';$('hudG3').textContent=(45+Math.floor(Math.random()*20))+'%';},900);
+  // Catalogue on phones: close button for the product sheet
+  function addSheetClose(){var h=document.querySelector('.dpanel .dph');if(!h||h.querySelector('.sheet-close'))return;
+    var b=document.createElement('button');b.className='sheet-close';b.type='button';b.textContent='✕';b.title='Close';
+    b.onclick=function(){var dpb=document.getElementById('dpb'),dpe=document.getElementById('dpe');if(dpb)dpb.style.display='none';if(dpe)dpe.style.display='flex';};
+    h.appendChild(b);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addSheetClose);else addSheetClose();
   if(window.Chart&&Chart.defaults){Chart.defaults.color='#8cc4cf';Chart.defaults.borderColor='rgba(34,228,255,.12)';Chart.defaults.font.family="'Exo 2',sans-serif";}
 })();
