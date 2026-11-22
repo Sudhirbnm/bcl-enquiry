@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BCL — Inward Plan Dashboard</title>
+<title>Inward Plan — Brand Concepts Limited</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -17,13 +17,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 /* TOP BAR */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--s1);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100}
 .logo{display:flex;align-items:center;gap:10px}
-.logo-badge{background:var(--accent);color:#101433;font-weight:700;font-size:14px;padding:4px 10px;border-radius:6px}
+.logo-badge{background:var(--accent);color:#fff;font-weight:700;font-size:14px;padding:4px 10px;border-radius:6px}
 .logo-title{font-size:14px;font-weight:600}
 .logo-sub{color:var(--muted);font-size:11px}
 .topbar-right{display:flex;align-items:center;gap:8px}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:1px solid var(--bd);background:var(--s2);color:var(--text);font-size:12px;cursor:pointer;transition:background .15s;text-decoration:none}
 .btn:hover{background:var(--s3)}
-.btn-primary{background:var(--accent);border-color:var(--accent);color:#101433}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn-primary:hover{opacity:.9}
 .btn-green{background:#1f9d6e;border-color:#1f9d6e;color:#fff}
 .btn-green:hover{opacity:.9}
@@ -110,7 +110,7 @@ input[type=file]{display:none}
 
 <div class="topbar">
   <div class="logo">
-    <span class="logo-badge">BCL</span>
+    <span class="logo-badge">Brand Concepts Limited</span>
     <div>
       <div class="logo-title">Inward Plan — Q2 Pipeline</div>
       <div class="logo-sub">Brand · Vendor · Payment Plan</div>
@@ -772,6 +772,5 @@ function refreshData(){loadData(DEFAULT_URL);}
 // ── AUTO LOAD ──
 window.addEventListener('load',()=>loadData(DEFAULT_URL));
 </script>
-<script src="hud-bg.js"></script>
 </body>
 </html>
