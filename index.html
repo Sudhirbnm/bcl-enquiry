@@ -157,6 +157,13 @@ input[type=date]{color-scheme:light}
 .login-err{background:rgba(215,0,21,.06);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;display:none;align-items:center;gap:8px}
 .login-err.show{display:flex}
 .login-btn{width:100%;margin-top:8px}
+.link-btn{background:none;border:none;color:var(--blue);font-size:14px;font-family:var(--font);cursor:pointer;padding:10px 0 0;display:block;margin:0 auto}
+.link-btn:hover{text-decoration:underline}
+.login-ok{background:rgba(52,199,89,.1);border-radius:var(--r2);padding:10px 14px;font-size:13px;color:#1b7a36;margin-bottom:14px;display:none}
+.login-ok.show{display:block}
+.fp-sub{font-size:14px;color:var(--t2);text-align:center;margin:-4px 0 18px;line-height:1.45}
+.pwd-link{background:none;border:none;color:var(--blue);font-size:12px;font-family:var(--font);cursor:pointer;padding:4px 0 0;white-space:nowrap}
+.pwd-link:hover{text-decoration:underline}
 .login-foot{margin-top:20px;text-align:center;font-size:12px;color:var(--t3)}
 
 /* ── PORTAL ── */
@@ -483,9 +490,28 @@ input[type=date]{color-scheme:light}
           <h2>Report Login</h2>
         </div>
         <div class="login-err" id="loginErr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span id="loginErrText">Invalid username or password</span></div>
+        <div id="signInForm">
         <div class="lf"><label>Username</label><input type="text" id="loginUser" placeholder="Your username" autocomplete="username"></div>
         <div class="lf"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <button class="login-btn" id="loginBtnEl" onclick="doLogin()">Sign In →</button>
+        <button class="link-btn" onclick="showForgot(true)">Forgot password?</button>
+        </div>
+        <div id="forgotForm" style="display:none">
+          <div class="login-ok" id="fpOk"></div>
+          <div id="fpStep1">
+            <p class="fp-sub">Enter your work email. We'll mail you a 6-digit code.</p>
+            <div class="lf"><label>Email</label><input type="email" id="fpUser" placeholder="name@brandconcepts.in" autocomplete="username" onkeydown="if(event.key==='Enter')sendResetCode()"></div>
+            <button class="login-btn" id="fpSendBtn" onclick="sendResetCode()">Send code →</button>
+          </div>
+          <div id="fpStep2" style="display:none">
+            <div class="lf"><label>6-digit code</label><input type="text" id="fpCode" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code"></div>
+            <div class="lf"><label>New password</label><input type="password" id="fpNew" placeholder="At least 6 characters" autocomplete="new-password"></div>
+            <div class="lf"><label>Confirm new password</label><input type="password" id="fpNew2" placeholder="Type it again" autocomplete="new-password" onkeydown="if(event.key==='Enter')doResetPassword()"></div>
+            <button class="login-btn" id="fpResetBtn" onclick="doResetPassword()">Reset password →</button>
+            <button class="link-btn" onclick="sendResetCode()">Resend code</button>
+          </div>
+          <button class="link-btn" onclick="showForgot(false)">← Back to sign in</button>
+        </div>
       </div>
     </div>
   </div>
@@ -500,7 +526,10 @@ input[type=date]{color-scheme:light}
         <h3>Good to have you, <span id="welcomeName"></span>.</h3>
         <p id="welcomeSub">Everything's in place — pick up where you left off.</p>
       </div>
-      <div class="wb-badge" id="wbBadge">Management · L1</div>
+      <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+        <div class="wb-badge" id="wbBadge" style="margin-left:0">Management · L1</div>
+        <button class="pwd-link" id="pwdLink" style="display:none" onclick="openPwdModal()">Change password</button>
+      </div>
     </div>
 
     <div id="adminTabsWrap" style="display:none">
@@ -577,6 +606,20 @@ input[type=date]{color-scheme:light}
     <div class="modal-acts">
       <button class="m-cancel" onclick="closeModal()">Cancel</button>
       <button class="m-save" onclick="saveUser()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="pwdModal">
+  <div class="modal-box">
+    <h3>Change password</h3>
+    <div class="login-err" id="pwdErr"><span id="pwdErrText"></span></div>
+    <div class="mf"><label>Current password</label><input type="password" id="pwOld" autocomplete="current-password"></div>
+    <div class="mf"><label>New password</label><input type="password" id="pwNew" placeholder="At least 6 characters" autocomplete="new-password"></div>
+    <div class="mf"><label>Confirm new password</label><input type="password" id="pwNew2" placeholder="Type it again" autocomplete="new-password" onkeydown="if(event.key==='Enter')doChangePassword()"></div>
+    <div class="modal-acts">
+      <button class="m-cancel" onclick="closePwdModal()">Cancel</button>
+      <button class="m-save" id="pwSaveBtn" onclick="doChangePassword()">Update</button>
     </div>
   </div>
 </div>
@@ -764,7 +807,94 @@ function showPortal(user){
   document.getElementById('userChipName').textContent=user.name.split(' ')[0];
   document.getElementById('logoutBtn').style.display='block';
   document.getElementById('adminTabsWrap').style.display=user.isAdmin?'block':'none';
+  document.getElementById('pwdLink').style.display=user.username===ADMIN.username?'none':'block';
   buildReports();
+}
+
+// ── PASSWORD: forgot / reset ──
+function showForgot(on){
+  document.getElementById('signInForm').style.display=on?'none':'block';
+  document.getElementById('forgotForm').style.display=on?'block':'none';
+  document.getElementById('loginErr').classList.remove('show');
+  document.getElementById('fpOk').classList.remove('show');
+  document.querySelector('.login-panel-hd h2').textContent=on?'Reset password':'Report Login';
+  if(on){
+    document.getElementById('fpStep1').style.display='block';
+    document.getElementById('fpStep2').style.display='none';
+    document.getElementById('fpUser').value=document.getElementById('loginUser').value.trim();
+    ['fpCode','fpNew','fpNew2'].forEach(id=>document.getElementById(id).value='');
+  }
+}
+function fpError(msg){
+  document.getElementById('fpOk').classList.remove('show');
+  document.getElementById('loginErrText').textContent=msg;
+  document.getElementById('loginErr').classList.add('show');
+}
+function fpInfo(msg){
+  document.getElementById('loginErr').classList.remove('show');
+  const ok=document.getElementById('fpOk');ok.textContent=msg;ok.classList.add('show');
+}
+async function sendResetCode(){
+  const u=document.getElementById('fpUser').value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)){fpError('Enter the email you use to sign in');return;}
+  const btn=document.getElementById('fpSendBtn');btn.disabled=true;btn.textContent='Sending…';
+  try{
+    const r=await fetch(SCRIPT_URL+'?action=forgotPassword&username='+encodeURIComponent(u));
+    const d=await r.json();
+    if(d.status==='wait'){fpError(d.message);}
+    else if(d.status==='sent'){
+      fpInfo('If '+u+' is registered, a code is in its inbox. It works for 15 minutes.');
+      document.getElementById('fpStep1').style.display='none';
+      document.getElementById('fpStep2').style.display='block';
+      document.getElementById('fpCode').focus();
+    }else{fpError('Something went wrong. Try again.');}
+  }catch(e){fpError('Couldn\u2019t reach the server \u2014 check your connection and try again');}
+  finally{btn.disabled=false;btn.textContent='Send code →';}
+}
+async function doResetPassword(){
+  const u=document.getElementById('fpUser').value.trim();
+  const c=document.getElementById('fpCode').value.trim();
+  const n=document.getElementById('fpNew').value, n2=document.getElementById('fpNew2').value;
+  if(!/^\d{6}$/.test(c)){fpError('Enter the 6-digit code from your email');return;}
+  if(n.length<6){fpError('Password must be at least 6 characters');return;}
+  if(n!==n2){fpError('The two passwords don\u2019t match');return;}
+  const btn=document.getElementById('fpResetBtn');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    const r=await fetch(SCRIPT_URL+'?action=resetPassword&username='+encodeURIComponent(u)+'&code='+encodeURIComponent(c)+'&newPassword='+encodeURIComponent(n));
+    const d=await r.json();
+    if(d.status==='success'){
+      showForgot(false);
+      document.getElementById('loginUser').value=u;document.getElementById('loginPass').value='';
+      showToast('Password reset. Sign in with your new one.');
+      document.getElementById('loginPass').focus();
+    }else{fpError(d.message||'Couldn\u2019t reset. Try again.');}
+  }catch(e){fpError('Couldn\u2019t reach the server \u2014 check your connection and try again');}
+  finally{btn.disabled=false;btn.textContent='Reset password →';}
+}
+
+// ── PASSWORD: change (logged in) ──
+function openPwdModal(){
+  ['pwOld','pwNew','pwNew2'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pwdErr').classList.remove('show');
+  document.getElementById('pwdModal').classList.add('show');
+  document.getElementById('pwOld').focus();
+}
+function closePwdModal(){document.getElementById('pwdModal').classList.remove('show');}
+function pwdError(msg){document.getElementById('pwdErrText').textContent=msg;document.getElementById('pwdErr').classList.add('show');}
+async function doChangePassword(){
+  const o=document.getElementById('pwOld').value, n=document.getElementById('pwNew').value, n2=document.getElementById('pwNew2').value;
+  if(!o){pwdError('Enter your current password');return;}
+  if(n.length<6){pwdError('New password must be at least 6 characters');return;}
+  if(n!==n2){pwdError('The two new passwords don\u2019t match');return;}
+  if(n===o){pwdError('New password must be different from the current one');return;}
+  const btn=document.getElementById('pwSaveBtn');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    const r=await fetch(SCRIPT_URL+'?action=changePassword&username='+encodeURIComponent(currentUser.username)+'&oldPassword='+encodeURIComponent(o)+'&newPassword='+encodeURIComponent(n));
+    const d=await r.json();
+    if(d.status==='success'){closePwdModal();showToast('Password updated');}
+    else{pwdError(d.message||'Couldn\u2019t update. Try again.');}
+  }catch(e){pwdError('Couldn\u2019t reach the server \u2014 check your connection and try again');}
+  finally{btn.disabled=false;btn.textContent='Update';}
 }
 
 function doLogout(){
@@ -778,6 +908,7 @@ function doLogout(){
   document.getElementById('loginUser').value='';
   document.getElementById('loginPass').value='';
   document.getElementById('loginErr').classList.remove('show');
+  showForgot(false);
   switchPTab('tools');
 }
 
