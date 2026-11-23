@@ -215,6 +215,8 @@ input[type=date]{color-scheme:light}
 @media(max-width:760px){
   .tl{display:none}.ts,.m-only{display:inline}
   body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+  body.on-home{padding-bottom:0}
+  body.on-home .tab-bar{display:none}
   .topbar{height:48px;padding:0 16px;gap:10px}
   .site-name{font-size:15px}
   .logo-img{height:24px}
@@ -222,7 +224,7 @@ input[type=date]{color-scheme:light}
   .user-chip{padding:2px;background:none}.user-name{display:none}
   .logout-btn{font-size:14px}
   /* bottom tab bar */
-  .tab-bar,body.on-home .tab-bar{display:flex;position:fixed;top:auto;bottom:0;left:0;right:0;z-index:150;padding:0 0 env(safe-area-inset-bottom);
+  .tab-bar{display:flex;position:fixed;top:auto;bottom:0;left:0;right:0;z-index:150;padding:0 0 env(safe-area-inset-bottom);
     background:rgba(249,249,249,.92);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--hair)}
   .tab-bar-in{display:flex;width:100%;background:none;border-radius:0;padding:0}
   .tab{flex:1;flex-direction:column;justify-content:center;gap:3px;padding:8px 4px 7px;font-size:10.5px;color:var(--t3);border-radius:0}
@@ -230,7 +232,7 @@ input[type=date]{color-scheme:light}
   .tab svg{opacity:1;width:22px;height:22px}
   .tab.active{background:none;box-shadow:none;color:var(--blue)}
   /* landing */
-  .home-wrap{min-height:calc(100vh - 112px);padding:32px 16px 24px;justify-content:flex-start}
+  .home-wrap{min-height:calc(100vh - 48px);padding:32px 16px 24px;justify-content:flex-start}
   .home-hd{margin-bottom:24px}
   .home-hd h1{font-size:32px}
   .home-hd p{font-size:16px}
