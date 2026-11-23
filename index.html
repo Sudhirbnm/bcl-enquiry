@@ -53,6 +53,8 @@ button{font-family:inherit}
 .tab.active{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
 .tab.active svg{opacity:1;color:var(--blue)}
 body.on-home .tab-bar{display:none}
+/* each path shows only Home + its own tab */
+body.on-enquiry #tab-portal,body.on-portal #tab-enquiry{display:none!important}
 
 /* ── PAGES ── */
 .page{display:none;flex:1}
@@ -630,6 +632,8 @@ function switchTab(tab){
     document.getElementById('page-'+t).classList.toggle('active',t===tab);
   });
   document.body.classList.toggle('on-home',tab==='home');
+  document.body.classList.toggle('on-enquiry',tab==='enquiry');
+  document.body.classList.toggle('on-portal',tab==='portal');
   document.body.classList.toggle('on-login',tab==='portal'&&!currentUser);
   document.getElementById('headerSub').textContent={home:'',enquiry:'Institutional Enquiry',portal:'Reports'}[tab];
   window.scrollTo(0,0);
