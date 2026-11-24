@@ -607,6 +607,7 @@ const ICON_SVG={
 const ALL_REPORTS=[
   {id:'catalogue',title:'Product Intelligence',desc:'Every SKU. Every colour. Every price. Instant.',icon:'folder',accent:'linear-gradient(135deg,#3b82f6,#8b5cf6)',ibg:'rgba(59,130,246,.12)',dept:['Sales-LFS','Sales-DND','Sales-EBO','Sales-Govt','Sales-Insti','Sales-Ecom','Buying','Management'],level:['L1','L2','L3'],url:'catalogue.html',tag:'All Brands · All Channels',ext:false},
   {id:'buying',title:'Buying Intelligence',desc:'Five years of buying intelligence. Ask anything.',icon:'chart',accent:'linear-gradient(135deg,#10b981,#06b6d4)',ibg:'rgba(16,185,129,.12)',dept:['Buying','Management'],level:['L1','L2'],url:'buying-dashboard.html',tag:'Buying · 5 Year',ext:false},
+  {id:'buying-dbx',title:'Buying Intelligence · Dropbox',desc:'Every GRN since FY 21-22, straight from Dropbox. Ask anything.',icon:'chart',accent:'linear-gradient(135deg,#0061fe,#06b6d4)',ibg:'rgba(0,97,254,.12)',dept:['Buying','Management'],level:['L1','L2'],url:'buying-dropbox.html',tag:'Buying · GRN · Dropbox',ext:false},
   {id:'enquiry-data',title:'Enquiry Log',desc:'Live enquiry log. Every lead, every status.',icon:'clipboard',accent:'linear-gradient(135deg,#06b6d4,#3b82f6)',ibg:'rgba(6,182,212,.12)',dept:['Management','Sales-LFS','Sales-DND','Sales-EBO','Sales-Govt','Sales-Insti','Sales-Ecom'],level:['L1','L2'],url:'https://docs.google.com/spreadsheets/d/1gOTr8sAGYpbLbI-U5J4iBBmwafaf1RGKdUbl3wrgFrQ/edit',tag:'Sales · Management',ext:true},
   {id:'otb',title:'OTB Planner',desc:'Know exactly what to buy — before you commit.',icon:'calc',accent:'linear-gradient(135deg,#f59e0b,#ef4444)',ibg:'rgba(245,158,11,.12)',dept:['Buying','Management'],level:['L1','L2','L3'],url:'otb.html',tag:'Buying · Planning',ext:false},
   {id:'lfs',title:'LFS Performance',desc:'Five years of LFS performance, distilled.',icon:'trend',accent:'linear-gradient(135deg,#10b981,#84cc16)',ibg:'rgba(16,185,129,.12)',dept:['Sales-LFS','Management','Buying'],level:['L1','L2','L3'],url:'lfs.html',tag:'Sales · LFS',ext:false},
@@ -806,7 +807,7 @@ function buildReports(){
     ALL_REPORTS.filter(r=>r.dept.includes(currentUser.dept)&&r.level.includes(currentUser.level));
   if(!show.length){grid.innerHTML='<p class="no-reports">Nothing\u2019s been assigned to you yet — reach out to your admin to get set up.</p>';return;}
   show.forEach((r,i)=>{
-    const acc={catalogue:'#007aff',buying:'#34c759','enquiry-data':'#30b0c7',otb:'#ff9500',lfs:'#00c7be',secondary:'#5856d6',inward:'#af52de',factory:'#636366',myntra:'#ff2d55'}[r.id]||'#007aff';
+    const acc={catalogue:'#007aff',buying:'#34c759','enquiry-data':'#30b0c7',otb:'#ff9500',lfs:'#00c7be',secondary:'#5856d6',inward:'#af52de',factory:'#636366','buying-dbx':'#0061fe',myntra:'#ff2d55'}[r.id]||'#007aff';
     const a=document.createElement('a');
     a.href=r.url;a.target=r.ext?'_blank':'_self';
     a.className='tool-card';
