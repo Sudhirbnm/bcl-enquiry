@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open PO — Brand Concepts Limited</title>
+<script>
+/* Access: only after portal login, and only for users who have the Open PO report */
+(function(){
+  var u=null;try{u=JSON.parse(sessionStorage.getItem('bcl_user')||'null');}catch(e){}
+  var tools=u&&u.tools?String(u.tools).split(',').filter(Boolean):[];
+  var ok=!!u&&(u.isAdmin||(tools.length?tools.indexOf('openpo')>=0:
+    (['Management','Buying'].indexOf(u.dept)>=0&&['L1','L2','L3'].indexOf(u.level)>=0)));
+  if(!ok){document.documentElement.style.visibility='hidden';location.replace('index.html');}
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f5f5f7;--s1:#ffffff;--s2:#f5f5f7;--s3:#e8e8ed;--bd:#e3e3e8;--bd2:#c7c7cc;--hair:rgba(0,0,0,.08);
+  --text:#1d1d1f;--muted:#6e6e73;--dim:#a1a1a6;
+  --accent:#0071e3;--green:#248a3d;--amber:#b25000;--red:#d70015;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 3px 12px rgba(0,0,0,.05)}
+html{-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;min-height:100vh;letter-spacing:-.005em}
+a{color:inherit;text-decoration:none}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 20px;background:rgba(255,255,255,.8);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--hair);position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.logo-co{font-size:12px;font-weight:600;color:var(--muted)}
+.logo-title{font-size:17px;font-weight:600;letter-spacing:-.02em}
+.logo-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-size:12px;color:var(--muted);background:rgba(0,0,0,.05);padding:5px 11px;border-radius:20px;white-space:nowrap}
+.badge b{color:var(--text);font-weight:500}
+.badge.warn{background:#fff4e5;color:var(--amber);cursor:pointer}
+.badge.err{background:#ffeef0;color:var(--red);cursor:pointer}
+.btn{background:#fff;border:1px solid var(--bd2);color:var(--text);font:inherit;font-size:13px;font-weight:500;padding:6px 13px;border-radius:8px;cursor:pointer;white-space:nowrap;box-shadow:0 .5px 1px rgba(0,0,0,.05)}
+.btn:hover{background:#f5f5f7}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{background:#0077ed}
+.btn-sm{font-size:12px;padding:4px 10px}
+#fileInput{display:none}
+
+.tabs{display:flex;justify-content:center;padding:14px 16px 4px}
+.seg{display:inline-flex;background:#e3e3e8;border-radius:9px;padding:2px;gap:2px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{padding:6px 16px;cursor:pointer;color:var(--text);font:inherit;font-size:13px;font-weight:500;border:none;background:none;border-radius:7px;white-space:nowrap}
+.seg button:hover{background:rgba(255,255,255,.55)}
+.seg button.active{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
+.seg.small button{padding:4px 12px;font-size:12px}
+
+.filter-bar{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;padding:12px 20px;max-width:1500px;margin:0 auto}
+.fl{display:flex;flex-direction:column;gap:4px}
+.fl label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.fl select{font:inherit;font-size:13px;padding:6px 28px 6px 10px;border:1px solid var(--bd2);border-radius:8px;background:#fff;min-width:150px;max-width:230px;
+  appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236e6e73'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.fl-actions{margin-left:auto;display:flex;gap:8px}
+
+.main{padding:4px 20px 40px;max-width:1500px;margin:0 auto}
+.card{background:var(--s1);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px;margin-bottom:14px}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.card-t{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.card-s{font-size:12px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:var(--s1);border-radius:14px;box-shadow:var(--shadow);padding:14px 16px}
+.kpi .k{font-size:12px;color:var(--muted);font-weight:500}
+.kpi .v{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-top:4px}
+.kpi .v.red{color:var(--red)}
+.kpi .s{font-size:11px;color:var(--dim);margin-top:2px}
+
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.rep{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}
+.rep th{font-size:11px;font-weight:600;color:var(--muted);text-align:right;padding:8px 10px;border-bottom:1px solid var(--bd);white-space:nowrap;background:var(--s1);position:sticky;top:0}
+.rep th .sub{display:block;font-weight:400;color:var(--dim);font-size:10px;margin-top:1px}
+.rep th:first-child,.rep td:first-child{text-align:left;position:sticky;left:0;background:inherit;z-index:1}
+.rep th:first-child{z-index:2}
+.rep td{padding:7px 10px;text-align:right;border-bottom:1px solid #f0f0f3;white-space:nowrap}
+.rep tr{background:var(--s1)}
+.rep tr.l0 td{font-weight:600}
+.rep tr.l1{background:#fafafc}
+.rep tr.l1 td:first-child{padding-left:30px}
+.rep tr.l2{background:#f4f5f8}
+.rep tr.l2 td:first-child{padding-left:52px;color:#3a3a3c}
+.rep tr.tot{background:#eef4ff}
+.rep tr.tot td{font-weight:700;border-top:1px solid var(--bd2);border-bottom:none}
+.rep td.od{color:var(--red)}
+.rep th.od{color:var(--red)}
+.rep td.ttl,.rep th.ttl{background:rgba(0,113,227,.04);font-weight:600}
+.rep td.z{color:#c7c7cc}
+.rep td.cnt{color:var(--muted)}
+.tg{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;border:1px solid var(--bd2);background:#fff;
+  font-size:13px;line-height:1;cursor:pointer;margin-right:8px;color:var(--accent);font-weight:600;vertical-align:-3px;user-select:none}
+.tg:hover{background:#eef4ff}
+.tg.sp{visibility:hidden}
+.nm{display:inline-block;max-width:320px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
+.nm small{color:var(--muted);font-weight:400}
+
+.dt td,.dt th{text-align:left}
+.dt td.n,.dt th.n{text-align:right}
+.dt tr.bad td{background:#fff4f4}
+.dt td.badv{color:var(--red);font-weight:600}
+.note{font-size:12px;color:var(--muted);line-height:1.5}
+
+.state{display:flex;flex-direction:column;align-items:center;gap:12px;padding:70px 20px;color:var(--muted);text-align:center}
+.state .t{font-size:16px;font-weight:600;color:var(--text)}
+.spinner{width:28px;height:28px;border:3px solid #e3e3e8;border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ldrows{display:flex;flex-direction:column;gap:6px;min-width:300px;margin-top:6px}
+.ldrow{display:flex;justify-content:space-between;gap:16px;font-size:12px;background:#fff;padding:7px 12px;border-radius:8px;box-shadow:var(--shadow)}
+.ldrow.ok span{color:var(--green)}.ldrow.warn span{color:var(--amber)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:rgba(29,29,31,.92);color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:300}
+.toast.on{opacity:1}
+
+@media(max-width:760px){
+  .topbar{padding:10px 12px}
+  .filter-bar{padding:10px 12px;gap:10px}
+  .fl{flex:1 1 45%}
+  .fl select{min-width:0;max-width:none;width:100%}
+  .fl-actions{margin-left:0;width:100%}
+  .main{padding:4px 10px 30px}
+  .card{padding:12px}
+  .nm{max-width:170px}
+  .rep td,.rep th{padding:7px 8px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-co">Brand Concepts Limited</div>
+    <div class="logo-title">Open PO</div>
+    <div class="logo-sub">Pending PO inward plan · by delivery month</div>
+  </div>
+  <div class="topbar-right">
+    <span class="badge" id="asOf" style="display:none">As of <b id="asOfVal">—</b></span>
+    <span class="badge warn" id="mmPill" style="display:none" onclick="switchPage('check')"></span>
+    <span class="badge warn" id="unPill" style="display:none" onclick="switchPage('check')"></span>
+    <button class="btn btn-primary" onclick="loadAll()">Refresh</button>
+    <button class="btn" onclick="document.getElementById('fileInput').click()" title="Open Pending PO.xlsx (and Item Master) from this computer">Open file…</button>
+    <a class="btn" href="index.html">‹ Portal</a>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsb" multiple onchange="openFiles(event)">
+  </div>
+</div>
+
+<div class="tabs"><div class="seg" id="pageSeg">
+  <button class="active" data-p="brand" onclick="switchPage('brand')">Overview · Brand</button>
+  <button data-p="cat" onclick="switchPage('cat')">Category View</button>
+  <button data-p="check" onclick="switchPage('check')">Data Check</button>
+</div></div>
+
+<div class="filter-bar" id="filterBar" style="display:none">
+  <div class="fl"><label>Brand</label><select id="fBrand" onchange="render()"></select></div>
+  <div class="fl"><label>Channel</label><select id="fChannel" onchange="render()"></select></div>
+  <div class="fl"><label>Remark</label><select id="fRemark" onchange="render()"></select></div>
+  <div class="fl"><label>Buying for</label><select id="fBuying" onchange="render()"></select></div>
+  <div class="fl"><label>Qty / Value</label><div class="seg small" id="measSeg">
+    <button class="active" data-v="qty" onclick="setSeg('meas','qty')">Qty</button><button data-v="val" onclick="setSeg('meas','val')">Value ₹L</button></div></div>
+  <div class="fl"><label>Month / Quarter</label><div class="seg small" id="perSeg">
+    <button class="active" data-v="m" onclick="setSeg('per','m')">Month</button><button data-v="q" onclick="setSeg('per','q')">Quarter</button></div></div>
+  <div class="fl-actions">
+    <button class="btn btn-sm" onclick="expandAll(true)">Expand all</button>
+    <button class="btn btn-sm" onclick="expandAll(false)">Collapse all</button>
+    <button class="btn btn-sm" onclick="downloadLines()">⬇ Excel</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="state" id="stateBox"><div class="spinner"></div><div class="t">Loading open PO…</div><div id="stateSub">Fetching Pending PO and Item Master from Dropbox</div><div class="ldrows" id="ldRows"></div></div>
+  <div id="view" style="display:none"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/*ENGINE-START*/
+/* Pure data logic: reads Pending PO + Item Master, joins by EAN, buckets by delivery date. No page code in here. */
+const ENGINE=(function(){
+  const DAY=86400000;
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONIDX={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+  function norm(h){return h==null?'':String(h).toLowerCase().replace(/[^a-z0-9]/g,'');}
+  function txt(v){if(v==null)return'';if(typeof v==='number'&&Number.isInteger(v))return String(v);return String(v).trim();}
+  function num(v){if(v==null||v==='')return null;if(typeof v==='number')return isNaN(v)?null:v;
+    const n=parseFloat(String(v).replace(/[₹,\s]/g,''));return isNaN(n)?null:n;}
+  function eanTxt(v){
+    if(v==null)return'';
+    if(typeof v==='number')return String(Math.round(v));
+    let s=String(v).trim().replace(/^'+/,'');
+    if(/^\d+\.0+$/.test(s))s=s.replace(/\.0+$/,'');
+    if(/^\d+(\.\d+)?e\+\d+$/i.test(s))s=String(Math.round(Number(s)));
+    return s;
+  }
+  const utc=(y,m,d)=>Date.UTC(y,m,d);
+  function dateT(v){
+    if(v==null||v==='')return null;
+    if(typeof v==='number')return (v>20000&&v<90000)?Math.round((Math.floor(v)-25569)*DAY):null;
+    if(v instanceof Date)return utc(v.getFullYear(),v.getMonth(),v.getDate());
+    const s=String(v).trim();
+    let m=s.match(/^(\d{1,2})[-\/. ](\d{1,2})[-\/. ](\d{2,4})$/);
+    if(m){let y=+m[3];if(y<100)y+=2000;return utc(y,+m[2]-1,+m[1]);}
+    m=s.match(/^(\d{1,2})[-\/ ]([A-Za-z]{3})[A-Za-z]*[-\/ ,]+(\d{2,4})$/);
+    if(m&&MONIDX[m[2].toLowerCase()]!=null){let y=+m[3];if(y<100)y+=2000;return utc(y,MONIDX[m[2].toLowerCase()],+m[1]);}
+    m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(m)return utc(+m[1],+m[2]-1,+m[3]);
+    return null;
+  }
+  function fmtD(t){if(t==null)return'';const d=new Date(t);
+    return String(d.getUTCDate()).padStart(2,'0')+'-'+MON[d.getUTCMonth()]+'-'+String(d.getUTCFullYear()).slice(-2);}
+
+  function colLetters(XLSX,n){const a=[];for(let c=0;c<=n;c++)a.push(XLSX.utils.encode_col(c));return a;}
+  function findHeader(XLSX,wb,mustHave,maxScan){
+    for(const name of wb.SheetNames){
+      const ws=wb.Sheets[name];if(!ws||!ws['!ref'])continue;
+      const rg=XLSX.utils.decode_range(ws['!ref']);const L=colLetters(XLSX,rg.e.c);
+      for(let r=rg.s.r;r<=Math.min(rg.e.r,rg.s.r+maxScan);r++){
+        const hdr=[];let hit=0;
+        for(let c=0;c<=rg.e.c;c++){const cell=ws[L[c]+(r+1)];const h=norm(cell?cell.v:'');hdr[c]=h;if(mustHave.includes(h))hit++;}
+        if(hit>=Math.min(2,mustHave.length))return{ws,name,hr:r,hdr,rg,L};
+      }
+    }
+    return null;
+  }
+  function colOf(hdr,aliases){for(const a of aliases){const i=hdr.indexOf(a);if(i>=0)return i;}return -1;}
+
+  // ---- Pending PO: only these columns are used; product details come from the Item Master ----
+  const PO_COLS={
+    ean:['barcode','eancode','ean'],qty:['itempendingqty','pendingqty','balanceqty'],po:['gslpo','pono','po'],
+    orderDate:['orderdate','podate'],delDate:['deliverydate','deldate'],vendor:['vendername','vendorname','vendor','vander'],
+    cur:['currency'],rate:['rate'],landed:['landedrate','landedcost'],amount:['amount','value'],
+    remark:['remark','remarks'],buyingFor:['buyingfor']
+  };
+  function isPO(XLSX,wb){return !!findHeader(XLSX,wb,['barcode','itempendingqty'],15);}
+  // rows: [ean,qty,po,orderT,delT,vendor,cur,rate,landed,amount,remark,buyingFor]
+  function parsePO(XLSX,wb){
+    const f=findHeader(XLSX,wb,['barcode','itempendingqty'],15);
+    if(!f)throw new Error('BarCode / Item Pending Qty header not found in Pending PO');
+    const ci={};for(const k in PO_COLS)ci[k]=colOf(f.hdr,PO_COLS[k]);
+    ['qty','delDate','landed'].forEach(k=>{if(ci[k]<0)throw new Error('Column not found in Pending PO: '+PO_COLS[k][0]);});
+    const ws=f.ws,L=f.L,rows=[];
+    for(let r=f.hr+1;r<=f.rg.e.r;r++){
+      const R=r+1,g=k=>{const c=ci[k];if(c<0)return null;const cell=ws[L[c]+R];return cell?cell.v:null;};
+      const ean=eanTxt(g('ean')),qty=num(g('qty'));
+      if(!ean||qty==null||qty===0)continue;
+      rows.push([ean,qty,txt(g('po')),dateT(g('orderDate')),dateT(g('delDate')),txt(g('vendor')),txt(g('cur')),
+        num(g('rate')),num(g('landed'))||0,num(g('amount')),txt(g('remark')),txt(g('buyingFor'))]);
+    }
+    return rows;
+  }
+
+  // ---- Item Master (same columns as the Buying report; the "S." columns are the clean ones) ----
+  const MASTER_FIELDS=[
+    ['brand',['sbrand','brand']],['cat',['scategory','category']],['otb',['schannelforotb','channelforotb']],['ch',['schannel','channel']],
+    ['styleCode',['stylecode']],['style',['stylename']],['color',['color','colour']]
+  ];
+  const MF=MASTER_FIELDS.map(x=>x[0]);
+  function parseMaster(XLSX,wb){
+    const f=findHeader(XLSX,wb,['eancode'],10);
+    if(!f)throw new Error('EANCODE header not found in Item Master');
+    const eanC=f.hdr.indexOf('eancode');
+    const cols=MASTER_FIELDS.map(([k,al])=>colOf(f.hdr,al));
+    const missing=MASTER_FIELDS.filter((x,i)=>cols[i]<0).map(x=>x[0]);
+    const ws=f.ws,L=f.L,map={};let n=0;
+    for(let r=f.hr+1;r<=f.rg.e.r;r++){
+      const R=r+1,ec=ws[L[eanC]+R];const ean=eanTxt(ec?ec.v:null);
+      if(!ean||map[ean])continue;
+      map[ean]=cols.map(c=>{if(c<0)return'';const cell=ws[L[c]+R];return txt(cell?cell.v:null);});
+      n++;
+    }
+    return{fields:MF,map,count:n,missing};
+  }
+
+  const UNMAPPED='Unmapped';
+  const TOL=1;   // ₹ difference allowed between Amount and Qty × Landed Rate (rounding)
+  function buildRows(po,master){
+    const I={};MF.forEach((k,i)=>I[k]=i);
+    const out=[],unm={},mism=[];
+    po.forEach(p=>{
+      const [ean,qty,poNo,orderT,delT,vendor,cur,rate,landed,amount,remark,buyingFor]=p;
+      const m=master&&master.map[ean];
+      const a=k=>m?(m[I[k]]||'—'):UNMAPPED;
+      const value=qty*landed;
+      const diff=amount==null?null:amount-value;
+      const styleCode=m?(m[I.styleCode]||m[I.style]||ean):UNMAPPED;
+      const styleName=m?(m[I.style]||''):'';
+      const color=m?(m[I.color]||'—'):'';
+      const row={EAN:ean,Qty:qty,PO:poNo,OrderT:orderT,DelT:delT,Vendor:vendor||'—',Currency:cur,Rate:rate,Landed:landed,
+        Amount:amount,Value:value,Diff:diff,Mismatch:diff!=null&&Math.abs(diff)>TOL,
+        Remark:remark||'(blank)',BuyingFor:buyingFor||'(blank)',
+        Brand:a('brand'),Category:a('cat'),Channel:m?(m[I.otb]||m[I.ch]||'—'):UNMAPPED,
+        Style:styleCode,StyleName:styleName,Color:color,
+        Option:m?styleCode+' · '+color:ean,Mapped:!!m};
+      out.push(row);
+      if(row.Mismatch)mism.push(row);
+      if(!m){const u=unm[ean]||(unm[ean]={EAN:ean,Vendor:row.Vendor,Lines:0,Qty:0,Value:0});u.Lines++;u.Qty+=qty;u.Value+=value;}
+    });
+    return{rows:out,unmapped:Object.values(unm).sort((x,y)=>y.Value-x.Value),mismatch:mism};
+  }
+
+  // ---- buckets: Overdue (before 1st of this month) · next periods · After that ----
+  // today = UTC ms of the calendar day
+  function buckets(mode,today){
+    const d=new Date(today),y=d.getUTCFullYear(),m=d.getUTCMonth();
+    const m0=utc(y,m,1);
+    const list=[{key:'OD',label:'Overdue',sub:'before '+MON[m]+'-'+String(y).slice(-2)}];
+    let ends=[];   // exclusive end of each period after m0
+    if(mode==='m'){
+      for(let i=0;i<6;i++){const s=new Date(utc(y,m+i,1));
+        list.push({key:'P'+i,label:MON[s.getUTCMonth()]+'-'+String(s.getUTCFullYear()).slice(-2),sub:''});ends.push(utc(y,m+i+1,1));}
+    }else{
+      // FY quarters: Q1 Apr–Jun, Q2 Jul–Sep, Q3 Oct–Dec, Q4 Jan–Mar. Current quarter shows only its remaining months.
+      const fyMi=(m+9)%12,q=Math.floor(fyMi/3);
+      const fyStartY=m<3?y-1:y;
+      for(let i=0;i<3;i++){
+        const qi=q+i,fyY=fyStartY+Math.floor(qi/4),qn=qi%4;
+        const qs=utc(fyY,3+qn*3,1),qe=utc(fyY,3+qn*3+3,1);
+        const from=i===0?m0:qs;
+        const a=new Date(from),b=new Date(qe-DAY);
+        const sub=a.getUTCMonth()===b.getUTCMonth()?MON[a.getUTCMonth()]:MON[a.getUTCMonth()]+'–'+MON[b.getUTCMonth()];
+        list.push({key:'P'+i,label:'Q'+(qn+1)+' FY'+String(fyY).slice(-2)+'-'+String(fyY+1).slice(-2),sub});
+        ends.push(qe);
+      }
+    }
+    list.push({key:'AFT',label:'After that',sub:''});
+    const fn=t=>{
+      if(t==null)return'ND';
+      if(t<m0)return'OD';
+      for(let i=0;i<ends.length;i++)if(t<ends[i])return'P'+i;
+      return'AFT';
+    };
+    return{list,of:fn};
+  }
+
+  // ---- tree: levels = ['Brand','Category'] etc. ----
+  function tree(rows,levels,bk,meas){
+    const keys=bk.list.map(b=>b.key).concat(['ND']);
+    const mk=name=>({name,v:Object.fromEntries(keys.map(k=>[k,0])),ttl:0,styles:new Set(),opts:new Set(),kids:new Map()});
+    const root=mk('TTL');
+    rows.forEach(r=>{
+      const b=bk.of(r.DelT),x=meas==='val'?r.Value:r.Qty;
+      let n=root;const path=[root];
+      levels.forEach(l=>{let c=n.kids.get(r[l]);if(!c){c=mk(r[l]);n.kids.set(r[l],c);}n=c;path.push(n);});
+      path.forEach(p=>{p.v[b]+=x;p.ttl+=x;if(r.Mapped){p.styles.add(r.Style);p.opts.add(r.Option);}});
+    });
+    return root;
+  }
+
+  return{isPO,parsePO,parseMaster,buildRows,buckets,tree,fmtD,dateT,MON,UNMAPPED,TOL};
+})();
+/*ENGINE-END*/
+
+
+/* ───────────────── SETTINGS ───────────────── */
+// Web App URL of the "Open PO Relay" Google Apps Script (serves Pending PO.xlsx + Item Master from Dropbox).
+const OPENPO_RELAY='https://script.google.com/macros/s/AKfycbzAT40IWeZDicuL2rvSeF3fXlRVHeUy5GB4sJDSC71prrR_3qQh_5AI9fnYCe0TMW61/exec';
+
+let ROWS=[],UNMAPPED=[],MISMATCH=[],PAGE='brand',MEAS='qty',PER='m';
+let MASTER=null,POROWS=null,SRC='';
+const OPEN=new Set();   // expanded row ids
+
+/* ── saved copies (IndexedDB) — the Item Master is only downloaded again when it changes ── */
+const CACHE_DB='bcl_openpo_dbx',CACHE_STORE='files',CACHE_VER='v1:';
+function idb(){return new Promise((res,rej)=>{
+  if(!window.indexedDB)return rej(new Error('No IndexedDB'));
+  const q=indexedDB.open(CACHE_DB,1);
+  q.onupgradeneeded=()=>q.result.createObjectStore(CACHE_STORE);
+  q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);
+});}
+async function cacheGet(k){try{const db=await idb();return await new Promise(res=>{
+  const t=db.transaction(CACHE_STORE).objectStore(CACHE_STORE).get(k);t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(null);});}catch(e){return null;}}
+async function cachePut(k,v){try{const db=await idb();await new Promise(res=>{
+  const tx=db.transaction(CACHE_STORE,'readwrite');tx.objectStore(CACHE_STORE).put(v,k);tx.oncomplete=res;tx.onerror=res;tx.onabort=res;});}catch(e){}}
+
+async function relay(params){
+  const r=await fetch(OPENPO_RELAY+(OPENPO_RELAY.includes('?')?'&':'?')+new URLSearchParams({...params,t:Date.now()}),{cache:'no-store'});
+  let j;try{j=await r.json();}catch(e){throw new Error('Relay did not return data (HTTP '+r.status+')');}
+  if(j.status==='error')throw new Error(j.message||'Relay error');
+  return j;
+}
+function b64ToBytes(b){const bin=atob(b),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a;}
+const yieldUI=()=>new Promise(r=>setTimeout(r,30));
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3200);}
+
+function stateMsg(title,sub,spin){
+  const b=document.getElementById('stateBox');b.style.display='flex';
+  document.getElementById('view').style.display='none';
+  b.querySelector('.spinner').style.display=spin?'':'none';
+  b.querySelector('.t').textContent=title;
+  document.getElementById('stateSub').innerHTML=sub||'';
+}
+function ldRows(files){document.getElementById('ldRows').innerHTML=files.map((f,i)=>`<div class="ldrow" id="ld-${i}"><b>${esc(f.name)}</b><span>Waiting…</span></div>`).join('');}
+function ldRow(i,msg,cls){const el=document.getElementById('ld-'+i);if(!el)return;el.className='ldrow'+(cls?' '+cls:'');el.querySelector('span').textContent=msg;}
+
+/* ── LOAD from Dropbox (relay) ── */
+let _loading=false;
+async function loadAll(){
+  if(_loading)return;
+  if(!OPENPO_RELAY){
+    const m=await cacheGet(CACHE_VER+'master');
+    if(m){MASTER=m.data;}
+    stateMsg('Live data connection isn’t set up yet','The Open PO Relay URL has not been added to this page.<br>Meanwhile use <b>Open file…</b> to open Pending PO.xlsx (and the Item Master) from this computer.',false);
+    document.getElementById('ldRows').innerHTML='';return;
+  }
+  _loading=true;const had=ROWS.length>0;
+  if(!had)stateMsg('Loading open PO…','Fetching Pending PO and Item Master from Dropbox',true);else toast('Checking Dropbox for updates…');
+  try{
+    const list=await relay({action:'list'});
+    const files=(list.files||[]).filter(f=>f.type==='openpo'||f.type==='master').sort((a,b)=>a.type==='master'?1:-1);
+    if(!files.some(f=>f.type==='openpo'))throw new Error('The Pending PO link is missing in the relay');
+    if(!files.some(f=>f.type==='master'))throw new Error('The Item Master link is missing in the relay');
+    if(!had)ldRows(files);
+    const checks=files.map((f,i)=>checkFile(f,i));checks.forEach(p=>p.catch(()=>{}));
+    const got=[];for(let i=0;i<files.length;i++)got.push(await readFile(files[i],i,await checks[i]));
+    POROWS=got.find(g=>g.type==='openpo').data;MASTER=got.find(g=>g.type==='master').data;SRC='Dropbox';
+    build(had);
+    const stale=got.filter(g=>g.stale).map(g=>g.name);
+    toast(stale.length?'⚠ Showing saved copy for: '+stale.join(', '):'✓ '+ROWS.length.toLocaleString('en-IN')+' open PO lines loaded');
+  }catch(e){
+    console.error(e);
+    if(had)toast('⚠ Refresh failed: '+e.message);
+    else{stateMsg('Couldn’t load the open PO data',esc(e.message)+'<br><br><button class="btn btn-primary" onclick="loadAll()">Try again</button>',false);document.getElementById('ldRows').innerHTML='';}
+  }
+  _loading=false;
+}
+async function checkFile(f,i){
+  const cached=await cacheGet(CACHE_VER+f.type);
+  ldRow(i,'Checking Dropbox…');
+  try{return{j:await relay({action:'file',name:f.name,have:cached?cached.version:''}),cached};}
+  catch(e){if(cached)return{cached,err:e};throw new Error(f.name+': '+e.message);}
+}
+async function readFile(f,i,res){
+  const {j,cached,err}=res;
+  if(err){ldRow(i,'Saved copy (Dropbox not reachable)','warn');return{...f,data:cached.data,stale:true};}
+  if(j.status==='same'&&cached){ldRow(i,'Up to date ✓','ok');return{...f,data:cached.data};}
+  if(!j.b64)throw new Error(f.name+': no file data returned');
+  ldRow(i,f.type==='master'?'Reading Item Master (one-time, ~10 s)…':'Reading…');await yieldUI();
+  let data;
+  try{const wb=XLSX.read(b64ToBytes(j.b64),{type:'array'});data=f.type==='master'?ENGINE.parseMaster(XLSX,wb):ENGINE.parsePO(XLSX,wb);}
+  catch(e){throw new Error(f.name+': '+e.message);}
+  if(f.type==='master'&&data.missing&&data.missing.length)console.warn('Item Master columns not found:',data.missing);
+  await cachePut(CACHE_VER+f.type,{version:j.version,data,savedAt:Date.now()});
+  ldRow(i,(cached?'Updated':'Downloaded')+' ✓','ok');
+  return{...f,data};
+}
+
+/* ── OPEN FILE(S) from this computer ── */
+async function openFiles(ev){
+  const fs=[...ev.target.files];ev.target.value='';if(!fs.length)return;
+  stateMsg('Reading file…','',true);document.getElementById('ldRows').innerHTML='';await yieldUI();
+  try{
+    for(const f of fs){
+      const wb=XLSX.read(new Uint8Array(await f.arrayBuffer()),{type:'array'});
+      if(ENGINE.isPO(XLSX,wb)){POROWS=ENGINE.parsePO(XLSX,wb);SRC=f.name;}
+      else{MASTER=ENGINE.parseMaster(XLSX,wb);await cachePut(CACHE_VER+'master',{version:'local',data:MASTER,savedAt:Date.now()});}
+    }
+    if(!MASTER){const m=await cacheGet(CACHE_VER+'master');if(m)MASTER=m.data;}
+    if(!POROWS){stateMsg('Now open Pending PO.xlsx','Item Master read ✓ — open the Pending PO file next.',false);return;}
+    if(!MASTER)toast('⚠ No Item Master yet — brand/category show as Unmapped. Open the Item Master too.');
+    build(ROWS.length>0);
+  }catch(e){console.error(e);stateMsg('Couldn’t read the file',esc(e.message),false);}
+}
+
+/* ── BUILD + FILTERS ── */
+function todayT(){const d=new Date();return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());}
+function build(keep){
+  const b=ENGINE.buildRows(POROWS,MASTER||{map:{}});
+  ROWS=b.rows;UNMAPPED=b.unmapped;MISMATCH=b.mismatch;
+  document.getElementById('stateBox').style.display='none';
+  document.getElementById('view').style.display='block';
+  document.getElementById('filterBar').style.display='flex';
+  document.getElementById('asOf').style.display='';
+  document.getElementById('asOfVal').textContent=ENGINE.fmtD(todayT())+(SRC&&SRC!=='Dropbox'?' · '+SRC:'');
+  const mp=document.getElementById('mmPill');
+  if(MISMATCH.length){mp.textContent='⚠ '+MISMATCH.length+' amount mismatch'+(MISMATCH.length>1?'es':'');mp.style.display='';}else mp.style.display='none';
+  const up=document.getElementById('unPill');
+  if(UNMAPPED.length){up.textContent='⚠ '+UNMAPPED.length+' unmapped EAN'+(UNMAPPED.length>1?'s':'');up.style.display='';}else up.style.display='none';
+  const F=[['fBrand','Brand'],['fChannel','Channel'],['fRemark','Remark'],['fBuying','BuyingFor']];
+  F.forEach(([id,k])=>{
+    const el=document.getElementById(id),prev=keep?el.value:'';
+    const vals=[...new Set(ROWS.map(r=>r[k]))].sort((a,b)=>a.localeCompare(b));
+    el.innerHTML='<option value="">All</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join('');
+    if(prev&&vals.includes(prev))el.value=prev;
+  });
+  render();
+}
+function filtered(){
+  const v=id=>document.getElementById(id).value;
+  const b=v('fBrand'),c=v('fChannel'),r=v('fRemark'),f=v('fBuying');
+  return ROWS.filter(x=>(!b||x.Brand===b)&&(!c||x.Channel===c)&&(!r||x.Remark===r)&&(!f||x.BuyingFor===f));
+}
+function setSeg(which,v){
+  if(which==='meas')MEAS=v;else PER=v;
+  document.querySelectorAll('#'+(which==='meas'?'measSeg':'perSeg')+' button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
+  render();
+}
+function switchPage(p){
+  PAGE=p;document.querySelectorAll('#pageSeg button').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+  if(ROWS.length)render();
+}
+
+/* ── FORMAT: value in ₹ Lakhs (under 10 L one decimal, 10 L and above no decimal) ── */
+function fmt(x){
+  if(!x)return'–';
+  if(MEAS==='qty')return Math.round(x).toLocaleString('en-IN');
+  const l=x/1e5,a=Math.abs(l);
+  if(a<0.05)return'0.0';
+  return a<10?l.toFixed(1):Math.round(l).toLocaleString('en-IN');
+}
+function fmtFull(x){return MEAS==='qty'?Math.round(x).toLocaleString('en-IN')+' pcs':'₹'+(x/1e5).toFixed(2)+' L';}
+
+/* ── RENDER ── */
+function render(){
+  if(!ROWS.length)return;
+  const fbar=document.getElementById('filterBar');
+  fbar.style.display=PAGE==='check'?'none':'flex';
+  if(PAGE==='check')return renderCheck();
+  const rows=filtered();
+  const bk=ENGINE.buckets(PER,todayT());
+  const levels=PAGE==='brand'?['Brand','Category']:['Category','Style','Option'];
+  const root=ENGINE.tree(rows,levels,bk,MEAS);
+  const hasND=root.v.ND!==0;
+  const cols=bk.list.concat(hasND?[{key:'ND',label:'No date',sub:'delivery date blank'}]:[]);
+  const showCnt=PAGE==='cat';
+
+  // KPIs
+  const od=root.v.OD,nx=bk.list.filter(b=>/^P/.test(b.key)).reduce((s,b)=>s+root.v[b.key],0);
+  const pos=new Set(rows.map(r=>r.PO)).size,ven=new Set(rows.map(r=>r.Vendor)).size;
+  const mUnit=MEAS==='qty'?'pcs':'₹ Lakhs';
+  let h=`<div class="kpis">
+    <div class="kpi"><div class="k">Total open (${mUnit})</div><div class="v">${fmt(root.ttl)}</div><div class="s">${pos} POs · ${ven} vendors</div></div>
+    <div class="kpi"><div class="k">Overdue</div><div class="v red">${fmt(od)}</div><div class="s">${root.ttl?Math.round(od/root.ttl*100):0}% of open</div></div>
+    <div class="kpi"><div class="k">Due in next ${PER==='m'?'6 months':'3 quarters'}</div><div class="v">${fmt(nx)}</div><div class="s">${bk.list[1].label} → ${bk.list[bk.list.length-2].label}</div></div>
+    <div class="kpi"><div class="k">${MEAS==='qty'?'Open value':'Open qty'}</div><div class="v">${MEAS==='qty'?'₹'+(rows.reduce((s,r)=>s+r.Value,0)/1e5).toFixed(1)+' L':Math.round(rows.reduce((s,r)=>s+r.Qty,0)).toLocaleString('en-IN')}</div><div class="s">${showCnt?root.styles.size+' styles · '+root.opts.size+' options':'Qty × Landed Rate'}</div></div>
+  </div>`;
+
+  const title=PAGE==='brand'?'Brand View':'Category View';
+  const first=PAGE==='brand'?'Brand':'Category';
+  h+=`<div class="card"><div class="card-h"><div><div class="card-t">${title}</div>
+    <div class="card-s">${MEAS==='qty'?'Pending qty (pcs)':'Pending value, ₹ Lakhs (Qty × Landed Rate)'} · by delivery ${PER==='m'?'month':'quarter (FY)'} · press + to expand</div></div></div>
+    <div class="tw"><table class="rep"><thead><tr><th>${first}</th>${showCnt?'<th>No of Style</th><th>No of Option</th>':''}`;
+  cols.forEach(c=>{h+=`<th class="${c.key==='OD'?'od':''}">${esc(c.label)}${c.sub?`<span class="sub">${esc(c.sub)}</span>`:''}</th>`;});
+  h+=`<th class="ttl">TTL</th></tr></thead><tbody>`;
+
+  const sortKids=n=>[...n.kids.values()].sort((a,b)=>b.ttl-a.ttl||String(a.name).localeCompare(String(b.name)));
+  const line=(n,lvl,id,hasKids,label)=>{
+    const open=OPEN.has(id);
+    let r=`<tr class="l${lvl}"><td><span class="tg${hasKids?'':' sp'}" onclick="tog('${id}')">${open?'−':'+'}</span><span class="nm" title="${esc(n.name)}">${label}</span></td>`;
+    if(showCnt)r+=`<td class="cnt">${lvl<2?n.styles.size:''}</td><td class="cnt">${lvl<2?n.opts.size:''}</td>`;
+    cols.forEach(c=>{const x=n.v[c.key];r+=`<td class="${c.key==='OD'&&x?'od':''}${x?'':' z'}" title="${x?fmtFull(x):''}">${fmt(x)}</td>`;});
+    return r+`<td class="ttl">${fmt(n.ttl)}</td></tr>`;
+  };
+  const styleName={};rows.forEach(r=>{if(r.StyleName)styleName[r.Style]=r.StyleName;});
+  const walk=(n,lvl,pid)=>{
+    sortKids(n).forEach((k,i)=>{
+      const id=pid+'|'+enc(k.name);
+      const hasKids=lvl<levels.length-1;
+      let label=esc(k.name);
+      if(PAGE==='cat'&&lvl===1&&styleName[k.name]&&styleName[k.name]!==k.name)label+=` <small>${esc(styleName[k.name])}</small>`;
+      if(PAGE==='cat'&&lvl===2)label=esc(String(k.name).split(' · ').slice(1).join(' · ')||k.name)+` <small>${esc(String(k.name).split(' · ')[0])}</small>`;
+      h+=line(k,lvl,id,hasKids,label);
+      if(hasKids&&OPEN.has(id))walk(k,lvl+1,id);
+    });
+  };
+  walk(root,0,PAGE);
+  h+=`<tr class="tot"><td>TTL</td>${showCnt?`<td>${root.styles.size}</td><td>${root.opts.size}</td>`:''}`;
+  cols.forEach(c=>{h+=`<td class="${c.key==='OD'&&root.v[c.key]?'od':''}">${fmt(root.v[c.key])}</td>`;});
+  h+=`<td class="ttl">${fmt(root.ttl)}</td></tr></tbody></table></div>`;
+  if(!rows.length)h+=`<div class="state">No open PO lines for these filters.</div>`;
+  h+=`</div>`;
+  document.getElementById('view').innerHTML=h;
+}
+function enc(s){return encodeURIComponent(s).replace(/'/g,'%27');}
+function tog(id){OPEN.has(id)?[...OPEN].forEach(k=>{if(k===id||k.startsWith(id+'|'))OPEN.delete(k);}):OPEN.add(id);render();}
+function expandAll(on){
+  if(!on){OPEN.clear();return render();}
+  const levels=PAGE==='brand'?['Brand','Category']:['Category','Style','Option'];
+  // expand one level below the top (brand → category, category → style)
+  filtered().forEach(r=>{OPEN.add(PAGE+'|'+enc(r[levels[0]]));});
+  render();
+}
+
+/* ── DATA CHECK: amount mismatches + unmapped EANs ── */
+function renderCheck(){
+  let h=`<div class="card"><div class="card-h"><div><div class="card-t">Amount check — Qty × Landed Rate vs Amount</div>
+    <div class="card-s">${MISMATCH.length?MISMATCH.length+' line(s) differ by more than ₹'+ENGINE.TOL+'. The report uses Qty × Landed Rate.':'All lines match ✓'}</div></div>
+    ${MISMATCH.length?'<button class="btn btn-sm" onclick="dlCheck(\'mm\')">⬇ Excel</button>':''}</div>`;
+  if(MISMATCH.length){
+    h+=`<div class="tw"><table class="rep dt"><thead><tr><th>PO</th><th>BarCode</th><th>Vendor</th><th>Brand</th><th class="n">Pending Qty</th><th class="n">Rate</th><th class="n">Landed Rate</th><th class="n">Qty × Landed</th><th class="n">Amount</th><th class="n">Difference</th></tr></thead><tbody>`;
+    MISMATCH.slice().sort((a,b)=>Math.abs(b.Diff)-Math.abs(a.Diff)).forEach(r=>{
+      h+=`<tr class="bad"><td>${esc(r.PO)}</td><td>${esc(r.EAN)}</td><td>${esc(r.Vendor)}</td><td>${esc(r.Brand)}</td><td class="n">${r.Qty.toLocaleString('en-IN')}</td>
+        <td class="n">${r.Rate==null?'':r.Rate.toLocaleString('en-IN')}</td><td class="n">${r.Landed.toLocaleString('en-IN')}</td>
+        <td class="n">${Math.round(r.Value).toLocaleString('en-IN')}</td><td class="n">${Math.round(r.Amount).toLocaleString('en-IN')}</td>
+        <td class="n badv">${(r.Diff>0?'+':'')+Math.round(r.Diff).toLocaleString('en-IN')}</td></tr>`;
+    });
+    h+=`</tbody></table></div>`;
+  }
+  h+=`</div><div class="card"><div class="card-h"><div><div class="card-t">Unmapped EANs — not in the Item Master</div>
+    <div class="card-s">${UNMAPPED.length?UNMAPPED.length+' BarCode(s) show as “Unmapped” in brand / category until added to the Item Master.':'Every BarCode is in the Item Master ✓'}</div></div>
+    ${UNMAPPED.length?'<button class="btn btn-sm" onclick="dlCheck(\'un\')">⬇ Excel</button>':''}</div>`;
+  if(UNMAPPED.length){
+    h+=`<div class="tw"><table class="rep dt"><thead><tr><th>BarCode</th><th>Vendor</th><th class="n">Lines</th><th class="n">Pending Qty</th><th class="n">Value ₹</th></tr></thead><tbody>`;
+    UNMAPPED.forEach(u=>{h+=`<tr><td>${esc(u.EAN)}</td><td>${esc(u.Vendor)}</td><td class="n">${u.Lines}</td><td class="n">${u.Qty.toLocaleString('en-IN')}</td><td class="n">${Math.round(u.Value).toLocaleString('en-IN')}</td></tr>`;});
+    h+=`</tbody></table></div>`;
+  }
+  h+=`</div>`;
+  document.getElementById('view').innerHTML=h;
+}
+
+/* ── DOWNLOADS ── */
+function lineObj(r,bk){return{'Gsl PO':r.PO,'BarCode':r.EAN,'Vendor':r.Vendor,'Order Date':ENGINE.fmtD(r.OrderT),'Delivery Date':ENGINE.fmtD(r.DelT),
+  'Bucket':(bk.list.find(b=>b.key===bk.of(r.DelT))||{label:'No date'}).label,'Brand':r.Brand,'Channel':r.Channel,'Category':r.Category,
+  'Style':r.Style,'Style Name':r.StyleName,'Color':r.Color,'Remark':r.Remark,'Buying for':r.BuyingFor,'Currency':r.Currency,
+  'Pending Qty':r.Qty,'Rate':r.Rate,'Landed Rate':r.Landed,'Qty × Landed':Math.round(r.Value),'Amount':r.Amount,'Amount check':r.Mismatch?'MISMATCH':''};}
+function downloadLines(){
+  const bk=ENGINE.buckets(PER,todayT()),wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(filtered().map(r=>lineObj(r,bk))),'Open PO lines');
+  XLSX.writeFile(wb,'BCL_Open_PO_'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+function dlCheck(w){
+  const bk=ENGINE.buckets(PER,todayT()),wb=XLSX.utils.book_new();
+  if(w==='mm')XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(MISMATCH.map(r=>({...lineObj(r,bk),'Difference':Math.round(r.Diff)}))),'Amount mismatch');
+  else XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(UNMAPPED.map(u=>({BarCode:u.EAN,Vendor:u.Vendor,Lines:u.Lines,'Pending Qty':u.Qty,'Value ₹':Math.round(u.Value)}))),'Unmapped EANs');
+  XLSX.writeFile(wb,'BCL_Open_PO_'+(w==='mm'?'Amount_Mismatch_':'Unmapped_')+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+
+loadAll();
+</script>
+</body>
+</html>
