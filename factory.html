@@ -25,6 +25,8 @@
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="ai-knowledge.js"></script>
+<script src="ai-assist.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f5f5f7;--s1:#ffffff;--s2:#f5f5f7;--s3:#e8e8ed;--bd:#e3e3e8;--bd2:#c7c7cc;--hair:rgba(0,0,0,.08);
@@ -214,6 +216,7 @@ html.phone:not(.mob) .modeSeg .mbtn{font-size:30px;padding:12px 30px;border-radi
   <button class="tab" data-v="ful" onclick="switchView('ful')">Order Fulfillment</button>
   <button class="tab" data-v="fg" onclick="switchView('fg')">FG Ready</button>
   <button class="tab" data-v="pipe" onclick="switchView('pipe')">Pipeline</button>
+  <button class="tab" data-v="ai" onclick="switchView('ai')">✨ AI</button>
 </div></div>
 
 <div class="filter-bar" id="filterBar" style="display:none"></div>
@@ -416,7 +419,7 @@ function setMode(m){
 }
 // laptops: follow window width like before
 window.addEventListener('resize',()=>{if(PHONE)return;const m=innerWidth<=760;if(m!==isMob()){document.documentElement.classList.toggle('mob',m);if(M)render();}});
-try{const v=localStorage.getItem('bcl_factory_view');if(v&&F[v])VIEW=v;}catch(e){}
+try{const v=localStorage.getItem('bcl_factory_view');if(v&&(F[v]||v==='ai'))VIEW=v;}catch(e){}
 
 const $=id=>document.getElementById(id);
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -477,7 +480,10 @@ function card(inner){return '<div class="tbl-card"><div class="tbl-wrap">'+inner
 function toggle(view,key){OPEN[view][key]=!OPEN[view][key];render();}
 
 function render(){
+  if(window.BCLAI&&BCLAI.fab)BCLAI.fab.style.display=VIEW==='ai'?'none':'';
+  if(VIEW==='ai'){$('filterBar').style.display='none';if(window.BCLAI)BCLAI.mountTab($('view'));else $('view').innerHTML='<div class="empty">AI is not available.</div>';return;}
   ({book:renderBook,prod:renderProd,ful:renderFul,fg:renderFG,pipe:renderPipe})[VIEW]();
+  if(window.BCLAI)BCLAI.refreshInsights();
   mobilize();
 }
 /* Phone view: each table row becomes a card. data-m="title col|hidden cols|cols behind 'Show details'" */
@@ -676,6 +682,54 @@ function renderPipe(){
   $('view').innerHTML=h;
 }
 
+
+/* ---- AI assistant: what it sees and automatic insights ---- */
+const VIEW_NAMES={book:'Order Book',prod:'Production',ful:'Order Fulfillment',fg:'FG Ready',pipe:'Pipeline',ai:'AI'};
+function viewText(el,cap){
+  let o=[];el.querySelectorAll('.kpi').forEach(k=>o.push(k.innerText.replace(/\s*\n\s*/g,': ')));
+  el.querySelectorAll('table').forEach(t=>{o.push([...t.rows].map(r=>[...r.cells].filter(c=>!c.classList.contains('gap')&&!c.classList.contains('mtap'))
+    .map(c=>c.innerText.replace(/[\n\t]+/g,' ').replace(/[↕▲▼]/g,'').trim()).join('\t')).join('\n'));});
+  const s=o.join('\n');return s.length>cap?s.slice(0,cap)+'\n…(more rows not shown)':s;
+}
+function filtText(v){const f=F[v]||{};const a=Object.keys(f).filter(k=>f[k]).map(k=>k+'='+f[k]);return a.length?a.join(', '):'none';}
+function aiContext(){
+  if(!M)return 'No factory data loaded yet.';
+  const real=$('view'),fb=$('filterBar'),fbH=fb.innerHTML,fbD=fb.style.display,keep=VIEW;
+  const tmp=document.createElement('div');tmp.style.cssText='position:absolute;left:-99999px;top:0;width:1400px';document.body.appendChild(tmp);
+  real.id='view__ai';tmp.id='view';const cap={book:8000,prod:14000,ful:30000,fg:12000,pipe:5000};let out=['Data as of '+$('asOfVal').textContent+'. Today: '+ENGINE.fmtDate(M.t)+'.',
+    'User is looking at: '+VIEW_NAMES[keep]+'.'];
+  try{for(const v of ['book','prod','ful','fg','pipe']){VIEW=v;({book:renderBook,prod:renderProd,ful:renderFul,fg:renderFG,pipe:renderPipe})[v]();
+    out.push('## '+VIEW_NAMES[v]+' (filters: '+filtText(v)+')\n'+viewText(tmp,cap[v]));}}
+  catch(e){out.push('(error reading views: '+e.message+')');}
+  finally{VIEW=keep;tmp.remove();real.id='view';fb.innerHTML=fbH;fb.style.display=fbD;}
+  return out.join('\n\n');
+}
+function aiInsights(){
+  if(!M)return [];
+  const fmt=v=>Math.round(v).toLocaleString('en-IN'),I=[];
+  const del=FUL.filter(r=>r.grp===1),soon=FUL.filter(r=>r.remarkCat==='Due within 15 days'&&r.status==='Pending');
+  if(del.length){const top=[...del].sort((a,b)=>b.balance-a.balance).slice(0,2);
+    I.push({t:'warn',html:`<b>${del.length} orders delayed</b>, ${fmt(del.reduce((s,r)=>s+r.balance,0))} pcs pending. Biggest: ${top.map(r=>esc(r.style)+' ('+esc(r.ctype)+', '+fmt(r.balance)+')').join(', ')}.`});}
+  if(soon.length)I.push({t:'watch',html:`<b>${soon.length} orders due within 15 days</b>, ${fmt(soon.reduce((s,r)=>s+r.balance,0))} pcs still to supply.`});
+  const lines=['PP','PC'].concat(uniq(M.orders.map(o=>o.line)).filter(l=>l!=='PP'&&l!=='PC'));
+  let arr=0,rrr=0,late=0;lines.forEach(ln=>{const m=ENGINE.prodMetrics(M,o=>o.line===ln,e=>{const p=M.product[e];return !!p&&p.line===ln;});arr+=m.arr;rrr+=m.rrr;late+=m.late;});
+  if(rrr>arr)I.push({t:'warn',html:`Production needs <b>${fmt(rrr)}/day</b> to meet committed dates; actual run rate is ${fmt(arr)}/day (short by ${fmt(rrr-arr)}/day).`});
+  else if(rrr>0)I.push({t:'good',html:`Run rate ${fmt(arr)}/day covers the ${fmt(rrr)}/day needed for future committed dates.`});
+  if(late>0){const st=uniq(M.orders.map(o=>o.style)).map(s=>[s,ENGINE.prodMetrics(M,o=>o.style===s,e=>{const p=M.product[e];return !!p&&p.style===s;}).late]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    I.push({t:'warn',html:`<b>${fmt(late)} pcs late</b> — produce now. Most: ${st.map(x=>esc(x[0])+' '+fmt(x[1])).join(', ')}.`});}
+  const ready=FUL.filter(r=>r.readyFG>0&&r.balance>0&&r.status==='Pending');
+  if(ready.length)I.push({t:'info',html:`<b>${fmt(ready.reduce((s,r)=>s+Math.min(r.readyFG,r.balance),0))} pcs ready in FG</b> against ${ready.length} pending orders — can be dispatched.`});
+  const cm=M.orders.reduce((a,o)=>{a.mob+=o.mob;if(o.bucket===0)a.rem+=o.pending;return a;},{mob:0,rem:0});
+  if(cm.mob>0){const pct=Math.round((cm.mob-cm.rem)/cm.mob*100);I.push({t:pct>=60?'good':'watch',html:`This month: <b>${pct}% dispatched</b> (${fmt(cm.mob-cm.rem)} of ${fmt(cm.mob)}); ${fmt(cm.rem)} pcs remaining.`});}
+  const ex=M.orders.filter(o=>o.flag==='Excess Dispatch').length,tx=M.orders.filter(o=>!/^\d+$/.test(o.ean)).length;
+  if(ex||tx)I.push({t:'watch',html:`Data check: ${ex?ex+' lines dispatched more than ordered':''}${ex&&tx?'; ':''}${tx?tx+' order lines with a text EAN':''} (see FG Ready).`});
+  const pp=M.discussion.filter(d=>!['Converted to PO','Dropped'].includes(d.status)&&d.date!=null&&d.date<M.bom);
+  if(pp.length)I.push({t:'watch',html:`${pp.length} orders in discussion are past their tentative date (${fmt(pp.reduce((s,d)=>s+d.qty,0))} pcs) — confirm or drop.`});
+  return I;
+}
+if(window.BCLAI)BCLAI.register({report:'Factory Dashboard',about:(window.BCL_KNOW&&BCL_KNOW.reports.factory)||'',
+  context:aiContext,insights:aiInsights,viewName:()=>VIEW==='ai'?'factory data':VIEW_NAMES[VIEW].toLowerCase()+' view',
+  suggest:['Which orders are delayed and why?','Can we meet this month\'s dispatch?','Which styles need more production?','आज की स्थिति हिंदी में बताओ']});
 document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===VIEW));
 function stickTabs(){const tb=document.querySelector('.topbar');$('tabs').style.top=(tb?tb.offsetHeight:0)+'px';}
 window.addEventListener('resize',stickTabs);

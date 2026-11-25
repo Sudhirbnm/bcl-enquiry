@@ -587,9 +587,11 @@ input[type=date]{color-scheme:light}
 
 <div class="toast" id="toast"><span class="tick">✓</span><span id="toastMsg"></span></div>
 
+<script src="ai-knowledge.js"></script>
+<script src="ai-assist.js"></script>
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxBOckKcP30K-vdg3THER8xkGKDAju8ha1pjyzcdQBZRxKK9La-p_1-zXnhJDF6i6Sr/exec';
-const ADMIN={name:'Sumit Jain',username:'Sumit.jain',password:'Sumi@2211',dept:'Management',level:'L1',isAdmin:true};
+const ADMIN={name:'Sumit Jain',username:'Sumit.jain',dept:'Management',level:'L1',isAdmin:true};
 
 const ICON_SVG={
   folder:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h5l2 3h9a1 1 0 0 1 1 1v10a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/></svg>',
@@ -737,13 +739,15 @@ async function doLogin(){
   const btn=document.getElementById('loginBtnEl');
   err.classList.remove('show');
   if(!u||!p){errText.textContent='Enter your username and password to continue';err.classList.add('show');return;}
-  if(u===ADMIN.username&&p===ADMIN.password){showPortal({...ADMIN});return;}
   btn.textContent='Signing in…';btn.disabled=true;
   try{
     const r=await fetch(SCRIPT_URL+'?action=login&username='+encodeURIComponent(u)+'&password='+encodeURIComponent(p));
     const data=await r.json();
     if(data.status==='success'){
+      await getAIToken(u,p);
       showPortal({name:data.name,username:data.username,dept:data.dept,level:data.level,tools:data.tools||'',isAdmin:data.level==='L1'});
+    }else if(u.toLowerCase()===ADMIN.username.toLowerCase()&&await getAIToken(u,p)){
+      showPortal({...ADMIN});
     }else{
       errText.textContent='That username or password doesn\u2019t match our records';err.classList.add('show');
       document.getElementById('loginPass').value='';
@@ -752,6 +756,29 @@ async function doLogin(){
   finally{btn.textContent='Sign In →';btn.disabled=false;}
 }
 
+
+/* ── AI assistant: sign-in token + portal chatbot ── */
+const escA=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function getAIToken(u,p){
+  try{sessionStorage.removeItem('bcl_ai_token');}catch(e){}
+  if(!window.BCLAI||!BCLAI.relayUrl)return false;
+  try{const j=await BCLAI.relay({action:'token',username:u,password:p});sessionStorage.setItem('bcl_ai_token',j.token);return true;}catch(e){return false;}
+}
+let aiReady=false;
+function portalAI(on){
+  if(!window.BCLAI)return;
+  if(on&&!aiReady){aiReady=true;
+    BCLAI.register({report:'Portal home',portal:true,tasks:true,about:(window.BCL_KNOW?BCL_KNOW.portal+'\n\nREPORTS AND THEIR DATA:\n'+Object.values(BCL_KNOW.reports).filter(Boolean).join('\n\n'):''),
+      context:()=>{const u=currentUser||{};const vis=[...document.querySelectorAll('#reportsGrid .tc-title')].map(e=>e.textContent.trim());
+        return 'Signed-in user: '+(u.name||'')+' ('+(u.username||'')+'), department '+(u.dept||'')+', level '+(u.level||'')+'.\nReports this user can open: '+(vis.join(', ')||'none')+'.\nAll reports in the portal: '+ALL_REPORTS.map(r=>r.title+' ('+r.url+')').join(', ')+'.';},
+      insights:async()=>{const j=await BCLAI.relay({action:'tasks',scope:'all'});const me=(currentUser&&currentUser.username||'').toLowerCase();const today=new Date().toISOString().slice(0,10);
+        return (j.tasks||[]).filter(t=>t.status!=='Done').map(t=>{const late=t.due_date&&t.due_date<today;const mine=String(t.assigned_by).toLowerCase()===me;
+          return {t:late?'warn':t.status==='In progress'?'info':'watch',html:'<b>'+escA(t.task)+'</b><br><span style="color:#6e6e73;font-size:12px">'+escA(t.id)+' · '+(mine?'to '+escA(t.assigned_to):'from '+escA(t.assigned_by))+(t.due_date?' · due '+escA(t.due_date):'')+' · '+escA(t.status)+(late?' · overdue':'')+'</span>'};});},
+      suggest:['What does each report show?','How do I read the Factory Dashboard?','Give a task to someone','Have my tasks been done?','मेरे pending काम क्या हैं?']});
+  }
+  if(BCLAI.fab)BCLAI.fab.style.display=on&&sessionStorage.getItem('bcl_ai_token')?'':'none';
+  if(!on)BCLAI.close();
+}
 function showPortal(user){
   currentUser=user;
   try{sessionStorage.setItem('bcl_user',JSON.stringify({name:user.name,username:user.username,dept:user.dept,level:user.level,tools:user.tools||'',isAdmin:!!user.isAdmin}));}catch(e){}
@@ -773,11 +800,13 @@ function showPortal(user){
   document.getElementById('logoutBtn').style.display='block';
   document.getElementById('adminTabsWrap').style.display=user.isAdmin?'block':'none';
   buildReports();
+  portalAI(true);
 }
 
 function doLogout(){
   currentUser=null;users=[];
-  try{sessionStorage.removeItem('bcl_user');}catch(e){}
+  try{sessionStorage.removeItem('bcl_user');sessionStorage.removeItem('bcl_ai_token');Object.keys(sessionStorage).filter(k=>k.startsWith('bai_hist_')).forEach(k=>sessionStorage.removeItem(k));}catch(e){}
+  portalAI(false);
   document.body.classList.add('on-login');
   document.getElementById('loginState').style.display='flex';
   document.getElementById('portalState').style.display='none';
