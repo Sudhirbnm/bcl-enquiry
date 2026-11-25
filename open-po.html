@@ -299,14 +299,16 @@ const ENGINE=(function(){
       const a=k=>m?(m[I[k]]||'—'):UNMAPPED;
       const value=qty*landed;
       const diff=amount==null?null:amount-value;
+      // Style = Style Name → if blank, Style Code → if blank, EAN.  Option = Style Code + Color (each colour version)
       const styleCode=m?(m[I.styleCode]||m[I.style]||ean):UNMAPPED;
+      const styleKey=m?(m[I.style]||m[I.styleCode]||ean):UNMAPPED;
       const styleName=m?(m[I.style]||''):'';
       const color=m?(m[I.color]||'—'):'';
       const row={EAN:ean,Qty:qty,PO:poNo,OrderT:orderT,DelT:delT,Vendor:vendor||'—',Currency:cur,Rate:rate,Landed:landed,
         Amount:amount,Value:value,Diff:diff,Mismatch:diff!=null&&Math.abs(diff)>TOL,
         Remark:remark||'(blank)',BuyingFor:buyingFor||'(blank)',
         Brand:a('brand'),Category:a('cat'),Channel:m?(m[I.otb]||m[I.ch]||'—'):UNMAPPED,
-        Style:styleCode,StyleName:styleName,Color:color,
+        Style:styleKey,StyleCode:styleCode,StyleName:styleName,Color:color,
         Option:m?styleCode+' · '+color:ean,Mapped:!!m};
       out.push(row);
       if(row.Mismatch)mism.push(row);
@@ -662,7 +664,7 @@ function renderCheck(){
 /* ── DOWNLOADS ── */
 function lineObj(r,bk){return{'Gsl PO':r.PO,'BarCode':r.EAN,'Vendor':r.Vendor,'Order Date':ENGINE.fmtD(r.OrderT),'Delivery Date':ENGINE.fmtD(r.DelT),
   'Bucket':(bk.list.find(b=>b.key===bk.of(r.DelT))||{label:'No date'}).label,'Brand':r.Brand,'Channel':r.Channel,'Category':r.Category,
-  'Style':r.Style,'Style Name':r.StyleName,'Color':r.Color,'Remark':r.Remark,'Buying for':r.BuyingFor,'Currency':r.Currency,
+  'Style':r.Style,'Style Code':r.StyleCode,'Style Name':r.StyleName,'Color':r.Color,'Remark':r.Remark,'Buying for':r.BuyingFor,'Currency':r.Currency,
   'Pending Qty':r.Qty,'Rate':r.Rate,'Landed Rate':r.Landed,'Qty × Landed':Math.round(r.Value),'Amount':r.Amount,'Amount check':r.Mismatch?'MISMATCH':''};}
 function downloadLines(){
   const bk=ENGINE.buckets(PER,todayT()),wb=XLSX.utils.book_new();
