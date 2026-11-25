@@ -5,7 +5,7 @@
    ─ Voice: speak in Hindi or English, answers read aloud; hands-free "Talk" mode
    A page sets it up with:  BCLAI.register({ report, about, context(), insights(), tasks, tabMount })  */
 (function () {
-  const AI_RELAY = '';   // ← AI Relay web-app URL (ends in /exec)
+  const AI_RELAY = 'https://script.google.com/macros/s/AKfycbwWP1jZqjr0gFvPlHL_4DNeEARJ1bk3Hc79HLSAQpLz63zjJdtFnBezmhlJHO2iHsdNMQ/exec';   // ← AI Relay web-app URL (ends in /exec)
   const TOKEN_KEY = 'bcl_ai_token';
   const $ = (s, r) => (r || document).querySelector(s);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
