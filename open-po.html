@@ -57,6 +57,22 @@ a{color:inherit;text-decoration:none}
 .fl select{font:inherit;font-size:13px;padding:6px 28px 6px 10px;border:1px solid var(--bd2);border-radius:8px;background:#fff;min-width:150px;max-width:230px;
   appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236e6e73'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
 .fl-actions{margin-left:auto;display:flex;gap:8px}
+.ms{position:relative}
+.ms-btn{font:inherit;font-size:13px;padding:6px 28px 6px 10px;border:1px solid var(--bd2);border-radius:8px;background:#fff;min-width:150px;max-width:230px;width:100%;
+  text-align:left;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236e6e73'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.ms-btn.part{border-color:var(--accent);color:var(--accent);font-weight:500}
+.ms-pan{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:200;background:#fff;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.16),0 0 0 .5px rgba(0,0,0,.08);
+  min-width:230px;max-width:320px;padding:6px}
+.ms.open .ms-pan{display:block}
+.ms-q{width:100%;font:inherit;font-size:13px;padding:6px 9px;border:1px solid var(--bd);border-radius:7px;margin-bottom:4px}
+.ms-list{max-height:280px;overflow-y:auto}
+.fl .ms-it{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:13px;user-select:none;text-transform:none;letter-spacing:normal;color:var(--text);font-weight:400}
+.ms-it:hover{background:#f2f2f7}
+.ms-it input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex:none}
+.ms-it span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fl .ms-all{font-weight:600;border-bottom:1px solid var(--bd);border-radius:6px 6px 0 0;margin-bottom:2px}
+.ms-foot{display:flex;justify-content:flex-end;padding:6px 4px 2px}
 
 .main{padding:4px 20px 40px;max-width:1500px;margin:0 auto}
 .card{background:var(--s1);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px;margin-bottom:14px}
@@ -117,7 +133,8 @@ table.rep{border-collapse:separate;border-spacing:0;width:100%;font-variant-nume
   .topbar{padding:10px 12px}
   .filter-bar{padding:10px 12px;gap:10px}
   .fl{flex:1 1 45%}
-  .fl select{min-width:0;max-width:none;width:100%}
+  .ms-btn{min-width:0;max-width:none}
+  .ms-pan{min-width:100%}
   .fl-actions{margin-left:0;width:100%}
   .main{padding:4px 10px 30px}
   .card{padding:12px}
@@ -152,10 +169,10 @@ table.rep{border-collapse:separate;border-spacing:0;width:100%;font-variant-nume
 </div></div>
 
 <div class="filter-bar" id="filterBar" style="display:none">
-  <div class="fl"><label>Brand</label><select id="fBrand" onchange="render()"></select></div>
-  <div class="fl"><label>Channel</label><select id="fChannel" onchange="render()"></select></div>
-  <div class="fl"><label>Remark</label><select id="fRemark" onchange="render()"></select></div>
-  <div class="fl"><label>Buying for</label><select id="fBuying" onchange="render()"></select></div>
+  <div class="fl"><label>Brand</label><div class="ms" id="fBrand"></div></div>
+  <div class="fl"><label>Channel</label><div class="ms" id="fChannel"></div></div>
+  <div class="fl"><label>Remark</label><div class="ms" id="fRemark"></div></div>
+  <div class="fl"><label>Buying for</label><div class="ms" id="fBuying"></div></div>
   <div class="fl"><label>Qty / Value</label><div class="seg small" id="measSeg">
     <button class="active" data-v="qty" onclick="setSeg('meas','qty')">Qty</button><button data-v="val" onclick="setSeg('meas','val')">Value ₹L</button></div></div>
   <div class="fl"><label>Month / Quarter</label><div class="seg small" id="perSeg">
@@ -478,18 +495,52 @@ function build(keep){
   if(UNMAPPED.length){up.textContent='⚠ '+UNMAPPED.length+' unmapped EAN'+(UNMAPPED.length>1?'s':'');up.style.display='';}else up.style.display='none';
   const F=[['fBrand','Brand'],['fChannel','Channel'],['fRemark','Remark'],['fBuying','BuyingFor']];
   F.forEach(([id,k])=>{
-    const el=document.getElementById(id),prev=keep?el.value:'';
     const vals=[...new Set(ROWS.map(r=>r[k]))].sort((a,b)=>a.localeCompare(b));
-    el.innerHTML='<option value="">All</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join('');
-    if(prev&&vals.includes(prev))el.value=prev;
+    const old=keep&&MS[id];
+    let sel;
+    if(!old||old.sel.size===old.vals.length)sel=new Set(vals);          // was "all" → stays all, new values included
+    else sel=new Set(vals.filter(v=>old.sel.has(v)));
+    MS[id]={key:k,vals,sel};
+    msDraw(id);
   });
   render();
 }
 function filtered(){
-  const v=id=>document.getElementById(id).value;
-  const b=v('fBrand'),c=v('fChannel'),r=v('fRemark'),f=v('fBuying');
-  return ROWS.filter(x=>(!b||x.Brand===b)&&(!c||x.Channel===c)&&(!r||x.Remark===r)&&(!f||x.BuyingFor===f));
+  const act=Object.values(MS).filter(m=>m.sel.size<m.vals.length);
+  if(!act.length)return ROWS;
+  return ROWS.filter(x=>act.every(m=>m.sel.has(x[m.key])));
 }
+
+/* ── MULTI-SELECT FILTERS (tick boxes + Select all) ── */
+const MS={};
+function msLabel(m){
+  if(m.sel.size===m.vals.length)return'All';
+  if(m.sel.size===0)return'None';
+  if(m.sel.size===1)return[...m.sel][0];
+  return m.sel.size+' of '+m.vals.length+' selected';
+}
+function msDraw(id){
+  const m=MS[id],el=document.getElementById(id),q=(el.querySelector('.ms-q')||{}).value||'';
+  const wasOpen=el.classList.contains('open');
+  const shown=m.vals.filter(v=>!q||v.toLowerCase().includes(q.toLowerCase()));
+  const allOn=shown.length>0&&shown.every(v=>m.sel.has(v));
+  el.innerHTML=`<button type="button" class="ms-btn${m.sel.size<m.vals.length?' part':''}" onclick="msToggle('${id}',event)" title="${esc([...m.sel].join(', '))}">${esc(msLabel(m))}</button>
+    <div class="ms-pan" onclick="event.stopPropagation()">
+      ${m.vals.length>8?`<input class="ms-q" placeholder="Search…" value="${esc(q)}" oninput="msDraw('${id}')">`:''}
+      <label class="ms-it ms-all"><input type="checkbox" ${allOn?'checked':''} onchange="msAll('${id}',this.checked)"><span>Select all${q?' (shown)':''}</span></label>
+      <div class="ms-list">${shown.map((v,i)=>`<label class="ms-it"><input type="checkbox" ${m.sel.has(v)?'checked':''} onchange="msPick('${id}',${m.vals.indexOf(v)},this.checked)"><span title="${esc(v)}">${esc(v)}</span></label>`).join('')||'<div class="ms-it" style="color:var(--muted)">No match</div>'}</div>
+      <div class="ms-foot"><button type="button" class="btn btn-sm" onclick="msOnly('${id}')" title="Keep only the values shown">Only these</button>&nbsp;<button type="button" class="btn btn-sm btn-primary" onclick="msClose()">Done</button></div>
+    </div>`;
+  if(wasOpen){el.classList.add('open');const s=el.querySelector('.ms-q');if(s&&q){s.focus();s.setSelectionRange(q.length,q.length);}}
+}
+function msToggle(id,ev){ev.stopPropagation();const el=document.getElementById(id),o=el.classList.contains('open');msClose();if(!o){el.classList.add('open');const s=el.querySelector('.ms-q');if(s)s.focus();}}
+function msClose(){document.querySelectorAll('.ms.open').forEach(e=>e.classList.remove('open'));}
+function msShown(id){const m=MS[id],el=document.getElementById(id),q=((el.querySelector('.ms-q')||{}).value||'').toLowerCase();return m.vals.filter(v=>!q||v.toLowerCase().includes(q));}
+function msPick(id,i,on){const m=MS[id];on?m.sel.add(m.vals[i]):m.sel.delete(m.vals[i]);msDraw(id);render();}
+function msAll(id,on){const m=MS[id];msShown(id).forEach(v=>on?m.sel.add(v):m.sel.delete(v));msDraw(id);render();}
+function msOnly(id){const m=MS[id];m.sel=new Set(msShown(id));msDraw(id);render();}
+document.addEventListener('click',msClose);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')msClose();});
 function setSeg(which,v){
   if(which==='meas')MEAS=v;else PER=v;
   document.querySelectorAll('#'+(which==='meas'?'measSeg':'perSeg')+' button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
