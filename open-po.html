@@ -26,7 +26,7 @@ html{-webkit-font-smoothing:antialiased}
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;min-height:100vh;letter-spacing:-.005em}
 a{color:inherit;text-decoration:none}
 
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 20px;background:rgba(255,255,255,.8);
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px max(20px,calc((100vw - min(85vw,1700px))/2));background:rgba(255,255,255,.8);
   -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--hair);position:sticky;top:0;z-index:100;flex-wrap:wrap}
 .logo-co{font-size:12px;font-weight:600;color:var(--muted)}
 .logo-title{font-size:17px;font-weight:600;letter-spacing:-.02em}
@@ -51,7 +51,7 @@ a{color:inherit;text-decoration:none}
 .seg button.active{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
 .seg.small button{padding:4px 12px;font-size:12px}
 
-.filter-bar{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;padding:12px 20px;max-width:1500px;margin:0 auto}
+.filter-bar{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;padding:12px 0;width:85vw;max-width:1700px;margin:0 auto}
 .fl{display:flex;flex-direction:column;gap:4px}
 .fl label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .fl select{font:inherit;font-size:13px;padding:6px 28px 6px 10px;border:1px solid var(--bd2);border-radius:8px;background:#fff;min-width:150px;max-width:230px;
@@ -74,7 +74,7 @@ a{color:inherit;text-decoration:none}
 .fl .ms-all{font-weight:600;border-bottom:1px solid var(--bd);border-radius:6px 6px 0 0;margin-bottom:2px}
 .ms-foot{display:flex;justify-content:flex-end;padding:6px 4px 2px}
 
-.main{padding:4px 20px 40px;max-width:1500px;margin:0 auto}
+.main{padding:4px 0 40px;width:85vw;max-width:1700px;margin:0 auto}
 .card{background:var(--s1);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px;margin-bottom:14px}
 .card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .card-t{font-size:15px;font-weight:600;letter-spacing:-.01em}
@@ -131,12 +131,12 @@ table.rep{border-collapse:separate;border-spacing:0;width:100%;font-variant-nume
 
 @media(max-width:760px){
   .topbar{padding:10px 12px}
-  .filter-bar{padding:10px 12px;gap:10px}
+  .filter-bar{padding:10px 12px;gap:10px;width:auto}
   .fl{flex:1 1 45%}
   .ms-btn{min-width:0;max-width:none}
   .ms-pan{min-width:100%}
   .fl-actions{margin-left:0;width:100%}
-  .main{padding:4px 10px 30px}
+  .main{padding:4px 10px 30px;width:auto}
   .card{padding:12px}
   .nm{max-width:170px}
   .rep td,.rep th{padding:7px 8px}
@@ -583,7 +583,7 @@ function render(){
     <div class="kpi"><div class="k">Total open (${mUnit})</div><div class="v">${fmt(root.ttl)}</div><div class="s">${pos} POs · ${ven} vendors</div></div>
     <div class="kpi"><div class="k">Overdue</div><div class="v red">${fmt(od)}</div><div class="s">${root.ttl?Math.round(od/root.ttl*100):0}% of open</div></div>
     <div class="kpi"><div class="k">Due in next ${PER==='m'?'6 months':'3 quarters'}</div><div class="v">${fmt(nx)}</div><div class="s">${bk.list[1].label} → ${bk.list[bk.list.length-2].label}</div></div>
-    <div class="kpi"><div class="k">${MEAS==='qty'?'Open value':'Open qty'}</div><div class="v">${MEAS==='qty'?'₹'+(rows.reduce((s,r)=>s+r.Value,0)/1e5).toFixed(1)+' L':Math.round(rows.reduce((s,r)=>s+r.Qty,0)).toLocaleString('en-IN')}</div><div class="s">${showCnt?root.styles.size+' styles · '+root.opts.size+' options':'Qty × Landed Rate'}</div></div>
+    <div class="kpi"><div class="k">${MEAS==='qty'?'Open value':'Open qty'}</div><div class="v">${MEAS==='qty'?'₹'+(rows.reduce((s,r)=>s+r.Value,0)/1e5).toFixed(1)+' L':Math.round(rows.reduce((s,r)=>s+r.Qty,0)).toLocaleString('en-IN')}</div><div class="s">${showCnt?root.styles.size+' styles · '+root.opts.size+' options':(MEAS==='qty'?'Qty × Landed Rate':'pcs')}</div></div>
   </div>`;
 
   const title=PAGE==='brand'?'Brand View':'Category View';
