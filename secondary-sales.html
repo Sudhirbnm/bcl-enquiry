@@ -570,5 +570,10 @@ function refreshData(){loadData(DEFAULT_URL);}
 window.addEventListener('load',()=>{loadData(DEFAULT_URL);});
 </script>
 <script src="table-sort.js"></script>
+<script src="ai-knowledge.js"></script>
+<script src="ai-assist.js"></script>
+<script>
+BCLAI.register({report:'Secondary Sales',about:(window.BCL_KNOW&&BCL_KNOW.reports['secondary'])||'',suggest:['Which stores sell best?','Which brands are slowing down?','How did EOSS perform?','सेल्स का सार बताओ']});
+</script>
 </body>
 </html>

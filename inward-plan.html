@@ -136,6 +136,7 @@ input[type=file]{display:none}
   <div class="tab" onclick="switchTab('vendor')" id="tab-vendor">🏭 Vendor Wise</div>
   <div class="tab" onclick="switchTab('payment')" id="tab-payment">💳 Payment Plan</div>
   <div class="tab" onclick="switchTab('master')" id="tab-master">📋 Payment Master</div>
+  <div class="tab" onclick="switchTab('ai')" id="tab-ai">✨ AI</div>
 </div>
 
 <!-- FILTERS -->
@@ -165,6 +166,7 @@ input[type=file]{display:none}
     <div>Loading data from Google Sheet…</div>
   </div>
 
+  <div id="aiTab" style="display:none;padding:16px 0"></div>
   <!-- CONTENT -->
   <div id="content" style="display:none">
     <div class="section-hdr">
@@ -389,11 +391,14 @@ function clearFilters(){
 }
 
 // ── TABS ──
+let aiOn=false;
 function switchTab(tab){
+  ['brand','vendor','payment','master','ai'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('active',t===tab));
+  const ai=document.getElementById('aiTab'),ct=document.getElementById('content');
+  if(window.BCLAI&&BCLAI.fab)BCLAI.fab.style.display=tab==='ai'?'none':'';
+  if(tab==='ai'){if(!window.BCLAI)return;BCLAI.snapshot();aiOn=true;ct.dataset.was=ct.style.display;ct.style.display='none';ai.style.display='block';BCLAI.mountTab(ai);return;}
+  if(aiOn){aiOn=false;ai.style.display='none';ct.style.display=ct.dataset.was||'';}
   currentTab=tab;drillCtx={};
-  ['brand','vendor','payment','master'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
-  });
   renderCurrentTab();
 }
 
@@ -773,5 +778,12 @@ function refreshData(){loadData(DEFAULT_URL);}
 window.addEventListener('load',()=>loadData(DEFAULT_URL));
 </script>
 <script src="table-sort.js"></script>
+<script src="ai-knowledge.js"></script>
+<script src="ai-assist.js"></script>
+<script>
+BCLAI.register({report:'Inward Plan',about:(window.BCL_KNOW&&BCL_KNOW.reports['inward'])||'',
+  viewName:()=>({brand:'brand report',vendor:'vendor view',payment:'payment plan',master:'payment master'})[currentTab]||'report',
+  suggest:['Which brands have the biggest inward next quarter?','How much payment is due each month?','Which vendors need advance payment?','अगले महीने का पेमेंट कितना है?']});
+</script>
 </body>
 </html>
