@@ -100,6 +100,7 @@ tbody td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weigh
     <button id="pt-nbSUPERDRY" onclick="goPage('nbSUPERDRY')">Superdry</button>
     <button id="pt-nbOFFWHITE" onclick="goPage('nbOFFWHITE')">Off-White</button>
     <button id="pt-nbJUICYCOUTURE" onclick="goPage('nbJUICYCOUTURE')">Juicy Couture</button>
+    <button id="pt-ai" onclick="goPage('ai')">✨ AI</button>
   </div>
   <button class="btn btn-blue" onclick="autoFetchFromSheet()" id="refresh-btn">↻ Refresh</button>
   <button class="btn" onclick="toggleUpload()">📁 Upload Excel (optional)</button>
@@ -134,6 +135,7 @@ tbody td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weigh
     <div class="spinner"></div><div id="loading-text">Fetching latest data…</div>
   </div>
 
+  <div id="ai-page" style="display:none;padding:12px 0"></div>
   <div id="content" style="display:none">
     <div class="tbl-wrap" id="brand-page">
       <table>
@@ -575,7 +577,15 @@ function filteredForBrand(brand){
 
 // ══ PAGE NAV ══
 function goPage(p){
+  if(p==='ai'&&window.BCLAI)BCLAI.snapshot();
   curPage=p;
+  document.getElementById('pt-ai').className=p==='ai'?'on':'';
+  document.getElementById('ai-page').style.display=p==='ai'?'block':'none';
+  var ct=document.getElementById('content');
+  if(p==='ai'){if(ct.style.display!=='none'){ct.dataset.was=ct.style.display;ct.style.display='none';}}
+  else if(ct.dataset.was!=null){ct.style.display=ct.dataset.was;delete ct.dataset.was;}
+  if(window.BCLAI&&BCLAI.fab)BCLAI.fab.style.display=p==='ai'?'none':'';
+  if(p==='ai'&&window.BCLAI)BCLAI.mountTab(document.getElementById('ai-page'));
   document.getElementById('pt-brand').className=p==='brand'?'on':'';
   document.getElementById('pt-cat').className=p==='cat'?'on':'';
   document.getElementById('brand-page').style.display=p==='brand'?'block':'none';
@@ -587,7 +597,7 @@ function goPage(p){
   renderCurrent();
 }
 function renderCurrent(){
-  if(!LEDGER.length)return;
+  if(!LEDGER.length||curPage==='ai')return;
   renderKPIs();
   if(curPage==='brand')renderGrouped(filteredMain(),'brand','brand-head','brand-body','Brand');
   else if(curPage==='cat')renderGrouped(filteredMain(),'cat','cat-head','cat-body','Category');
@@ -679,5 +689,12 @@ function downloadFullData(){
 }
 </script>
 <script src="table-sort.js"></script>
+<script src="ai-knowledge.js"></script>
+<script src="ai-assist.js"></script>
+<script>
+BCLAI.register({report:'OTB Planner',about:(window.BCL_KNOW&&BCL_KNOW.reports['otb'])||'',
+  viewName:()=>curPage==='ai'?'OTB plan':curPage==='brand'?'brand OTB':curPage==='cat'?'category OTB':'new-brand OTB',
+  suggest:['Where are we over-stocked vs ideal cover?','Which brands still have open-to-buy?','Is next quarter\'s inward too high?','OTB हिंदी में समझाओ']});
+</script>
 </body>
 </html>

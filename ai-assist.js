@@ -126,8 +126,62 @@
 
   /* ───────── what the AI is told ───────── */
   function pageContext() {
-    if (CFG.context) { try { return String(CFG.context() || ''); } catch (e) { return ''; } }
-    return defaultContext();
+    let base = '';
+    if (CFG.context) { try { base = String(CFG.context() || ''); } catch (e) { base = ''; } }
+    if (CFG.context && !CFG.withScreen) return base;
+    let scr = visibleTables().length ? defaultContext() : (SNAP ? SNAP.text : '');
+    return (base ? base + '\n\n' : '') + (scr ? 'WHAT IS ON SCREEN:\n' + scr : '');
+  }
+  /* last report view seen before the user moved to the AI tab */
+  let SNAP = null;
+  function snapshot() { if (visibleTables().length || document.querySelector('.kpi')) SNAP = { text: defaultContext(), ins: domInsights() }; }
+  function visibleTables() { return [...document.querySelectorAll('table')].filter(t => t.offsetParent && !t.closest('.bai') && t.tBodies.length && t.tBodies[0].rows.length); }
+
+  /* automatic insights read from the tables on screen (any report) */
+  function num(txt) {
+    let t = String(txt || '').replace(/[↕▲▼₹,\s]/g, '').replace(/^rs\.?/i, ''); if (!t || /^[-–—]+$/.test(t)) return null;
+    let neg = /^\(.*\)$/.test(t); t = t.replace(/^\(|\)$/g, '');
+    const m = t.match(/^([-+]?\d*\.?\d+)(cr|l|lac|lakh|k|%)?$/i); if (!m) return null;
+    let v = parseFloat(m[1]); const u = (m[2] || '').toLowerCase();
+    if (u === 'cr') v *= 1e7; else if (u.startsWith('l')) v *= 1e5; else if (u === 'k') v *= 1e3;
+    return neg ? -v : v;
+  }
+  const isTot = r => /\b(tot|total|grand|subtotal|gtot)\b/i.test(r.className) || /total|^ttl/i.test((r.cells[0] && r.cells[0].innerText || '').trim());
+  function domInsights() {
+    const out = [], tables = visibleTables().slice(0, 3);
+    tables.forEach(t => {
+      const hr = t.tHead ? t.tHead.rows[t.tHead.rows.length - 1] : null; if (!hr) return;
+      const heads = [...hr.cells].map(c => c.innerText.replace(/[↕▲▼]/g, '').trim());
+      const rows = [...t.tBodies[0].rows].filter(r => r.cells.length === heads.length && !isTot(r) && r.offsetParent);
+      if (rows.length < 3) return;
+      const numCols = heads.map((h, i) => i > 0 && rows.filter(r => num(r.cells[i].innerText) != null).length >= rows.length * 0.6);
+      let vc = heads.findIndex((h, i) => numCols[i] && /total|net|nsv|value|amount|otb|cost|sale/i.test(h));
+      if (vc < 0) for (let i = heads.length - 1; i > 0; i--) if (numCols[i]) { vc = i; break; }
+      if (vc < 0) return;
+      const label = r => (r.cells[0].innerText || '').trim().replace(/^[+−–-]\s*/, '').slice(0, 40);
+      const vals = rows.map(r => ({ l: label(r), v: num(r.cells[vc].innerText) || 0, r }));
+      const tot = vals.reduce((a, x) => a + Math.max(0, x.v), 0);
+      const top = [...vals].sort((a, b) => b.v - a.v).slice(0, 3).filter(x => x.v > 0);
+      if (top.length && tot > 0) {
+        const sh = Math.round(top.reduce((a, x) => a + x.v, 0) / tot * 100);
+        out.push({ t: 'info', html: '<b>' + esc(heads[0] || 'Top') + ' by ' + esc(heads[vc]) + ':</b> ' + top.map(x => esc(x.l) + ' (' + Math.round(x.v / tot * 100) + '%)').join(', ') + (top.length === 3 ? ' — top 3 = ' + sh + '%' : '') + '.' });
+      }
+      heads.forEach((h, i) => {
+        if (!numCols[i] || !/otb|gap|var|growth|%|vs|diff|bal|cover/i.test(h)) return;
+        const neg = rows.map(r => ({ l: label(r), v: num(r.cells[i].innerText), s: r.cells[i].innerText.trim() })).filter(x => x.v != null && x.v < 0);
+        if (neg.length) { const w = neg.sort((a, b) => a.v - b.v)[0];
+          out.push({ t: 'warn', html: '<b>' + neg.length + ' negative in ' + esc(h) + '</b> — lowest: ' + esc(w.l) + ' (' + esc(w.s) + ').' }); }
+      });
+      const per = heads.map((h, i) => numCols[i] && /^(fy\s*)?\d{2}(-|–)\d{2}$|^fy|^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)|^q[1-4]/i.test(h) ? i : -1).filter(i => i > 0);
+      if (per.length >= 2) {
+        const a = per[per.length - 2], b = per[per.length - 1];
+        const ch = rows.map(r => { const x = num(r.cells[a].innerText) || 0, y = num(r.cells[b].innerText) || 0; return { l: label(r), d: y - x, p: x ? (y - x) / x * 100 : null }; }).filter(x => x.d);
+        if (ch.length) { ch.sort((p, q) => p.d - q.d); const dn = ch[0], up = ch[ch.length - 1];
+          if (dn.d < 0) out.push({ t: 'watch', html: '<b>Biggest drop ' + esc(heads[a]) + ' → ' + esc(heads[b]) + ':</b> ' + esc(dn.l) + (dn.p != null ? ' (' + Math.round(dn.p) + '%)' : '') + '.' });
+          if (up.d > 0) out.push({ t: 'good', html: '<b>Biggest rise:</b> ' + esc(up.l) + (up.p != null ? ' (+' + Math.round(up.p) + '%)' : '') + '.' }); }
+      }
+    });
+    return out.slice(0, 7);
   }
   function defaultContext() {   // KPI cards + filters + every visible table on screen
     const root = $(CFG.root || 'main, .main, .content, body'); let out = [];
@@ -206,7 +260,7 @@
   async function fillInsights() {
     const w = $('.bai-insw', node); if (!w) return;
     try {
-      let list = CFG.insights ? await CFG.insights() : [];
+      let list = CFG.insights ? await CFG.insights() : (visibleTables().length ? domInsights() : (SNAP ? SNAP.ins : []));
       if (!list || !list.length) { w.innerHTML = '<div style="color:#86868b;font-size:13px">' + (CFG.portal ? 'No open tasks.' : 'Nothing stands out right now.') + '</div>'; return; }
       w.innerHTML = '<ul class="bai-ins">' + list.slice(0, 8).map(x => '<li><span class="bai-dot ' + (x.t || 'info') + '"></span><span>' + (x.html || esc(x.text)) + '</span></li>').join('') + '</ul>';
     } catch (e) { w.innerHTML = '<div style="color:#86868b;font-size:13px">' + esc(e.message) + '</div>'; }
@@ -281,7 +335,7 @@
     $('.bai-ov', drawer).onclick = close;
   }
   function open() {
-    ensureDrawer(); $('.bai-drawer', drawer).appendChild(node); $('.bai-x', node).style.display = '';
+    snapshot(); ensureDrawer(); $('.bai-drawer', drawer).appendChild(node); $('.bai-x', node).style.display = '';
     drawer.classList.add('bai-open'); renderBody(); setTimeout(() => $('.bai-in', node).focus(), 50);
   }
   function close() { if (drawer) drawer.classList.remove('bai-open'); stopVoice(); }
@@ -298,5 +352,5 @@
       b.onclick = open; document.body.appendChild(b); BCLAI.fab = b;
     }
   }
-  window.BCLAI = { register, open, close, mountTab, relay, refreshInsights: () => node && fillInsights(), relayUrl: AI_RELAY, md };
+  window.BCLAI = { register, open, close, mountTab, snapshot, autoInsights: () => domInsights(), screenText: () => defaultContext(), relay, refreshInsights: () => node && fillInsights(), relayUrl: AI_RELAY, md };
 })();

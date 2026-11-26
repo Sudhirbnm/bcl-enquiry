@@ -154,7 +154,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   <h1>Buying Analytics <span>/ 5 Year Dashboard</span></h1>
   <span class="pill pill-grey" id="dataPill">No Data</span>
   <span class="pill" id="dataUpdatedPill" style="display:none;background:rgba(45,212,224,.1);color:var(--cyan);border-color:rgba(45,212,224,.25)">📅 Data Updated: —</span>
-  <span class="pill" id="aiKeyPill" onclick="openApiKeyModal()" style="cursor:pointer;background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.25)">🔑 AI: Setup required</span>
+  <span class="pill" id="aiKeyPill" hidden onclick="openApiKeyModal()" style="cursor:pointer;background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.25)">🔑 AI: Setup required</span>
   <button class="tbtn" id="refreshBtn" onclick="refreshGoogleSheet()" style="display:none;background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.25);color:var(--cyan)">↻ Refresh</button>
   <button class="tbtn" onclick="downloadTemplate()" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:var(--green)">⬇ Template</button>
   <button class="tbtn" onclick="downloadFullData()" style="background:rgba(251,191,62,.1);border-color:rgba(251,191,62,.25);color:var(--amber)">⬇ Full Data (Excel)</button>
@@ -169,7 +169,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   <button class="navbtn" onclick="showPage('category')" id="nav-category">📦 Category Report</button>
   <button class="navbtn" onclick="showPage('season')" id="nav-season">🗓 Season & Category</button>
   <button class="navbtn" onclick="showPage('channel')" id="nav-channel">📡 Channel Analysis</button>
-  <button class="navbtn" onclick="showPage('ai')" id="nav-ai">🤖 AI Assistant</button>
+  <button class="navbtn" onclick="showPage('ai')" id="nav-ai">✨ AI</button>
   <button class="navbtn" onclick="showPage('fulldata')" id="nav-fulldata">📋 Full Data</button>
 </div>
 
@@ -688,13 +688,16 @@ const chartDefaults={
 
 // ── PAGE ROUTING ──
 function showPage(page){
+  if(page==='ai'&&window.BCLAI)BCLAI.snapshot();
   currentPage=page;
+  if(window.BCLAI&&BCLAI.fab)BCLAI.fab.style.display=page==='ai'?'none':'';
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
   if(document.getElementById('nav-'+page))document.getElementById('nav-'+page).classList.add('active');
   if(page==='ai'){
     document.getElementById('content').style.display='none';
     document.getElementById('aiPage').style.display='flex';
     document.getElementById('fbar').style.display='none';
+    if(window.BCLAI)BCLAI.mountTab(document.getElementById('aiPage'));
   } else {
     document.getElementById('content').style.display='block';
     document.getElementById('aiPage').style.display='none';
@@ -2126,5 +2129,14 @@ function showRefreshBtn(){
 }
 </script>
 <script src="table-sort.js"></script>
+<script src="ai-knowledge.js"></script>
+<script src="ai-assist.js"></script>
+<script>
+document.getElementById('aiKeyPill').style.display='none';
+BCLAI.register({report:'Buying Intelligence',about:(window.BCL_KNOW&&BCL_KNOW.reports['buying'])||'',withScreen:true,
+  context:()=>rawData.length?'FULL DATA SUMMARY (current filters, values in ₹ crore):\n'+buildDataSummary():'No buying data loaded yet.',
+  viewName:()=>({summary:'executive summary',brand:'brand analysis',vendor:'vendor performance',category:'category report',season:'season & category',channel:'channel analysis',fulldata:'full data',ai:'buying data'})[currentPage]||'report',
+  suggest:['Which brands grew or fell the most this year?','Which vendors depend on us most?','Where is lead time worst?','इस साल की खरीद का सार बताओ']});
+</script>
 </body>
 </html>

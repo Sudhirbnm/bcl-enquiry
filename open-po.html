@@ -681,5 +681,10 @@ function dlCheck(w){
 loadAll();
 </script>
 <script src="table-sort.js"></script>
+<script src="ai-knowledge.js"></script>
+<script src="ai-assist.js"></script>
+<script>
+BCLAI.register({report:'Open PO',about:(window.BCL_KNOW&&BCL_KNOW.reports['openpo'])||'',suggest:['Which POs are overdue?','Which vendors have the most pending?','What is due next month?','पेंडिंग PO का सार बताओ']});
+</script>
 </body>
 </html>
