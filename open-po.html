@@ -246,14 +246,25 @@ const ENGINE=(function(){
     ean:['barcode','eancode','ean'],qty:['itempendingqty','pendingqty','balanceqty'],po:['gslpo','pono','po'],
     orderDate:['orderdate','podate'],delDate:['deliverydate','deldate'],vendor:['vendername','vendorname','vendor','vander'],
     cur:['currency'],rate:['rate'],landed:['landedrate','landedcost'],amount:['amount','value'],
-    remark:['remark','remarks'],buyingFor:['buyingfor']
+    remark:['remark','remarks'],buyingFor:['buyingfor','buyfor','buyingforchannel','buyingchannel','purchasefor','buyerfor','boughtfor']
   };
+  // "Buying for" header can be worded many ways ("Buying For Channel", "Buy For", "Buying") or split over two header rows.
+  const BF_BAD=/rate|price|cost|amount|value|qty|quantity|date|code/;
+  function findBuyingFor(hdr,above,below){
+    const tries=[hdr,hdr.map((h,c)=>(above[c]||'')+h),hdr.map((h,c)=>h+(below[c]||''))];
+    for(const H of tries){const i=colOf(H,PO_COLS.buyingFor);if(i>=0)return i;}
+    for(const H of tries){const i=H.findIndex(h=>h&&!BF_BAD.test(h)&&/buyfor|buyingfor|purchasefor|boughtfor|buyerfor/.test(h));if(i>=0)return i;}
+    return hdr.indexOf('buying');
+  }
+  let PO_INFO=null;
   function isPO(XLSX,wb){return !!findHeader(XLSX,wb,['barcode','itempendingqty'],15);}
   // rows: [ean,qty,po,orderT,delT,vendor,cur,rate,landed,amount,remark,buyingFor]
   function parsePO(XLSX,wb){
     const f=findHeader(XLSX,wb,['barcode','itempendingqty'],15);
     if(!f)throw new Error('BarCode / Item Pending Qty header not found in Pending PO');
     const ci={};for(const k in PO_COLS)ci[k]=colOf(f.hdr,PO_COLS[k]);
+    const rowN=r=>{const o=[];if(r<f.rg.s.r||r>f.rg.e.r)return o;for(let c=0;c<=f.rg.e.c;c++){const cell=f.ws[f.L[c]+(r+1)];o[c]=norm(cell?cell.v:'');}return o;};
+    ci.buyingFor=findBuyingFor(f.hdr,rowN(f.hr-1),rowN(f.hr+1));
     ['qty','delDate','landed'].forEach(k=>{if(ci[k]<0)throw new Error('Column not found in Pending PO: '+PO_COLS[k][0]);});
     const ws=f.ws,L=f.L,rows=[];
     for(let r=f.hr+1;r<=f.rg.e.r;r++){
@@ -263,6 +274,10 @@ const ENGINE=(function(){
       rows.push([ean,qty,txt(g('po')),dateT(g('orderDate')),dateT(g('delDate')),txt(g('vendor')),txt(g('cur')),
         num(g('rate')),num(g('landed'))||0,num(g('amount')),txt(g('remark')),txt(g('buyingFor'))]);
     }
+    const hdrRaw=c=>{const cell=f.ws[f.L[c]+(f.hr+1)];return cell?String(cell.v):'';};
+    PO_INFO={sheet:f.name,headerRow:f.hr+1,buyingCol:ci.buyingFor<0?'':f.L[ci.buyingFor],buyingHeader:ci.buyingFor<0?'':hdrRaw(ci.buyingFor),
+      buyingFilled:rows.filter(x=>x[11]).length,lines:rows.length,
+      headers:f.hdr.map((h,c)=>hdrRaw(c)).filter(Boolean)};
     return rows;
   }
 
@@ -368,7 +383,7 @@ const ENGINE=(function(){
     return root;
   }
 
-  return{isPO,parsePO,parseMaster,buildRows,buckets,tree,fmtD,dateT,MON,UNMAPPED,TOL};
+  return{getPOInfo:()=>PO_INFO,isPO,parsePO,parseMaster,buildRows,buckets,tree,fmtD,dateT,MON,UNMAPPED,TOL};
 })();
 /*ENGINE-END*/
 
@@ -378,11 +393,11 @@ const ENGINE=(function(){
 const OPENPO_RELAY='https://script.google.com/macros/s/AKfycbzAT40IWeZDicuL2rvSeF3fXlRVHeUy5GB4sJDSC71prrR_3qQh_5AI9fnYCe0TMW61/exec';
 
 let ROWS=[],UNMAPPED=[],MISMATCH=[],PAGE='brand',MEAS='qty',PER='m';
-let MASTER=null,POROWS=null,SRC='';
+let MASTER=null,POROWS=null,POINFO=null,SRC='';
 const OPEN=new Set();   // expanded row ids
 
 /* ── saved copies (IndexedDB) — the Item Master is only downloaded again when it changes ── */
-const CACHE_DB='bcl_openpo_dbx',CACHE_STORE='files',CACHE_VER='v1:';
+const CACHE_DB='bcl_openpo_dbx',CACHE_STORE='files',CACHE_VER='v2:';
 function idb(){return new Promise((res,rej)=>{
   if(!window.indexedDB)return rej(new Error('No IndexedDB'));
   const q=indexedDB.open(CACHE_DB,1);
@@ -435,7 +450,7 @@ async function loadAll(){
     if(!had)ldRows(files);
     const checks=files.map((f,i)=>checkFile(f,i));checks.forEach(p=>p.catch(()=>{}));
     const got=[];for(let i=0;i<files.length;i++)got.push(await readFile(files[i],i,await checks[i]));
-    POROWS=got.find(g=>g.type==='openpo').data;MASTER=got.find(g=>g.type==='master').data;SRC='Dropbox';
+    {const g=got.find(g=>g.type==='openpo');POROWS=g.data;POINFO=g.meta||null;}MASTER=got.find(g=>g.type==='master').data;SRC='Dropbox';
     build(had);
     const stale=got.filter(g=>g.stale).map(g=>g.name);
     toast(stale.length?'⚠ Showing saved copy for: '+stale.join(', '):'✓ '+ROWS.length.toLocaleString('en-IN')+' open PO lines loaded');
@@ -455,16 +470,17 @@ async function checkFile(f,i){
 async function readFile(f,i,res){
   const {j,cached,err}=res;
   if(err){ldRow(i,'Saved copy (Dropbox not reachable)','warn');return{...f,data:cached.data,stale:true};}
-  if(j.status==='same'&&cached){ldRow(i,'Up to date ✓','ok');return{...f,data:cached.data};}
+  if(j.status==='same'&&cached){ldRow(i,'Up to date ✓','ok');return{...f,data:cached.data,meta:cached.meta};}
   if(!j.b64)throw new Error(f.name+': no file data returned');
   ldRow(i,f.type==='master'?'Reading Item Master (one-time, ~10 s)…':'Reading…');await yieldUI();
   let data;
   try{const wb=XLSX.read(b64ToBytes(j.b64),{type:'array'});data=f.type==='master'?ENGINE.parseMaster(XLSX,wb):ENGINE.parsePO(XLSX,wb);}
   catch(e){throw new Error(f.name+': '+e.message);}
   if(f.type==='master'&&data.missing&&data.missing.length)console.warn('Item Master columns not found:',data.missing);
-  await cachePut(CACHE_VER+f.type,{version:j.version,data,savedAt:Date.now()});
+  const meta=f.type==='openpo'?ENGINE.getPOInfo():null;
+  await cachePut(CACHE_VER+f.type,{version:j.version,data,meta,savedAt:Date.now()});
   ldRow(i,(cached?'Updated':'Downloaded')+' ✓','ok');
-  return{...f,data};
+  return{...f,data,meta};
 }
 
 /* ── OPEN FILE(S) from this computer ── */
@@ -474,7 +490,7 @@ async function openFiles(ev){
   try{
     for(const f of fs){
       const wb=XLSX.read(new Uint8Array(await f.arrayBuffer()),{type:'array'});
-      if(ENGINE.isPO(XLSX,wb)){POROWS=ENGINE.parsePO(XLSX,wb);SRC=f.name;}
+      if(ENGINE.isPO(XLSX,wb)){POROWS=ENGINE.parsePO(XLSX,wb);POINFO=ENGINE.getPOInfo();SRC=f.name;}
       else{MASTER=ENGINE.parseMaster(XLSX,wb);await cachePut(CACHE_VER+'master',{version:'local',data:MASTER,savedAt:Date.now()});}
     }
     if(!MASTER){const m=await cacheGet(CACHE_VER+'master');if(m)MASTER=m.data;}
@@ -639,7 +655,14 @@ function expandAll(on){
 
 /* ── DATA CHECK: amount mismatches + unmapped EANs ── */
 function renderCheck(){
-  let h=`<div class="card"><div class="card-h"><div><div class="card-t">Amount check — Qty × Landed Rate vs Amount (₹ Lakhs)</div>
+  let h='';
+  if(POINFO){
+    const I=POINFO,ok=!!I.buyingCol;
+    h+=`<div class="card"><div class="card-h"><div><div class="card-t">“Buying for” column — Pending PO</div>
+      <div class="card-s">${ok?`Read from column <b>${esc(I.buyingCol)}</b> (“${esc(I.buyingHeader)}”), sheet “${esc(I.sheet)}”, header row ${I.headerRow} · filled on <b>${I.buyingFilled.toLocaleString('en-IN')}</b> of ${I.lines.toLocaleString('en-IN')} open lines`
+        :`<span class="badv">Not found</span> in sheet “${esc(I.sheet)}”, header row ${I.headerRow}. Headers seen: ${esc(I.headers.join(' · '))}`}</div></div></div></div>`;
+  }
+  h+=`<div class="card"><div class="card-h"><div><div class="card-t">Amount check — Qty × Landed Rate vs Amount (₹ Lakhs)</div>
     <div class="card-s">${MISMATCH.length?MISMATCH.length+' line(s) differ by more than ₹'+ENGINE.TOL+' (Amount read as ₹ Lakhs). The report uses Qty × Landed Rate.':'All lines match ✓ (Amount read as ₹ Lakhs)'}</div></div>
     ${MISMATCH.length?'<button class="btn btn-sm" onclick="dlCheck(\'mm\')">⬇ Excel</button>':''}</div>`;
   if(MISMATCH.length){
