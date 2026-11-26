@@ -289,7 +289,9 @@ const ENGINE=(function(){
   }
 
   const UNMAPPED='Unmapped';
-  const TOL=1;   // ₹ difference allowed between Amount and Qty × Landed Rate (rounding)
+  // Amount in Pending PO is in ₹ LAKHS; Qty × Landed Rate is in ₹. Amount is converted to ₹ before comparing.
+  // TOL: ₹ difference allowed — Amount rounded to 2 decimals of a lakh can be off by up to ₹500.
+  const TOL=500;
   function buildRows(po,master){
     const I={};MF.forEach((k,i)=>I[k]=i);
     const out=[],unm={},mism=[];
@@ -298,7 +300,8 @@ const ENGINE=(function(){
       const m=master&&master.map[ean];
       const a=k=>m?(m[I[k]]||'—'):UNMAPPED;
       const value=qty*landed;
-      const diff=amount==null?null:amount-value;
+      const amountRs=amount==null?null:amount*1e5;
+      const diff=amountRs==null?null:amountRs-value;
       // Style = Style Name → if blank, Style Code → if blank, EAN.  Option = Style Code + Color (each colour version)
       const styleCode=m?(m[I.styleCode]||m[I.style]||ean):UNMAPPED;
       const styleKey=m?(m[I.style]||m[I.styleCode]||ean):UNMAPPED;
@@ -636,15 +639,15 @@ function expandAll(on){
 
 /* ── DATA CHECK: amount mismatches + unmapped EANs ── */
 function renderCheck(){
-  let h=`<div class="card"><div class="card-h"><div><div class="card-t">Amount check — Qty × Landed Rate vs Amount</div>
-    <div class="card-s">${MISMATCH.length?MISMATCH.length+' line(s) differ by more than ₹'+ENGINE.TOL+'. The report uses Qty × Landed Rate.':'All lines match ✓'}</div></div>
+  let h=`<div class="card"><div class="card-h"><div><div class="card-t">Amount check — Qty × Landed Rate vs Amount (₹ Lakhs)</div>
+    <div class="card-s">${MISMATCH.length?MISMATCH.length+' line(s) differ by more than ₹'+ENGINE.TOL+' (Amount read as ₹ Lakhs). The report uses Qty × Landed Rate.':'All lines match ✓ (Amount read as ₹ Lakhs)'}</div></div>
     ${MISMATCH.length?'<button class="btn btn-sm" onclick="dlCheck(\'mm\')">⬇ Excel</button>':''}</div>`;
   if(MISMATCH.length){
-    h+=`<div class="tw"><table class="rep dt"><thead><tr><th>PO</th><th>BarCode</th><th>Vendor</th><th>Brand</th><th class="n">Pending Qty</th><th class="n">Rate</th><th class="n">Landed Rate</th><th class="n">Qty × Landed</th><th class="n">Amount</th><th class="n">Difference</th></tr></thead><tbody>`;
+    h+=`<div class="tw"><table class="rep dt"><thead><tr><th>PO</th><th>BarCode</th><th>Vendor</th><th>Brand</th><th class="n">Pending Qty</th><th class="n">Rate</th><th class="n">Landed Rate</th><th class="n">Qty × Landed ₹L</th><th class="n">Amount ₹L</th><th class="n">Difference ₹</th></tr></thead><tbody>`;
     MISMATCH.slice().sort((a,b)=>Math.abs(b.Diff)-Math.abs(a.Diff)).forEach(r=>{
       h+=`<tr class="bad"><td>${esc(r.PO)}</td><td>${esc(r.EAN)}</td><td>${esc(r.Vendor)}</td><td>${esc(r.Brand)}</td><td class="n">${r.Qty.toLocaleString('en-IN')}</td>
         <td class="n">${r.Rate==null?'':r.Rate.toLocaleString('en-IN')}</td><td class="n">${r.Landed.toLocaleString('en-IN')}</td>
-        <td class="n">${Math.round(r.Value).toLocaleString('en-IN')}</td><td class="n">${Math.round(r.Amount).toLocaleString('en-IN')}</td>
+        <td class="n">${(r.Value/1e5).toFixed(2)}</td><td class="n">${r.Amount.toFixed(2)}</td>
         <td class="n badv">${(r.Diff>0?'+':'')+Math.round(r.Diff).toLocaleString('en-IN')}</td></tr>`;
     });
     h+=`</tbody></table></div>`;
@@ -665,7 +668,7 @@ function renderCheck(){
 function lineObj(r,bk){return{'Gsl PO':r.PO,'BarCode':r.EAN,'Vendor':r.Vendor,'Order Date':ENGINE.fmtD(r.OrderT),'Delivery Date':ENGINE.fmtD(r.DelT),
   'Bucket':(bk.list.find(b=>b.key===bk.of(r.DelT))||{label:'No date'}).label,'Brand':r.Brand,'Channel':r.Channel,'Category':r.Category,
   'Style':r.Style,'Style Code':r.StyleCode,'Style Name':r.StyleName,'Color':r.Color,'Remark':r.Remark,'Buying for':r.BuyingFor,'Currency':r.Currency,
-  'Pending Qty':r.Qty,'Rate':r.Rate,'Landed Rate':r.Landed,'Qty × Landed':Math.round(r.Value),'Amount':r.Amount,'Amount check':r.Mismatch?'MISMATCH':''};}
+  'Pending Qty':r.Qty,'Rate':r.Rate,'Landed Rate':r.Landed,'Qty × Landed (₹L)':+(r.Value/1e5).toFixed(2),'Amount (₹L)':r.Amount,'Amount check':r.Mismatch?'MISMATCH':''};}
 function downloadLines(){
   const bk=ENGINE.buckets(PER,todayT()),wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(filtered().map(r=>lineObj(r,bk))),'Open PO lines');
@@ -673,7 +676,7 @@ function downloadLines(){
 }
 function dlCheck(w){
   const bk=ENGINE.buckets(PER,todayT()),wb=XLSX.utils.book_new();
-  if(w==='mm')XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(MISMATCH.map(r=>({...lineObj(r,bk),'Difference':Math.round(r.Diff)}))),'Amount mismatch');
+  if(w==='mm')XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(MISMATCH.map(r=>({...lineObj(r,bk),'Difference (₹)':Math.round(r.Diff)}))),'Amount mismatch');
   else XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(UNMAPPED.map(u=>({BarCode:u.EAN,Vendor:u.Vendor,Lines:u.Lines,'Pending Qty':u.Qty,'Value ₹':Math.round(u.Value)}))),'Unmapped EANs');
   XLSX.writeFile(wb,'BCL_Open_PO_'+(w==='mm'?'Amount_Mismatch_':'Unmapped_')+new Date().toISOString().slice(0,10)+'.xlsx');
 }
